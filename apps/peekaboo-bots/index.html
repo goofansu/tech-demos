@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A joyful gallery of Grok-style bot avatars. Click any friend to play peekaboo."
+    />
+    <title>Peekaboo Bots — Grok Bot Zoo</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#zoo">Skip to bots</a>
+    <div class="ambient" aria-hidden="true"></div>
+    <header class="hero">
+      <p class="eyebrow">Grok Bot Zoo</p>
+      <h1>Peekaboo Bots</h1>
+      <p class="lede">
+        Eighteen soft little shapes. Tap, click, or press
+        <kbd>Enter</kbd> / <kbd>Space</kbd> — they hide, then peek back with a
+        wiggle.
+      </p>
+      <div class="toolbar">
+        <button type="button" class="pill" id="mute-toggle" aria-pressed="false">
+          <span class="pill-icon" aria-hidden="true">🔊</span>
+          <span class="pill-label">Sound on</span>
+        </button>
+        <p class="hint">Warm, silly, never scary.</p>
+      </div>
+    </header>
+    <main id="zoo" class="zoo" aria-label="Bot gallery"></main>
+    <p class="sr-live" id="peek-live" aria-live="polite"></p>
+    <footer>
+      <p>Made for people who love Grok bots a little too much.</p>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
