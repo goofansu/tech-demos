@@ -19,23 +19,13 @@ Do not introduce a root bundler, workspace `package.json`, or shared UI kit unle
 4. Prefer Bun + a light stack (Vite + vanilla or React).
 5. When the demo exists, append its slug to `tracking/seen-bookmarks.json` → `built`, and add a README bullet: `[Title](apps/<name>/) — short description.`
 6. Keep README an index. Do not dump runbooks, shape lists, or implementation notes there — those belong in the app or here.
+7. Demos may keep their own `apps/<name>/README.md` for product rules and implementation details.
 
-## Peekaboo Bots (`apps/peekaboo-bots/`)
+## Hosting on exe.dev
 
-Joyful single-page zoo of Grok-style avatar blobs. Vanilla Vite (no React). Shapes and palettes live in `src/bots.js`; click/keyboard peekaboo in `src/main.js` + `src/style.css`; optional Web Audio chime in `src/audio.js`.
+Demos are published on the sticky exe.dev VM `goofansu` at https://goofansu.exe.xyz (the proxy targets port **8000**, this repo's convention). JS dev servers (Vite, Next.js, …) must allow the exe.dev hostname, or the proxy returns a host-not-allowed / blocked-request page.
 
-```bash
-cd apps/peekaboo-bots && bun install && bun run dev
-```
+- **Vite ≥ 5**: set `server.allowedHosts` (and `preview.allowedHosts` if using preview) to include `goofansu.exe.xyz` — or `allowedHosts: true` on this demo VM. Bind so the proxy can reach the server (`host: true` / `0.0.0.0`) and listen on port 8000.
+- **Next.js ≥ 15.2**: set `allowedDevOrigins` to include `goofansu.exe.xyz` (plus port variants if needed) and run `next dev -H 0.0.0.0 -p 8000`.
 
-Open `http://localhost:8000/`.
-
-### Product rules
-
-- Show **all 18** silhouettes, each a distinct CSS/SVG clay-like Grok blob (not generic icons): blob, pebble, bean, egg, squircle, tablet, capsule, cylinder, hex, gem, crystal, wedge, shield, dome, arch, cloud, teardrop, leaf.
-- Vary **colors** across the grid: black, brown, red, orange, yellow, green, cyan, blue, violet, magenta, gray. Cards label shape + color.
-- Every card is a **button**: click or focus + Enter/Space plays peekaboo (hide / duck / cover, then bounce or wiggle back). Hover lifts slightly; cursor pointer. Warm, not scary.
-- Honor `prefers-reduced-motion`. Mute toggle for the optional sound.
-- Warm playful UI (rounded cards, soft shadows). Title is “Peekaboo Bots” / Grok Bot Zoo.
-
-If you extend this demo, keep it self-contained in `apps/peekaboo-bots/` and keep all 18 shapes working.
+Traffic flows through the exe.dev HTTPS proxy at `https://<vm>.exe.xyz/`; the VM is exposed via `share port` / `share set-public` (see exe.dev proxy docs). Details: https://exe.dev/docs/faq/nextjs-and-friends
