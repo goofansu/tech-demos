@@ -18,7 +18,7 @@ Open `http://localhost:8000/` (or `PORT` if set).
 
 ## Product rules
 
-- Show **all 18** silhouettes, each a distinct CSS/SVG clay-like Grok blob (not generic icons): blob, pebble, bean, egg, squircle, tablet, capsule, cylinder, hex, gem, crystal, wedge, shield, dome, arch, cloud, teardrop, leaf.
+- Show **all 18** silhouettes, each a distinct CSS/SVG clay-like Grok blob (not generic icons): blob, pebble, bean, egg, squircle, tablet, capsule, cylinder, hex, gem, crystal, wedge, shield, dome, arch, cloud, teardrop, leaf. The 18 silhouettes come from an internal character-mark enum, not a public agent-profile API; the Grok Bot Character UI currently surfaces only 8 of them.
 - Vary **colors** across the grid: black, brown, red, orange, yellow, green, cyan, blue, violet, magenta, gray. Cards label shape + color.
 - Every card is a **button**: click or focus + Enter/Space plays peekaboo (hide / duck / cover, then bounce or wiggle back). Hover lifts slightly; cursor pointer. Warm, not scary.
 - Honor `prefers-reduced-motion`. Mute toggle for the optional sound.
