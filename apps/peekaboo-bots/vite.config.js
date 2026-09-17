@@ -7,12 +7,10 @@ export default defineConfig({
     host: true,
     port,
     strictPort: true,
-    allowedHosts: true,
   },
   preview: {
     host: true,
     port,
     strictPort: true,
-    allowedHosts: true,
   },
 });

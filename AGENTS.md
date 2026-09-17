@@ -10,6 +10,7 @@ Sticky monorepo of small, self-contained JavaScript demos. Humans and agents add
 - This file — conventions for future agents
 
 Do not introduce a root bundler, workspace `package.json`, or shared UI kit unless a human asks.
+Demos are local-only: do not add Vercel, exe.dev, or other hosting config or deploy docs.
 
 ## Adding or changing a demo
 
@@ -20,12 +21,3 @@ Do not introduce a root bundler, workspace `package.json`, or shared UI kit unle
 5. When the demo exists, append its slug to `tracking/seen-bookmarks.json` → `built`, and add a README bullet: `[Title](apps/<name>/) — short description.`
 6. Keep README an index. Do not dump runbooks, shape lists, or implementation notes there — those belong in the app or here.
 7. Demos may keep their own `apps/<name>/README.md` for product rules and implementation details.
-
-## Hosting on exe.dev
-
-Demos are published on the sticky exe.dev VM `goofansu` at https://goofansu.exe.xyz (the proxy targets port **8000**, this repo's convention). JS dev servers (Vite, Next.js, …) must allow the exe.dev hostname, or the proxy returns a host-not-allowed / blocked-request page.
-
-- **Vite ≥ 5**: set `server.allowedHosts` (and `preview.allowedHosts` if using preview) to include `goofansu.exe.xyz` — or `allowedHosts: true` on this demo VM. Bind so the proxy can reach the server (`host: true` / `0.0.0.0`) and listen on port 8000.
-- **Next.js ≥ 15.2**: set `allowedDevOrigins` to include `goofansu.exe.xyz` (plus port variants if needed) and run `next dev -H 0.0.0.0 -p 8000`.
-
-Traffic flows through the exe.dev HTTPS proxy at `https://<vm>.exe.xyz/`; the VM is exposed via `share port` / `share set-public` (see exe.dev proxy docs). Details: https://exe.dev/docs/faq/nextjs-and-friends
