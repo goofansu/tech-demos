@@ -23,9 +23,9 @@ Do not introduce a root bundler, workspace `package.json`, or shared UI kit unle
 
 ## Hosting on exe.dev
 
-Demos are published on the sticky exe.dev VM `goofansu` at https://goofansu.exe.xyz (the proxy targets port **8000**, this repo's convention). JS dev servers (Vite, Next.js, …) must allow the exe.dev hostname, or the proxy returns a host-not-allowed / blocked-request page.
+Demos are published on the sticky exe.dev VM `tech-demos` at https://tech-demos.exe.xyz (the proxy targets port **8000**, this repo's convention). JS dev servers (Vite, Next.js, …) must allow the deployment hostname, or the proxy returns a host-not-allowed / blocked-request page.
 
-- **Vite ≥ 5**: set `server.allowedHosts` (and `preview.allowedHosts` if using preview) to include `goofansu.exe.xyz` — or `allowedHosts: true` on this demo VM. Bind so the proxy can reach the server (`host: true` / `0.0.0.0`) and listen on port 8000.
-- **Next.js ≥ 15.2**: set `allowedDevOrigins` to include `goofansu.exe.xyz` (plus port variants if needed) and run `next dev -H 0.0.0.0 -p 8000`.
+- **Vite ≥ 5**: set `server.allowedHosts` (and `preview.allowedHosts` if using preview) to include `tech-demos.exe.xyz` — or `allowedHosts: true` on this demo VM. Bind so the proxy can reach the server (`host: true` / `0.0.0.0`) and listen on port 8000.
+- **Next.js ≥ 15.2**: set `allowedDevOrigins` to include `tech-demos.exe.xyz` (plus port variants if needed) and run `next dev -H 0.0.0.0 -p 8000`.
 
-Traffic flows through the exe.dev HTTPS proxy at `https://<vm>.exe.xyz/`; the VM is exposed via `share port` / `share set-public` (see exe.dev proxy docs). Details: https://exe.dev/docs/faq/nextjs-and-friends
+Traffic flows through the exe.dev HTTPS proxy at https://tech-demos.exe.xyz/; the VM is exposed via `share port` / `share set-public` (see exe.dev proxy docs). Details: https://exe.dev/docs/faq/nextjs-and-friends
