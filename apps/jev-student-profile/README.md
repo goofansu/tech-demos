@@ -44,8 +44,8 @@ Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
 - **Batch** — run the current Author rubric on 100 bundled students.
   **Classify all** fires an individual `POST /api/evaluate` per row (all
   questions in that call) with up to 6 in flight at once. The table shows
-  status, fired profile outcomes, and latency — not source text or
-  per-question chips. Results live in React state only —
+  status, fired profile outcomes, latency, and estimated USD cost per row
+  (`usage.input_tokens` × $0.042 / MTok; output is free). Results live in React state only —
   refresh or leaving the page clears them. Stop cancels leftover work;
   Reset clears answers in memory. Without an API key the action is disabled.
 

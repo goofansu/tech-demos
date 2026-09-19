@@ -49,7 +49,7 @@ Speed demo: a table of 100 bundled students. **Classify all** sends one
 `POST /api/evaluate` per row using the **current Author rubric** (every
 question in that `systemone` call), with a concurrency cap of 6 so the UI
 fills in as rows complete. The table shows status, fired profile
-conditions, and latency (plus # / student). Results are React-state only — never written to
+conditions, latency, and estimated USD cost per call. Results are React-state only — never written to
 `localStorage` or the server. Refresh starts empty. Stop aborts leftover
 work; Reset clears in-memory answers.
 
