@@ -33,11 +33,20 @@ describe("i18n catalogs", () => {
 
   test("translate interpolates variables", () => {
     expect(translate("en", "app.subtitle", { name: "Grade 8", count: 5 })).toBe(
-      "Grade 8 · 5 questions · TypeSafe Jev only",
+      "Grade 8 · 5 questions",
     );
     expect(translate("zh-CN", "app.subtitle", { name: "八年级学习者画像", count: 5 })).toBe(
-      "八年级学习者画像 · 5 道题 · 仅使用 TypeSafe Jev",
+      "八年级学习者画像 · 5 道题",
     );
+  });
+
+  test("mode buttons use Single/Batch/Edit and 单人/批量/编辑", () => {
+    expect(translate("en", "app.run")).toBe("Single");
+    expect(translate("en", "app.batch")).toBe("Batch");
+    expect(translate("en", "app.author")).toBe("Edit");
+    expect(translate("zh-CN", "app.run")).toBe("单人");
+    expect(translate("zh-CN", "app.batch")).toBe("批量");
+    expect(translate("zh-CN", "app.author")).toBe("编辑");
   });
 
   test("score.levels names the Jev max, not a 10-point scale", () => {

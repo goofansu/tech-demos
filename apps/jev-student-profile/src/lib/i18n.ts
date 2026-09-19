@@ -17,12 +17,12 @@ export const en = {
   },
   app: {
     title: "Student Profile Rubric Builder",
-    subtitle: "{name} · {count} questions · TypeSafe Jev only",
+    subtitle: "{name} · {count} questions",
     mode: "Mode",
-    run: "Run",
-    author: "Author",
+    run: "Single",
+    author: "Edit",
     batch: "Batch",
-    batchSubtitle: "{count} students · {questions} questions · {limit} at a time · TypeSafe Jev only",
+    batchSubtitle: "{count} students · {questions} questions · {limit} at a time",
     language: "Language",
     footer:
       "Jev is asked every question in one {systemone} request; thresholds and conditions are evaluated in code. The API key stays on the server behind {evaluate}.",
@@ -252,12 +252,12 @@ export const zhCN: DeepString<typeof en> = {
   },
   app: {
     title: "学生画像量表构建器",
-    subtitle: "{name} · {count} 道题 · 仅使用 TypeSafe Jev",
+    subtitle: "{name} · {count} 道题",
     mode: "模式",
-    run: "评测",
-    author: "编写",
+    run: "单人",
+    author: "编辑",
     batch: "批量",
-    batchSubtitle: "{count} 名学生 · {questions} 道题 · 每次 {limit} 路并发 · 仅使用 TypeSafe Jev",
+    batchSubtitle: "{count} 名学生 · {questions} 道题 · 每次 {limit} 路并发",
     language: "语言",
     footer:
       "Jev 在一次 {systemone} 请求中回答全部题目；阈值与条件在代码中判定。API 密钥仅留在服务器的 {evaluate} 接口之后。",
