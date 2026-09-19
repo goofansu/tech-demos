@@ -43,9 +43,9 @@ Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
   cites `work_sample` can see that the excerpt is missing.
 - **Batch** — run the current Author rubric on 100 bundled students.
   **Classify all** fires an individual `POST /api/evaluate` per row (all
-  questions in that call) with up to 6 in flight at once. The table has no
-  source-text column: each question is its own result chip, plus fired
-  profile conditions and latency. Results live in React state only —
+  questions in that call) with up to 6 in flight at once. The table shows
+  status, fired profile outcomes, and latency — not source text or
+  per-question chips. Results live in React state only —
   refresh or leaving the page clears them. Stop cancels leftover work;
   Reset clears answers in memory. Without an API key the action is disabled.
 

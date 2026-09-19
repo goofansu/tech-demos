@@ -66,12 +66,7 @@ export default function App() {
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
-        <div
-          className={cn(
-            "mx-auto flex flex-wrap items-center gap-4 px-5 py-3",
-            mode === "batch" ? "max-w-wide" : "max-w-7xl",
-          )}
-        >
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-5 py-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground">
               J
@@ -132,7 +127,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className={cn("mx-auto px-5 py-6", mode === "batch" ? "max-w-wide" : "max-w-7xl")}>
+      <main className="mx-auto max-w-7xl px-5 py-6">
         {mode === "author" ? (
           <AuthorMode
             rubric={rubric}
@@ -146,12 +141,7 @@ export default function App() {
         )}
       </main>
 
-      <footer
-        className={cn(
-          "mx-auto px-5 pb-8 text-xs text-muted-foreground",
-          mode === "batch" ? "max-w-wide" : "max-w-7xl",
-        )}
-      >
+      <footer className="mx-auto max-w-7xl px-5 pb-8 text-xs text-muted-foreground">
         <RichText
           path={mode === "batch" ? "app.batchFooter" : "app.footer"}
           tokens={{

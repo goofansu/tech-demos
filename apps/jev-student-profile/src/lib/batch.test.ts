@@ -4,17 +4,11 @@ import {
   BATCH_SIZE,
   batchRecords,
   buildBatchRequest,
-  choiceLabel,
   emptyBatchResults,
   rubricKey,
-  summarizeFieldAnswer,
 } from "./batch";
 import { BATCH_RECORDS_EN, BATCH_RECORDS_ZH } from "./batch-records";
-import { translate } from "./i18n";
 import { SAMPLE_RUBRIC } from "./sample";
-
-const t = (path: Parameters<typeof translate>[1], vars?: Parameters<typeof translate>[2]) =>
-  translate("en", path, vars);
 
 describe("batch dataset", () => {
   test("ships 100 distinct English students with rubric inputs", () => {
@@ -64,36 +58,5 @@ describe("batch request", () => {
     expect(emptyBatchResults()).toEqual({});
     expect(BATCH_CONCURRENCY).toBe(6);
     expect(rubricKey(SAMPLE_RUBRIC)).toContain("learning_style:choice");
-  });
-});
-
-describe("summarizeFieldAnswer", () => {
-  test("renders choice, score, and noul as short chips", () => {
-    const choice = SAMPLE_RUBRIC.fields.find((f) => f.id === "learning_style");
-    const score = SAMPLE_RUBRIC.fields.find((f) => f.id === "writing_quality");
-    const noul = SAMPLE_RUBRIC.fields.find((f) => f.id === "needs_support");
-    if (!choice || !score || !noul) throw new Error("expected sample fields");
-
-    expect(
-      summarizeFieldAnswer(
-        choice,
-        { type: "choice", choice: "hands_on", confidence: 0.8, probabilities: {} },
-        t,
-      ),
-    ).toMatchObject({ text: "hands on", tone: "choice" });
-
-    expect(
-      summarizeFieldAnswer(
-        score,
-        { type: "score", score: 2.4, confidence: 0.7, legend: {}, probabilities: {} },
-        t,
-      ),
-    ).toMatchObject({ text: "2.4", tone: "success" });
-
-    expect(summarizeFieldAnswer(noul, { type: "noul", noul: 0.2 }, t)).toMatchObject({
-      text: "No",
-      tone: "outline",
-    });
-    expect(choiceLabel("hands_on")).toBe("hands on");
   });
 });

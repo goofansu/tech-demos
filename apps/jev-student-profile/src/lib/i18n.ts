@@ -183,8 +183,7 @@ export const en = {
     statusError: "Error",
     emptyCell: "—",
     noneFired: "None",
-    choiceDetail: "{label} · confidence {pct}%",
-    tableCaption: "One hundred students and their full-rubric Jev results",
+    tableCaption: "One hundred students with status, profile outcomes, and latency",
   },
   answers: {
     noAnswer: "No answer returned for this question.",
@@ -411,8 +410,7 @@ export const zhCN: DeepString<typeof en> = {
     statusError: "失败",
     emptyCell: "—",
     noneFired: "无",
-    choiceDetail: "{label} · 置信度 {pct}%",
-    tableCaption: "一百名学生及其完整量表的 Jev 结果",
+    tableCaption: "一百名学生的状态、画像结果与耗时",
   },
   answers: {
     noAnswer: "这道题没有返回答案。",
