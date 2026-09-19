@@ -3,7 +3,6 @@ import { AuthorMode } from "@/components/author/author-mode";
 import { BatchMode } from "@/components/batch/batch-mode";
 import { RunMode } from "@/components/run/run-mode";
 import { Badge } from "@/components/ui/badge";
-import { BATCH_CONCURRENCY, BATCH_SIZE } from "@/lib/batch";
 import { RichText, useI18n } from "@/lib/i18n-context";
 import { LOCALES, LOCALE_LABELS, type Locale, type MessagePath } from "@/lib/i18n";
 import { fetchStatus } from "@/lib/jev";
@@ -67,18 +66,7 @@ export default function App() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-3">
-          <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold tracking-tight">{t("app.title")}</h1>
-            <p className="truncate text-xs text-muted-foreground">
-              {mode === "batch"
-                ? t("app.batchSubtitle", {
-                    count: BATCH_SIZE,
-                    questions: rubric.fields.length,
-                    limit: BATCH_CONCURRENCY,
-                  })
-                : t("app.subtitle", { name: rubric.name, count: rubric.fields.length })}
-            </p>
-          </div>
+          <h1 className="min-w-0 truncate text-sm font-semibold tracking-tight">{t("app.title")}</h1>
 
           <div className="flex flex-wrap items-center gap-2">
             <nav aria-label={t("app.mode")} className="flex rounded-lg bg-muted p-1">
