@@ -1,40 +1,32 @@
 import * as React from "react";
+import { TONE_BADGE } from "@/components/author/conditions-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
 import {
   BATCH_CONCURRENCY,
-  BATCH_OPTION_KEYS,
-  BATCH_QUESTION_ID,
   BATCH_SIZE,
-  BATCH_STATE_KEY,
-  batchQuestion,
   batchRecords,
   buildBatchRequest,
   emptyBatchResults,
-  isBatchOptionKey,
-  type BatchOptionKey,
+  rubricKey,
+  summarizeFieldAnswer,
   type BatchRowResult,
   type BatchRowStatus,
 } from "@/lib/batch";
-import { RichText, useI18n } from "@/lib/i18n-context";
+import { evaluateConditions } from "@/lib/conditions";
+import { useI18n } from "@/lib/i18n-context";
 import type { MessagePath } from "@/lib/i18n";
-import { evaluate } from "@/lib/jev";
+import { evaluate, rubricProblems } from "@/lib/jev";
 import { isAbortError, runPool } from "@/lib/pool";
 import { cn } from "@/lib/utils";
-import type { ApiStatus } from "@/lib/types";
+import type { ApiStatus, Rubric, RubricField } from "@/lib/types";
 
 type Props = {
+  rubric: Rubric;
   status: ApiStatus | null;
-};
-
-const OPTION_PATH: Record<BatchOptionKey, MessagePath> = {
-  support: "batch.optionSupport",
-  extension: "batch.optionExtension",
-  collaboration: "batch.optionCollaboration",
-  reflection: "batch.optionReflection",
-  mixed: "batch.optionMixed",
+  onGoAuthor: () => void;
 };
 
 const STATUS_PATH: Record<BatchRowStatus, MessagePath> = {
@@ -53,14 +45,6 @@ const STATUS_TONE = {
   error: "danger",
 } as const;
 
-const RESULT_TONE = {
-  support: "warning",
-  extension: "success",
-  collaboration: "choice",
-  reflection: "noul",
-  mixed: "default",
-} as const;
-
 const ROW_BG = {
   idle: "even:bg-muted/40",
   queued: "even:bg-muted/40",
@@ -69,22 +53,31 @@ const ROW_BG = {
   error: "bg-danger-soft/50",
 } as const;
 
-export function BatchMode({ status }: Props) {
+export function BatchMode({ rubric, status, onGoAuthor }: Props) {
   const { locale, t } = useI18n();
   const records = batchRecords(locale);
-  const question = batchQuestion(locale);
   const [results, setResults] = React.useState(emptyBatchResults);
   const [running, setRunning] = React.useState(false);
   const [clock, setClock] = React.useState(0);
   const [timing, setTiming] = React.useState<{ start: number; end: number | null } | null>(null);
   const [appliedLocale, setAppliedLocale] = React.useState(locale);
+  const [appliedRubric, setAppliedRubric] = React.useState(() => rubricKey(rubric));
   const controllerRef = React.useRef<AbortController | null>(null);
   const runIdRef = React.useRef(0);
 
   const missingKey = status !== null && !status.ready;
+  const problems = rubricProblems(rubric, t);
+  const nextRubricKey = rubricKey(rubric);
 
   if (appliedLocale !== locale) {
     setAppliedLocale(locale);
+    setResults(emptyBatchResults());
+    setTiming(null);
+    setRunning(false);
+  }
+
+  if (appliedRubric !== nextRubricKey) {
+    setAppliedRubric(nextRubricKey);
     setResults(emptyBatchResults());
     setTiming(null);
     setRunning(false);
@@ -96,6 +89,13 @@ export function BatchMode({ status }: Props) {
     controllerRef.current?.abort();
     controllerRef.current = null;
   }, [locale]);
+
+  React.useEffect(() => {
+    void nextRubricKey;
+    runIdRef.current += 1;
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+  }, [nextRubricKey]);
 
   React.useEffect(() => {
     return () => {
@@ -115,13 +115,13 @@ export function BatchMode({ status }: Props) {
   };
 
   const classifyAll = async () => {
-    if (running || missingKey) return;
+    if (running || missingKey || problems.length > 0) return;
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
-    const localeAtStart = locale;
+    const rubricAtStart = rubric;
     setResults(Object.fromEntries(records.map((row) => [row.id, { status: "queued" as const }])));
     setTiming({ start: performance.now(), end: null });
     setClock(performance.now());
@@ -135,28 +135,14 @@ export function BatchMode({ status }: Props) {
           patch(record.id, { status: "running" }, runId);
           const started = performance.now();
           try {
-            const response = await evaluate(buildBatchRequest(record.text, localeAtStart), {
+            const response = await evaluate(buildBatchRequest(rubricAtStart, record), {
               signal: controller.signal,
             });
-            const answer = response.answers[BATCH_QUESTION_ID];
-            if (!answer || answer.type !== "choice") {
-              patch(
-                record.id,
-                {
-                  status: "error",
-                  error: t("answers.noAnswer"),
-                  latencyMs: response.latencyMs,
-                },
-                runId,
-              );
-              return;
-            }
             patch(
               record.id,
               {
                 status: "done",
-                label: answer.choice,
-                confidence: answer.confidence,
+                answers: response.answers,
                 latencyMs: response.latencyMs,
               },
               runId,
@@ -223,8 +209,7 @@ export function BatchMode({ status }: Props) {
   const elapsedMs = timing ? (timing.end ?? clock) - timing.start : 0;
   const elapsedSec = timing ? (elapsedMs / 1000).toFixed(1) : null;
   const hasAnyResult = Object.keys(results).length > 0;
-
-  const optionLabel = (key: string) => (isBatchOptionKey(key) ? t(OPTION_PATH[key]) : key);
+  const canClassify = !running && !missingKey && problems.length === 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -232,10 +217,10 @@ export function BatchMode({ status }: Props) {
         <CardHeader>
           <div className="min-w-0">
             <CardTitle>{t("batch.title")}</CardTitle>
-            <CardDescription>{t("batch.hint")}</CardDescription>
+            <CardDescription>{t("batch.hint", { count: rubric.fields.length })}</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="lg" disabled={running || missingKey} onClick={() => void classifyAll()}>
+            <Button size="lg" disabled={!canClassify} onClick={() => void classifyAll()}>
               {running ? t("batch.classifying") : t("batch.classifyAll")}
             </Button>
             <Button variant="outline" disabled={!running} onClick={stop}>
@@ -254,23 +239,27 @@ export function BatchMode({ status }: Props) {
             </div>
           ) : null}
 
+          {problems.length > 0 ? (
+            <div role="alert" className="rounded-lg border border-warning/40 bg-warning-soft px-3 py-2 text-xs">
+              <p className="font-medium text-warning-foreground">{t("run.rubricProblems")}</p>
+              <button type="button" className="underline text-warning-foreground" onClick={onGoAuthor}>
+                {t("run.fixInAuthor")}
+              </button>
+            </div>
+          ) : null}
+
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline gap-2">
-              <p className="text-sm font-medium">{t("batch.questionTitle")}</p>
-              <p className="text-sm">{t("batch.questionLabel")}</p>
-              <Badge tone="choice">Choice</Badge>
+              <p className="text-sm font-medium">{rubric.name}</p>
+              <span className="text-xs text-muted-foreground">
+                {t("batch.questionCount", { count: rubric.fields.length })}
+              </span>
               <span className="text-xs text-muted-foreground">{t("batch.concurrency", { n: BATCH_CONCURRENCY })}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              <RichText
-                path="batch.questionHelp"
-                tokens={{ state: <code className="font-mono">{BATCH_STATE_KEY}</code> }}
-              />
-            </p>
             <div className="flex flex-wrap gap-1.5">
-              {BATCH_OPTION_KEYS.map((key) => (
-                <Badge key={key} tone={RESULT_TONE[key]} title={question.criteria[key] ?? key}>
-                  {t(OPTION_PATH[key])}
+              {rubric.fields.map((field) => (
+                <Badge key={field.id} tone={field.type} title={field.instructions}>
+                  {field.label || field.id}
                 </Badge>
               ))}
             </div>
@@ -285,33 +274,39 @@ export function BatchMode({ status }: Props) {
               {elapsedSec !== null ? <span>{t("batch.elapsed", { seconds: elapsedSec })}</span> : null}
               {avgMs !== null ? <span>{t("batch.avgMs", { ms: avgMs })}</span> : null}
             </div>
-            <Meter value={doneCount / BATCH_SIZE} tone="choice" label={t("batch.progress", { done: doneCount, total: BATCH_SIZE })} />
+            <Meter
+              value={doneCount / BATCH_SIZE}
+              tone="choice"
+              label={t("batch.progress", { done: doneCount, total: BATCH_SIZE })}
+            />
           </div>
         </CardContent>
       </Card>
 
       <div className="max-h-batch overflow-auto rounded-xl border bg-card shadow-xs">
-        <table className="w-full table-fixed text-left text-sm">
+        <table className="w-max min-w-full text-left text-sm">
           <caption className="sr-only">{t("batch.tableCaption")}</caption>
           <thead className="sticky top-0 z-10 border-b bg-card">
             <tr className="text-xs text-muted-foreground">
-              <th className="w-12 px-3 py-2 font-medium font-mono" scope="col">
+              <th className="sticky left-0 z-20 w-12 bg-card px-3 py-2 font-medium font-mono" scope="col">
                 {t("batch.colIndex")}
               </th>
-              <th className="w-28 px-3 py-2 font-medium" scope="col">
+              <th className="sticky left-12 z-20 w-28 bg-card px-3 py-2 font-medium" scope="col">
                 {t("batch.colName")}
-              </th>
-              <th className="px-3 py-2 font-medium" scope="col">
-                {t("batch.colPreview")}
               </th>
               <th className="w-24 px-3 py-2 font-medium" scope="col">
                 {t("batch.colStatus")}
               </th>
-              <th className="w-28 px-3 py-2 font-medium" scope="col">
-                {t("batch.colResult")}
-              </th>
-              <th className="w-16 px-3 py-2 font-medium" scope="col">
-                {t("batch.colConfidence")}
+              {rubric.fields.map((field) => (
+                <th key={field.id} className="min-w-28 px-3 py-2 font-medium" scope="col" title={field.instructions}>
+                  <span className="flex items-center gap-1.5">
+                    <Badge tone={field.type}>{field.type}</Badge>
+                    <span className="truncate">{field.label || field.id}</span>
+                  </span>
+                </th>
+              ))}
+              <th className="min-w-48 px-3 py-2 font-medium" scope="col">
+                {t("batch.colProfile")}
               </th>
               <th className="w-16 px-3 py-2 text-right font-medium font-mono" scope="col">
                 {t("batch.colLatency")}
@@ -323,27 +318,30 @@ export function BatchMode({ status }: Props) {
               const row = results[record.id] ?? { status: "idle" as const };
               return (
                 <tr key={record.id} className={cn("border-b last:border-b-0", ROW_BG[row.status])}>
-                  <td className="px-3 py-1.5 font-mono tabular-nums text-xs text-muted-foreground">{index + 1}</td>
-                  <td className="truncate px-3 py-1.5 text-xs font-medium" title={record.name}>
-                    {record.name}
+                  <td className="sticky left-0 z-0 bg-inherit px-3 py-1.5 font-mono tabular-nums text-xs text-muted-foreground">
+                    {index + 1}
                   </td>
-                  <td className="truncate px-3 py-1.5 text-xs text-muted-foreground" title={record.text}>
-                    {record.text}
+                  <td className="sticky left-12 z-0 truncate bg-inherit px-3 py-1.5 text-xs font-medium" title={record.name}>
+                    {record.name}
                   </td>
                   <td className="px-3 py-1.5">
                     {row.status === "idle" ? (
                       <span className="text-xs text-muted-foreground">{t("batch.statusIdle")}</span>
+                    ) : row.status === "error" ? (
+                      <Badge tone="danger" title={row.error}>
+                        {t("batch.statusError")}
+                      </Badge>
                     ) : (
                       <Badge tone={STATUS_TONE[row.status]}>{t(STATUS_PATH[row.status])}</Badge>
                     )}
                   </td>
+                  {rubric.fields.map((field) => (
+                    <td key={field.id} className="px-3 py-1.5">
+                      <AnswerChip field={field} row={row} />
+                    </td>
+                  ))}
                   <td className="px-3 py-1.5">
-                    <ResultCell row={row} optionLabel={optionLabel} />
-                  </td>
-                  <td className="px-3 py-1.5 font-mono tabular-nums text-xs">
-                    {typeof row.confidence === "number"
-                      ? t("batch.confidencePct", { pct: Math.round(row.confidence * 100) })
-                      : t("batch.emptyCell")}
+                    <ProfileChips rubric={rubric} row={row} />
                   </td>
                   <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">
                     {typeof row.latencyMs === "number" ? row.latencyMs : t("batch.emptyCell")}
@@ -358,30 +356,41 @@ export function BatchMode({ status }: Props) {
   );
 }
 
-function ResultCell({
-  row,
-  optionLabel,
-}: {
-  row: BatchRowResult;
-  optionLabel: (key: string) => string;
-}) {
+function AnswerChip({ field, row }: { field: RubricField; row: BatchRowResult }) {
   const { t } = useI18n();
-  if (row.status === "error") {
-    return (
-      <Badge tone="danger" title={row.error}>
-        {t("batch.statusError")}
-      </Badge>
-    );
-  }
-  if (row.status !== "done" || !row.label) {
+  if (row.status !== "done") {
     return <span className="text-xs text-muted-foreground">{t("batch.emptyCell")}</span>;
   }
-  const label = optionLabel(row.label);
-  const pct = typeof row.confidence === "number" ? Math.round(row.confidence * 100) : 0;
-  const tone = isBatchOptionKey(row.label) ? RESULT_TONE[row.label] : "outline";
+  const chip = summarizeFieldAnswer(field, row.answers?.[field.id], t);
+  if (!chip) {
+    return <span className="text-xs text-muted-foreground">{t("batch.emptyCell")}</span>;
+  }
   return (
-    <Badge tone={tone} title={t("batch.resultDetail", { label, pct })}>
-      {label}
+    <Badge tone={chip.tone} title={chip.title}>
+      {chip.text}
     </Badge>
+  );
+}
+
+function ProfileChips({ rubric, row }: { rubric: Rubric; row: BatchRowResult }) {
+  const { t } = useI18n();
+  if (row.status !== "done" || !row.answers) {
+    return <span className="text-xs text-muted-foreground">{t("batch.emptyCell")}</span>;
+  }
+  if (rubric.conditions.length === 0) {
+    return <span className="text-xs text-muted-foreground">{t("batch.emptyCell")}</span>;
+  }
+  const fired = evaluateConditions(rubric.conditions, rubric.fields, row.answers).filter((item) => item.fired);
+  if (fired.length === 0) {
+    return <span className="text-xs text-muted-foreground">{t("batch.noneFired")}</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1">
+      {fired.map((item) => (
+        <Badge key={item.condition.id} tone={TONE_BADGE[item.condition.tone]}>
+          {item.condition.label}
+        </Badge>
+      ))}
+    </div>
   );
 }

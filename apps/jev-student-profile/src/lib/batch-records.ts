@@ -1,7 +1,9 @@
+import type { JevState } from "./types";
+
 export type BatchRecord = {
   id: string;
   name: string;
-  text: string;
+  state: JevState;
 };
 
 const GIVEN = [
@@ -172,37 +174,61 @@ function idAt(index: number): string {
   return String(index + 1).padStart(3, "0");
 }
 
-function supportText(d: Detail): string {
-  return `I'm lost on ${d.topic}. I tried ${d.attempt}, but ${d.extra}. I fell behind in ${d.subject} and I am nervous to ask in front of everyone. Can someone walk me through the first step?`;
+function cap(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function extensionText(d: Detail): string {
-  return `I finished the required work on ${d.topic} during ${d.subject} and still had time, so I started an extension: I compared two extra examples after ${d.attempt}. ${d.extra.charAt(0).toUpperCase()}${d.extra.slice(1)}, which made me want a harder prompt. I already outlined what I would try next without being asked.`;
+function supportState(d: Detail): JevState {
+  return {
+    teacher_notes: `Has missed recent ${d.subject} work and looked lost on ${d.topic}. Stayed quiet and did not ask for help. ${cap(d.extra)}. Pace is slipping.`,
+    student_reflection: `I'm okay at ${d.topic} I guess. I need to do better. I'll try harder next time.`,
+    work_sample: `the thing about ${d.topic} is hard, i try ${d.attempt} but it dont work. i think ${d.extra}. the writing is not organized`,
+  };
 }
 
-function collaborationText(d: Detail): string {
-  return `In our group for ${d.subject} I kept the talk going about ${d.topic}. After ${d.attempt}, I asked two classmates to explain their steps out loud so we could compare. ${d.extra.charAt(0).toUpperCase()}${d.extra.slice(1)}, and talking it through with peers is what actually moved us. I would rather keep this as a discussion than write alone.`;
+function extensionState(d: Detail): JevState {
+  return {
+    teacher_notes: `Finished the required ${d.subject} work on ${d.topic} early and started an optional extension without being asked. Homework is complete. No concerns about pace.`,
+    student_reflection: `My strongest move on ${d.topic} is ${d.attempt}. The gap is that ${d.extra}. Next time I will rewrite the shaky part first and check it against one worked example before I turn it in.`,
+    work_sample: `The usual account of ${d.topic} treats it as settled, but the details push back. After ${d.attempt}, the pattern is clearer: ${d.extra}. That compression is the argument; the rest is support.`,
+  };
 }
 
-function reflectionText(d: Detail): string {
-  return `My strongest move on ${d.topic} is ${d.attempt} — that part of ${d.subject} felt clear. The gap is that ${d.extra}. Next time I will rewrite the shaky part first and then check it against one worked example before I turn it in.`;
+function collaborationState(d: Detail): JevState {
+  return {
+    teacher_notes: `Lights up in ${d.subject} discussion about ${d.topic} and pulls quieter classmates into the talk. After ${d.attempt}, the group moved because they compared steps out loud. Pace is fine.`,
+    student_reflection: `I think my strongest skill is talking ${d.topic} through with someone first. I still rush when I have to write alone. Next unit I want to draft with a partner and then check that every paragraph points at the same claim.`,
+    work_sample: `We kept returning to ${d.topic} as a group. Someone said ${d.extra}, and that became the hinge. The author — or in this case the class — uses the back-and-forth to arrive at a claim none of us had alone.`,
+  };
 }
 
-function mixedText(d: Detail): string {
-  return `I got through most of ${d.topic} in ${d.subject} after ${d.attempt}. Some of it clicked and some of it did not: ${d.extra}. I might ask a classmate later, or I might just reread the notes. Nothing urgent, just a regular week.`;
+function reflectionState(d: Detail): JevState {
+  return {
+    teacher_notes: `Works steadily on ${d.subject} and prefers to sit apart when drafting. Assignments on ${d.topic} arrive on time. In groups they do their share but rarely speak up. Pace is fine.`,
+    student_reflection: `I'm good at ${d.attempt} on my own. My weakness is that I don't share ideas in groups because I worry they aren't ready. One thing I could try is writing the idea down and reading it out. The gap I still have is that ${d.extra}.`,
+    work_sample: `A first pass at ${d.topic} can stop at plot. After ${d.attempt}, the structure is visible: setup, turn, cost. ${cap(d.extra)}, which is why the ending has to do more than recap.`,
+  };
 }
 
-const BUILDERS = [supportText, extensionText, collaborationText, reflectionText, mixedText] as const;
+function mixedState(d: Detail): JevState {
+  return {
+    teacher_notes: `Kept pace in ${d.subject}. Some of ${d.topic} clicked after ${d.attempt}; some did not. Nothing urgent to flag this week.`,
+    student_reflection: `I got through most of ${d.topic}. Some of it clicked and some of it did not: ${d.extra}. I might ask a classmate later, or I might just reread the notes.`,
+    work_sample: `${d.topic} is mainly about a change that is hard at first. I tried ${d.attempt}. ${cap(d.extra)}. The theme is that people get used to things.`,
+  };
+}
+
+const BUILDERS = [supportState, extensionState, collaborationState, reflectionState, mixedState] as const;
 
 function interleave<D>(
   nameFor: (index: number) => string,
   details: readonly D[],
-  builders: ReadonlyArray<(detail: D) => string>,
+  builders: ReadonlyArray<(detail: D) => JevState>,
 ): BatchRecord[] {
   return Array.from({ length: details.length * builders.length }, (_, index) => {
     const kind = index % builders.length;
     const detail = details[Math.floor(index / builders.length)];
-    return { id: idAt(index), name: nameFor(index), text: builders[kind](detail) };
+    return { id: idAt(index), name: nameFor(index), state: builders[kind](detail) };
   });
 }
 
@@ -272,32 +298,52 @@ function nameAtZh(index: number): string {
   return `${FAMILY_ZH[Math.floor(index / GIVEN_ZH.length)]}${GIVEN_ZH[index % GIVEN_ZH.length]}`;
 }
 
-function supportTextZh(d: DetailZh): string {
-  return `我在${d.topic}上完全卡住了。我试过${d.attempt}，可是${d.extra}。我在${d.subject}里已经落后了，也不敢当着大家问。能不能先带我走第一步？`;
+function supportStateZh(d: DetailZh): JevState {
+  return {
+    teacher_notes: `最近${d.subject}的作业有缺交，在${d.topic}上看起来很懵，也不敢问。${d.extra}。进度已经落后。`,
+    student_reflection: `我${d.topic}还可以吧。我得再努力一点。下次会加油。`,
+    work_sample: `${d.topic}好难，我试了${d.attempt}可是不行。我觉得${d.extra}。写得也比较乱`,
+  };
 }
 
-function extensionTextZh(d: DetailZh): string {
-  return `我在${d.subject}里提前做完了${d.topic}的必做部分，还剩时间，就开始做延伸：在${d.attempt}之后又对比了两个额外例子。${d.extra}，这让我想要更难的题目。我已经自己列了下一步要试什么，没有等人布置。`;
+function extensionStateZh(d: DetailZh): JevState {
+  return {
+    teacher_notes: `提前做完了${d.subject}里${d.topic}的必做部分，没人布置就自己开始做延伸。作业齐全，进度没有问题。`,
+    student_reflection: `我在${d.topic}上最稳的一步是${d.attempt}。缺口是${d.extra}。下次我会先改最不稳的那一段，再对照一道例题，然后才交。`,
+    work_sample: `通常对${d.topic}的说法把它当成定论，但细节并不配合。经过${d.attempt}之后更清楚：${d.extra}。真正的论点在这个收束里，其余都是支撑。`,
+  };
 }
 
-function collaborationTextZh(d: DetailZh): string {
-  return `在${d.subject}的小组里，我一直带着大家讨论${d.topic}。${d.attempt}之后，我让两个同学把步骤说出来，好对照。${d.extra}，但跟同伴讲清楚之后我们才往前走。我更想继续讨论，而不是一个人写。`;
+function collaborationStateZh(d: DetailZh): JevState {
+  return {
+    teacher_notes: `在${d.subject}讨论${d.topic}时很投入，还会把话少的同学拉进来。${d.attempt}之后小组靠对照步骤才往前走。进度正常。`,
+    student_reflection: `我最强的是先跟别人把${d.topic}讲清楚。一个人写的时候还会写太赶。下一单元我想先和同伴起草，再检查每段是否指向同一个主张。`,
+    work_sample: `我们小组一直回到${d.topic}。有人说${d.extra}，这句话成了转折。作者——或者这一次是全班——靠来回讨论才得到谁都没单独想到的结论。`,
+  };
 }
 
-function reflectionTextZh(d: DetailZh): string {
-  return `我在${d.topic}上最稳的一步是${d.attempt}——${d.subject}的这部分我觉得清楚。缺口是${d.extra}。下次我会先改最不稳的那一段，再对照一道例题，然后才交。`;
+function reflectionStateZh(d: DetailZh): JevState {
+  return {
+    teacher_notes: `在${d.subject}里写稿时习惯坐开一点。${d.topic}的作业按时交。小组里会做自己的份，但很少开口。进度正常。`,
+    student_reflection: `我一个人做${d.attempt}比较稳。弱项是不敢在小组里说想法，怕还没准备好。我可以先写下来再读出来。仍然存在的缺口是${d.extra}。`,
+    work_sample: `第一遍看${d.topic}往往只停在情节。经过${d.attempt}之后结构就清楚了：铺垫、转折、代价。${d.extra}，所以结尾不能只是复述。`,
+  };
 }
 
-function mixedTextZh(d: DetailZh): string {
-  return `我在${d.subject}里靠${d.attempt}把${d.topic}的大部分做完了。有的懂，有的不懂：${d.extra}。我可能稍后问同学，也可能再看一遍笔记。没什么紧急的，就是平常的一周。`;
+function mixedStateZh(d: DetailZh): JevState {
+  return {
+    teacher_notes: `${d.subject}里进度跟得上。${d.topic}在${d.attempt}之后有的懂、有的不懂。这周没有需要特别标记的事。`,
+    student_reflection: `${d.topic}的大部分我做完了。有的懂，有的不懂：${d.extra}。我可能稍后问同学，也可能再看一遍笔记。`,
+    work_sample: `${d.topic}主要讲一种一开始很难的变化。我试了${d.attempt}。${d.extra}。主题大概是人会慢慢习惯。`,
+  };
 }
 
 const BUILDERS_ZH = [
-  supportTextZh,
-  extensionTextZh,
-  collaborationTextZh,
-  reflectionTextZh,
-  mixedTextZh,
+  supportStateZh,
+  extensionStateZh,
+  collaborationStateZh,
+  reflectionStateZh,
+  mixedStateZh,
 ] as const;
 
 export const BATCH_RECORDS_ZH: BatchRecord[] = interleave(nameAtZh, DETAILS_ZH, BUILDERS_ZH);

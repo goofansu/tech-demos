@@ -45,13 +45,14 @@ Edits the rubric and persists it to `localStorage` (`jev-student-profile.rubric.
 
 ### Batch mode
 
-Speed demo: a table of 100 bundled student-like texts and one fixed Choice
-question (`signal`: support / extension / collaboration / reflection / mixed).
-**Classify all** sends one `POST /api/evaluate` per row (Jev only), with a
-concurrency cap of 6 so the UI fills in as rows complete. Results are
-React-state only — never written to `localStorage` or the server. Refresh
-starts empty. Stop aborts leftover work; Reset clears in-memory answers.
-Does not use the Author-mode rubric.
+Speed demo: a table of 100 bundled students. **Classify all** sends one
+`POST /api/evaluate` per row using the **current Author rubric** (every
+question in that `systemone` call), with a concurrency cap of 6 so the UI
+fills in as rows complete. The table omits source text: columns are #,
+student, status, one compact chip per question, fired profile conditions,
+and latency. Results are React-state only — never written to
+`localStorage` or the server. Refresh starts empty. Stop aborts leftover
+work; Reset clears in-memory answers.
 
 ### Run mode
 

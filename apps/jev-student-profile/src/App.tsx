@@ -75,7 +75,11 @@ export default function App() {
               <h1 className="truncate text-sm font-semibold tracking-tight">{t("app.title")}</h1>
               <p className="truncate text-xs text-muted-foreground">
                 {mode === "batch"
-                  ? t("app.batchSubtitle", { count: BATCH_SIZE, limit: BATCH_CONCURRENCY })
+                  ? t("app.batchSubtitle", {
+                      count: BATCH_SIZE,
+                      questions: rubric.fields.length,
+                      limit: BATCH_CONCURRENCY,
+                    })
                   : t("app.subtitle", { name: rubric.name, count: rubric.fields.length })}
               </p>
             </div>
@@ -131,7 +135,7 @@ export default function App() {
             onReset={() => setRubric(resetRubric(locale))}
           />
         ) : mode === "batch" ? (
-          <BatchMode status={status} />
+          <BatchMode rubric={rubric} status={status} onGoAuthor={() => setMode("author")} />
         ) : (
           <RunMode rubric={rubric} status={status} onGoAuthor={() => setMode("author")} />
         )}
