@@ -138,7 +138,6 @@ export default function App() {
 
 function StatusBadge({ status }: { status: ApiStatus | null }) {
   const { t } = useI18n();
-  if (!status) return <Badge tone="outline">{t("status.checking")}</Badge>;
-  if (status.ready) return <Badge tone="success">{t("status.ready", { model: status.model })}</Badge>;
+  if (!status || status.ready) return null;
   return <Badge tone="warning">{t("status.noKey")}</Badge>;
 }

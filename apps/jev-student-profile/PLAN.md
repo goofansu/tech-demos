@@ -66,7 +66,8 @@ Edits the rubric and persists it to `localStorage` (`jev-student-profile.rubric.
   sample rubric, and sample students follow the locale; a custom rubric does
   not. Choice is persisted in `localStorage`.
 - Without `TYPESAFE_API_KEY`, Evaluate is disabled and the UI warns that
-  there is no API key. There is no mock evaluator.
+  there is no API key. When the key is set, the header stays quiet (no
+  "Jev · jev-latest" badge). There is no mock evaluator.
 
 ## Server: `POST /api/evaluate`
 
