@@ -101,11 +101,15 @@ export async function fetchStatus(): Promise<ApiStatus> {
   return (await res.json()) as ApiStatus;
 }
 
-export async function evaluate(request: EvaluateRequest): Promise<EvaluateResponse> {
+export async function evaluate(
+  request: EvaluateRequest,
+  options?: { signal?: AbortSignal },
+): Promise<EvaluateResponse> {
   const res = await fetch("/api/evaluate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
+    signal: options?.signal,
   });
   const locale = detectLocale();
   const data = (await res.json().catch(() => ({ error: translate(locale, "errors.malformed") }))) as

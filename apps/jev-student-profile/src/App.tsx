@@ -1,16 +1,26 @@
 import * as React from "react";
 import { AuthorMode } from "@/components/author/author-mode";
+import { BatchMode } from "@/components/batch/batch-mode";
 import { RunMode } from "@/components/run/run-mode";
 import { Badge } from "@/components/ui/badge";
+import { BATCH_CONCURRENCY, BATCH_SIZE } from "@/lib/batch";
 import { RichText, useI18n } from "@/lib/i18n-context";
-import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n";
+import { LOCALES, LOCALE_LABELS, type Locale, type MessagePath } from "@/lib/i18n";
 import { fetchStatus } from "@/lib/jev";
 import { isBundledSample, rubricsEqual, sampleRubric } from "@/lib/sample";
 import { clone, loadRubric, resetRubric, saveRubric } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import type { ApiStatus, Rubric } from "@/lib/types";
 
-type Mode = "author" | "run";
+type Mode = "author" | "run" | "batch";
+
+const MODES: Mode[] = ["run", "batch", "author"];
+
+const MODE_PATH: Record<Mode, MessagePath> = {
+  run: "app.run",
+  batch: "app.batch",
+  author: "app.author",
+};
 
 export default function App() {
   const { locale, setLocale, t } = useI18n();
@@ -64,13 +74,19 @@ export default function App() {
             <div className="min-w-0">
               <h1 className="truncate text-sm font-semibold tracking-tight">{t("app.title")}</h1>
               <p className="truncate text-xs text-muted-foreground">
-                {t("app.subtitle", { name: rubric.name, count: rubric.fields.length })}
+                {mode === "batch"
+                  ? t("app.batchSubtitle", {
+                      count: BATCH_SIZE,
+                      questions: rubric.fields.length,
+                      limit: BATCH_CONCURRENCY,
+                    })
+                  : t("app.subtitle", { name: rubric.name, count: rubric.fields.length })}
               </p>
             </div>
           </div>
 
           <nav aria-label={t("app.mode")} className="flex rounded-lg bg-muted p-1">
-            {(["run", "author"] as Mode[]).map((m) => (
+            {MODES.map((m) => (
               <button
                 key={m}
                 type="button"
@@ -83,7 +99,7 @@ export default function App() {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {m === "run" ? t("app.run") : t("app.author")}
+                {t(MODE_PATH[m])}
               </button>
             ))}
           </nav>
@@ -118,6 +134,8 @@ export default function App() {
             onChange={setRubric}
             onReset={() => setRubric(resetRubric(locale))}
           />
+        ) : mode === "batch" ? (
+          <BatchMode rubric={rubric} status={status} onGoAuthor={() => setMode("author")} />
         ) : (
           <RunMode rubric={rubric} status={status} onGoAuthor={() => setMode("author")} />
         )}
@@ -125,7 +143,7 @@ export default function App() {
 
       <footer className="mx-auto max-w-7xl px-5 pb-8 text-xs text-muted-foreground">
         <RichText
-          path="app.footer"
+          path={mode === "batch" ? "app.batchFooter" : "app.footer"}
           tokens={{
             systemone: <code className="font-mono">systemone</code>,
             evaluate: <code className="font-mono">POST /api/evaluate</code>,

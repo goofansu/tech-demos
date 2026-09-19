@@ -43,6 +43,16 @@ Edits the rubric and persists it to `localStorage` (`jev-student-profile.rubric.
   A condition fires when every clause holds; the summary panel lists fired
   conditions in tone groups.
 
+### Batch mode
+
+Speed demo: a table of 100 bundled students. **Classify all** sends one
+`POST /api/evaluate` per row using the **current Author rubric** (every
+question in that `systemone` call), with a concurrency cap of 6 so the UI
+fills in as rows complete. The table shows status, fired profile
+conditions, and latency (plus # / student). Results are React-state only — never written to
+`localStorage` or the server. Refresh starts empty. Stop aborts leftover
+work; Reset clears in-memory answers.
+
 ### Run mode
 
 - Form built from the rubric's inputs, prefilled from one of a few bundled
@@ -117,7 +127,11 @@ apps/jev-student-profile/
   src/lib/conditions.ts     # threshold verdicts + condition evaluation
   src/components/ui/*       # Button, Input, Textarea, Select, Badge, Card, Field
   src/components/author/*   # InputsEditor, QuestionEditor, ConditionsEditor
+  src/lib/batch.ts          # fixed Choice question + request builder
+  src/lib/batch-records.ts  # 100 EN / zh-CN student texts
+  src/lib/pool.ts           # async concurrency pool
   src/components/run/*      # StudentForm, AnswerCard, ProfileSummary
+  src/components/batch/*    # 100-row classify table
 ```
 
 ## Done criteria
