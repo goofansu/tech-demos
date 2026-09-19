@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RichText, useI18n } from "@/lib/i18n-context";
@@ -55,9 +55,11 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
             <CardTitle>{t("author.rubric")}</CardTitle>
             <CardDescription>{t("author.rubricHint")}</CardDescription>
           </div>
-          <Button size="sm" variant="outline" onClick={onReset}>
-            {t("author.reset")}
-          </Button>
+          <CardAction>
+            <Button size="sm" variant="outline" onClick={onReset}>
+              {t("author.reset")}
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <Field label={t("author.rubricName")} className="max-w-md">
@@ -90,9 +92,11 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
               />
             </CardDescription>
           </div>
-          <Button size="sm" onClick={addField}>
-            {t("author.addQuestion")}
-          </Button>
+          <CardAction>
+            <Button size="sm" onClick={addField}>
+              {t("author.addQuestion")}
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {rubric.fields.length === 0 ? (

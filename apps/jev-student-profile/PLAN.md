@@ -97,17 +97,16 @@ browser, so the key never reaches the client.
 ## Stack
 
 - Bun, Vite 6, React 19, TypeScript, Tailwind v4 via `@tailwindcss/vite`.
-- Theme tokens in `src/index.css` (`@theme`): `background`, `foreground`,
-  `card`, `muted`, `muted-foreground`, `border`, `primary`,
-  `primary-foreground`, `success`, `warning`, `danger`, plus radius.
-- Small local UI kit in `src/components/ui/` (`Button`, `Input`, `Textarea`,
-  `Select`, `Badge`, `Card`, `Field`) so forms are consistent and
-  `@shadcn/lint` has components to enforce contracts on.
+- Theme tokens in `src/index.css`: default shadcn/ui light (neutral) plus
+  domain tones (`success`, `warning`, `danger`, `info`, `noul`, `choice`,
+  `score`).
+- shadcn/ui (Base UI + nova) in `src/components/ui/`, with app-facing
+  aliases for badge tones, `Button` `danger`/`md`, `Input` `mono`,
+  combined `Select`/`Textarea` exports, `Field` `label`/`hint`, and `Meter`.
 - Lint: Oxlint + `@shadcn/lint` (`.oxlintrc.json`), `bun run lint`. Rules:
   `no-restyle` (allow layout), `no-raw-colors`, `no-arbitrary-values`,
   `no-inline-styles`, `no-unknown-classes`, `require-static-classes`.
-  Dynamic bar widths use CSS custom properties (`w-(--w)`), which the
-  inline-style rule allows.
+  Official `src/components/ui/` sources skip restyle / arbitrary-value rules.
 
 ## Files
 
@@ -125,7 +124,7 @@ apps/jev-student-profile/
   src/lib/store.ts          # localStorage load/save/reset
   src/lib/jev.ts            # buildQuestions(rubric) → Jev questions map
   src/lib/conditions.ts     # threshold verdicts + condition evaluation
-  src/components/ui/*       # Button, Input, Textarea, Select, Badge, Card, Field
+  src/components/ui/*       # shadcn/ui primitives + Meter
   src/components/author/*   # InputsEditor, QuestionEditor, ConditionsEditor
   src/lib/batch.ts          # fixed Choice question + request builder
   src/lib/batch-records.ts  # 100 EN / zh-CN student texts

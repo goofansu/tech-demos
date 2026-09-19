@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckboxLabel } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -38,9 +38,11 @@ export function InputsEditor({ inputs, onChange }: Props) {
             />
           </CardDescription>
         </div>
-        <Button size="sm" variant="outline" onClick={add}>
-          {t("inputs.add")}
-        </Button>
+        <CardAction>
+          <Button size="sm" variant="outline" onClick={add}>
+            {t("inputs.add")}
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {inputs.length === 0 ? (

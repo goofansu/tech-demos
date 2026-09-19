@@ -2,7 +2,7 @@ import * as React from "react";
 import { TONE_BADGE } from "@/components/author/conditions-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
 import {
   BATCH_CONCURRENCY,
@@ -226,17 +226,19 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
             <CardTitle>{t("batch.title")}</CardTitle>
             <CardDescription>{t("batch.hint", { count: rubric.fields.length })}</CardDescription>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button size="lg" disabled={!canClassify} onClick={() => void classifyAll()}>
-              {running ? t("batch.classifying") : t("batch.classifyAll")}
-            </Button>
-            <Button variant="outline" disabled={!running} onClick={stop}>
-              {t("batch.stop")}
-            </Button>
-            <Button variant="ghost" disabled={!hasAnyResult} onClick={resetResults}>
-              {t("batch.reset")}
-            </Button>
-          </div>
+          <CardAction>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="lg" disabled={!canClassify} onClick={() => void classifyAll()}>
+                {running ? t("batch.classifying") : t("batch.classifyAll")}
+              </Button>
+              <Button variant="outline" disabled={!running} onClick={stop}>
+                {t("batch.stop")}
+              </Button>
+              <Button variant="ghost" disabled={!hasAnyResult} onClick={resetResults}>
+                {t("batch.reset")}
+              </Button>
+            </div>
+          </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {missingKey ? (

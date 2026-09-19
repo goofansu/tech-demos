@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { describeClause, type ConditionResult } from "@/lib/conditions";
 import { useI18n } from "@/lib/i18n-context";
 import type { ConditionTone, RubricField } from "@/lib/types";
@@ -35,9 +35,11 @@ export function ProfileSummary({ results, fields, studentName }: Props) {
           <CardTitle>{t("profile.title", { name: studentName })}</CardTitle>
           <CardDescription>{t("profile.hint")}</CardDescription>
         </div>
-        <Badge tone={fired.length > 0 ? "default" : "outline"}>
-          {t("profile.firedCount", { fired: fired.length, total: results.length })}
-        </Badge>
+        <CardAction>
+          <Badge tone={fired.length > 0 ? "default" : "outline"}>
+            {t("profile.firedCount", { fired: fired.length, total: results.length })}
+          </Badge>
+        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {results.length === 0 ? (

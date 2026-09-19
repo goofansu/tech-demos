@@ -35,7 +35,12 @@
   "overrides": [
     {
       "files": ["src/components/ui/**"],
-      "rules": { "shadcn/no-restyle": "off" }
+      "rules": {
+        "shadcn/no-restyle": "off",
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/no-unknown-classes": "off",
+        "shadcn/no-raw-colors": "off"
+      }
     }
   ],
   "ignorePatterns": ["dist", "node_modules"]

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Select } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n-context";
@@ -45,9 +45,11 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
           <CardTitle>{t("conditions.title")}</CardTitle>
           <CardDescription>{t("conditions.hint")}</CardDescription>
         </div>
-        <Button size="sm" variant="outline" onClick={add} disabled={fields.length === 0}>
-          {t("conditions.add")}
-        </Button>
+        <CardAction>
+          <Button size="sm" variant="outline" onClick={add} disabled={fields.length === 0}>
+            {t("conditions.add")}
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {conditions.length === 0 ? (

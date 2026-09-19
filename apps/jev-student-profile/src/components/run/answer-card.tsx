@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
 import { pct, verdictFor } from "@/lib/conditions";
 import { useI18n } from "@/lib/i18n-context";
@@ -25,9 +25,11 @@ export function AnswerCard({ field, answer }: Props) {
           <CardDescription className="mt-1 line-clamp-2">{field.instructions}</CardDescription>
         </div>
         {verdict ? (
-          <Badge tone={verdict.met ? "success" : "outline"} title={verdict.detail}>
-            {verdict.label}
-          </Badge>
+          <CardAction>
+            <Badge tone={verdict.met ? "success" : "outline"} title={verdict.detail}>
+              {verdict.label}
+            </Badge>
+          </CardAction>
         ) : null}
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
