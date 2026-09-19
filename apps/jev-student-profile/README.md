@@ -41,6 +41,12 @@ Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
   conditions fired. Expand the request panel to see the exact payload.
   Blank inputs are sent as empty strings (not omitted) so a question that
   cites `work_sample` can see that the excerpt is missing.
+- **Batch** — classify 100 bundled student texts with one fixed Choice
+  question (dominant learning signal). **Classify all** fires an individual
+  `POST /api/evaluate` per row with up to 6 in flight at once; the table
+  fills in as each call finishes. Results live in React state only —
+  refresh or leaving the page clears them. Stop cancels leftover work;
+  Reset clears answers in memory. Without an API key the action is disabled.
 
 ## Server
 
