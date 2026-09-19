@@ -69,14 +69,19 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
                   <option value="attention">{t("conditions.toneAttention")}</option>
                 </Select>
               </Field>
-              <div className="flex items-center justify-end sm:col-span-2">
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => onChange(conditions.filter((_, idx) => idx !== i))}
-                >
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <span className="invisible text-xs font-medium" aria-hidden>
                   {t("conditions.remove")}
-                </Button>
+                </span>
+                <div className="flex h-9 items-center justify-end">
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => onChange(conditions.filter((_, idx) => idx !== i))}
+                  >
+                    {t("conditions.remove")}
+                  </Button>
+                </div>
               </div>
             </div>
 

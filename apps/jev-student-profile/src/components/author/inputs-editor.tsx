@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckboxLabel } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RichText, useI18n } from "@/lib/i18n-context";
@@ -68,24 +69,26 @@ export function InputsEditor({ inputs, onChange }: Props) {
             <Field label={t("inputs.placeholder")} className="sm:col-span-4">
               <Input value={inp.placeholder} onChange={(e) => update(i, { placeholder: e.target.value })} />
             </Field>
-            <div className="flex items-center justify-end gap-2 sm:col-span-2">
-              <label className="flex h-9 items-center gap-2 text-xs text-muted-foreground">
-                <input
-                  type="checkbox"
-                  className="accent-primary"
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <span className="invisible text-xs font-medium" aria-hidden>
+                {t("inputs.multiline")}
+              </span>
+              <div className="flex h-9 items-center justify-end gap-2">
+                <CheckboxLabel
                   checked={inp.multiline}
                   onChange={(e) => update(i, { multiline: e.target.checked })}
-                />
-                {t("inputs.multiline")}
-              </label>
-              <Button
-                size="icon"
-                variant="ghost"
-                aria-label={t("inputs.remove")}
-                onClick={() => onChange(inputs.filter((_, idx) => idx !== i))}
-              >
-                ×
-              </Button>
+                >
+                  {t("inputs.multiline")}
+                </CheckboxLabel>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t("inputs.remove")}
+                  onClick={() => onChange(inputs.filter((_, idx) => idx !== i))}
+                >
+                  ×
+                </Button>
+              </div>
             </div>
           </div>
         ))}
