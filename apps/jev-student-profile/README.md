@@ -71,8 +71,9 @@ mock evaluator.
 system: `no-restyle` (layout only, with contracts for `Card*`),
 `no-raw-colors`, `no-arbitrary-values`, `no-inline-styles`,
 `no-unknown-classes`, `require-static-classes`. Tokens live in
-`src/index.css` (`@theme`); dynamic widths use CSS custom properties
-(`w-(--meter-w)`).
+`src/index.css` (shadcn default light theme plus domain tones). Official
+`src/components/ui/` sources are exempt from the restyle / arbitrary-value
+rules so CLI-generated components can stay intact.
 
 ## Structure
 
@@ -82,6 +83,8 @@ system: `no-restyle` (layout only, with contracts for `Card*`),
 - `src/lib/jev.ts` — rubric → Jev questions, request builder, client
 - `src/lib/conditions.ts` — threshold verdicts and condition evaluation
 - `src/lib/store.ts` — localStorage persistence
-- `src/components/ui/` — Button, Input/Textarea/Select, Field, Card, Badge, Meter
+- `src/components/ui/` — shadcn/ui primitives (Button, Card, Badge, Input,
+  Textarea, Native Select, Checkbox, Field, Progress) plus Meter and the
+  combined Input/Select/Textarea export
 - `src/components/author/` — inputs, question, and conditions editors
 - `src/components/run/` — student form, answer cards, profile summary

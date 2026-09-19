@@ -1,37 +1,33 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
+import { cn } from "cn"
 
-const fills = {
-  primary: "bg-primary",
-  noul: "bg-noul",
-  choice: "bg-choice",
-  score: "bg-score",
-  muted: "bg-muted-foreground/40",
-} as const;
+import { ProgressIndicator, ProgressTrack } from "@/components/ui/progress"
+
+type MeterTone = "primary" | "noul" | "choice" | "score" | "muted"
 
 type MeterProps = {
   /** 0..1 */
-  value: number;
-  tone?: keyof typeof fills;
-  className?: string;
-  label?: string;
-};
+  value: number
+  tone?: MeterTone
+  className?: string
+  label?: string
+}
 
 export function Meter({ value, tone = "primary", className, label }: MeterProps) {
-  const clamped = Math.max(0, Math.min(1, value));
+  const clamped = Math.max(0, Math.min(1, value))
   return (
-    <div
-      role="meter"
-      aria-valuemin={0}
-      aria-valuemax={1}
-      aria-valuenow={clamped}
+    <ProgressPrimitive.Root
+      value={clamped * 100}
+      data-slot="meter"
       aria-label={label}
-      className={cn("h-2 w-full overflow-hidden rounded-full bg-muted", className)}
+      className={cn("flex w-full", className)}
     >
-      <div
-        className={cn("h-full w-(--meter-w) rounded-full transition-all duration-500", fills[tone])}
-        style={{ "--meter-w": `${(clamped * 100).toFixed(1)}%` } as React.CSSProperties}
-      />
-    </div>
-  );
+      <ProgressTrack className="h-2">
+        <ProgressIndicator
+          data-tone={tone}
+          className="bg-primary data-[tone=noul]:bg-noul data-[tone=choice]:bg-choice data-[tone=score]:bg-score data-[tone=muted]:bg-muted-foreground/40"
+        />
+      </ProgressTrack>
+    </ProgressPrimitive.Root>
+  )
 }

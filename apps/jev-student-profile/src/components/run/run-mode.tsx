@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { evaluateConditions } from "@/lib/conditions";
@@ -87,19 +87,21 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
         <Card>
           <CardHeader>
             <CardTitle>{t("run.student")}</CardTitle>
-            <Select
-              aria-label={t("run.sampleStudent")}
-              className="w-auto"
-              value={sample}
-              onChange={(e) => pickSample(e.target.value)}
-            >
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {t("run.sample", { name: s.name })}
-                </option>
-              ))}
-              <option value={CUSTOM}>{t("run.blank")}</option>
-            </Select>
+            <CardAction>
+              <Select
+                aria-label={t("run.sampleStudent")}
+                className="w-auto"
+                value={sample}
+                onChange={(e) => pickSample(e.target.value)}
+              >
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {t("run.sample", { name: s.name })}
+                  </option>
+                ))}
+                <option value={CUSTOM}>{t("run.blank")}</option>
+              </Select>
+            </CardAction>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <Field label={t("run.studentName")}>
