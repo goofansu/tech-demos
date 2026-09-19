@@ -17,12 +17,10 @@ export const en = {
   },
   app: {
     title: "Student Profile Rubric Builder",
-    subtitle: "{name} · {count} questions",
     mode: "Mode",
     run: "Single",
     author: "Edit",
     batch: "Batch",
-    batchSubtitle: "{count} students · {questions} questions · {limit} at a time",
     language: "Language",
     footer:
       "Jev is asked every question in one {systemone} request; thresholds and conditions are evaluated in code. The API key stays on the server behind {evaluate}.",
@@ -134,8 +132,6 @@ export const en = {
   },
   run: {
     student: "Student",
-    studentHint:
-      "This becomes the Jev {state}. Blank fields stay in the payload as empty strings so a cited key is not silently dropped.",
     sampleStudent: "Sample student",
     sample: "Sample · {name}",
     blank: "Blank",
@@ -154,7 +150,7 @@ export const en = {
       "Jev returns a calibrated probability distribution per question. The cards on this side show every probability, the confidence, and how your thresholds interpret them.",
     asking: "Asking Jev…",
     failed: "Evaluation failed",
-    requestSent: "Request sent to {path}",
+    requestSent: "Request sent to Jev",
     modelLabel: "model",
     tokens: "{in} in / {out} out tokens",
   },
@@ -252,12 +248,10 @@ export const zhCN: DeepString<typeof en> = {
   },
   app: {
     title: "学生画像量表构建器",
-    subtitle: "{name} · {count} 道题",
     mode: "模式",
     run: "单人",
     author: "编辑",
     batch: "批量",
-    batchSubtitle: "{count} 名学生 · {questions} 道题 · 每次 {limit} 路并发",
     language: "语言",
     footer:
       "Jev 在一次 {systemone} 请求中回答全部题目；阈值与条件在代码中判定。API 密钥仅留在服务器的 {evaluate} 接口之后。",
@@ -366,8 +360,6 @@ export const zhCN: DeepString<typeof en> = {
   },
   run: {
     student: "学生",
-    studentHint:
-      "这里会成为发给 Jev 的 {state}。空白字段仍以空字符串保留在请求中，避免被引用的键被悄悄丢掉。",
     sampleStudent: "示例学生",
     sample: "示例 · {name}",
     blank: "空白",
@@ -385,7 +377,7 @@ export const zhCN: DeepString<typeof en> = {
       "Jev 会为每道题返回校准后的概率分布。右侧卡片展示全部概率、置信度，以及你的阈值如何解读它们。",
     asking: "正在询问 Jev…",
     failed: "评测失败",
-    requestSent: "已发送到 {path} 的请求",
+    requestSent: "已发送到 Jev 的请求",
     modelLabel: "模型",
     tokens: "输入 {in} / 输出 {out} tokens",
   },

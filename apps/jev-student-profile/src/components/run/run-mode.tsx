@@ -1,11 +1,11 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { evaluateConditions } from "@/lib/conditions";
-import { RichText, useI18n } from "@/lib/i18n-context";
+import { useI18n } from "@/lib/i18n-context";
 import { buildRequest, evaluate, rubricProblems } from "@/lib/jev";
 import { sampleStudents } from "@/lib/sample";
 import type { ApiStatus, EvaluateResponse, JevState, Rubric } from "@/lib/types";
@@ -86,15 +86,7 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
       <form onSubmit={submit} className="flex flex-col gap-5 lg:col-span-5">
         <Card>
           <CardHeader>
-            <div>
-              <CardTitle>{t("run.student")}</CardTitle>
-              <CardDescription>
-                <RichText
-                  path="run.studentHint"
-                  tokens={{ state: <code className="font-mono">state</code> }}
-                />
-              </CardDescription>
-            </div>
+            <CardTitle>{t("run.student")}</CardTitle>
             <Select
               aria-label={t("run.sampleStudent")}
               className="w-auto"
@@ -205,10 +197,7 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
             </div>
             <details className="rounded-xl border bg-card shadow-xs">
               <summary className="cursor-pointer px-5 py-3 text-sm font-medium text-muted-foreground select-none hover:text-foreground">
-                <RichText
-                  path="run.requestSent"
-                  tokens={{ path: <code className="font-mono">/api/evaluate</code> }}
-                />
+                {t("run.requestSent")}
               </summary>
               <pre className="overflow-x-auto border-t bg-muted/50 px-5 py-4 font-mono text-xs leading-relaxed">
                 {JSON.stringify(run.request, null, 2)}
