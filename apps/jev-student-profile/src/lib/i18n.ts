@@ -26,8 +26,6 @@ export const en = {
       "Jev is asked every question in one {systemone} request; thresholds and conditions are evaluated in code. The API key stays on the server behind {evaluate}.",
   },
   status: {
-    checking: "Checking Jev…",
-    ready: "Jev · {model}",
     noKey: "No API key",
   },
   author: {
@@ -228,8 +226,6 @@ export const zhCN: DeepString<typeof en> = {
       "Jev 在一次 {systemone} 请求中回答全部题目；阈值与条件在代码中判定。API 密钥仅留在服务器的 {evaluate} 接口之后。",
   },
   status: {
-    checking: "正在检查 Jev…",
-    ready: "Jev · {model}",
     noKey: "未配置 API 密钥",
   },
   author: {

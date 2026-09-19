@@ -17,7 +17,8 @@ TYPESAFE_API_KEY=... bun run dev
 ```
 
 Open `http://localhost:8000/` (or `PORT` if set). A TypeSafe API key is
-required; without it the header warns **No API key** and Evaluate is disabled.
+required; without it the header and Run mode warn **No API key** and
+Evaluate is disabled. When the key is set, the header stays quiet.
 
 The chrome, sample rubric, and sample students ship in **English** and
 **Simplified Chinese**. Use the header language toggle; the bundled sample
