@@ -33,10 +33,30 @@ describe("i18n catalogs", () => {
 
   test("translate interpolates variables", () => {
     expect(translate("en", "app.subtitle", { name: "Grade 8", count: 5 })).toBe(
-      "Grade 8 · 5 questions · TypeSafe Jev only",
+      "Grade 8 · 5 questions",
     );
     expect(translate("zh-CN", "app.subtitle", { name: "八年级学习者画像", count: 5 })).toBe(
-      "八年级学习者画像 · 5 道题 · 仅使用 TypeSafe Jev",
+      "八年级学习者画像 · 5 道题",
+    );
+  });
+
+  test("mode buttons use Single/Batch/Edit and 单人/批量/编辑", () => {
+    expect(translate("en", "app.run")).toBe("Single");
+    expect(translate("en", "app.batch")).toBe("Batch");
+    expect(translate("en", "app.author")).toBe("Edit");
+    expect(translate("zh-CN", "app.run")).toBe("单人");
+    expect(translate("zh-CN", "app.batch")).toBe("批量");
+    expect(translate("zh-CN", "app.author")).toBe("编辑");
+  });
+
+  test("in-app links name Edit mode, not Author mode", () => {
+    expect(translate("en", "run.fixInAuthor")).toBe("Fix them in Edit mode");
+    expect(translate("zh-CN", "run.fixInAuthor")).toBe("前往编辑模式修复");
+    expect(translate("en", "profile.noConditions")).toBe(
+      "No conditions defined. Add some in Edit mode.",
+    );
+    expect(translate("zh-CN", "profile.noConditions")).toBe(
+      "尚未定义条件。请在编辑模式中添加。",
     );
   });
 
