@@ -7,13 +7,12 @@ import { Input, Select, Textarea } from "@/components/ui/input";
 import { evaluateConditions } from "@/lib/conditions";
 import { buildRequest, evaluate, rubricProblems } from "@/lib/jev";
 import { SAMPLE_STUDENTS } from "@/lib/sample";
-import type { ApiStatus, EvaluateResponse, JevState, Rubric } from "@/lib/types";
+import type { EvaluateResponse, JevState, Rubric } from "@/lib/types";
 import { AnswerCard } from "./answer-card";
 import { ProfileSummary } from "./profile-summary";
 
 type Props = {
   rubric: Rubric;
-  status: ApiStatus | null;
   onGoAuthor: () => void;
 };
 
@@ -25,7 +24,7 @@ type RunState =
 
 const CUSTOM = "__custom__";
 
-export function RunMode({ rubric, status, onGoAuthor }: Props) {
+export function RunMode({ rubric, onGoAuthor }: Props) {
   const [sample, setSample] = React.useState<string>(SAMPLE_STUDENTS[0]?.name ?? CUSTOM);
   const [studentName, setStudentName] = React.useState<string>(SAMPLE_STUDENTS[0]?.name ?? "Student");
   const [state, setState] = React.useState<JevState>(() => SAMPLE_STUDENTS[0]?.state ?? {});
@@ -127,10 +126,6 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
               <Button type="submit" size="lg" disabled={!canRun}>
                 {run.kind === "loading" ? "Evaluating…" : `Evaluate ${rubric.fields.length} questions`}
               </Button>
-              <span className="text-xs text-muted-foreground">
-                One <code className="font-mono">systemone</code> call
-                {status?.mode === "mock" ? " · mock" : ""}
-              </span>
             </div>
           </CardContent>
         </Card>

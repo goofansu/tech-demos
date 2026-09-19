@@ -77,7 +77,7 @@ export default function App() {
         {mode === "author" ? (
           <AuthorMode rubric={rubric} onChange={setRubric} onReset={() => setRubric(resetRubric())} />
         ) : (
-          <RunMode rubric={rubric} status={status} onGoAuthor={() => setMode("author")} />
+          <RunMode rubric={rubric} onGoAuthor={() => setMode("author")} />
         )}
       </main>
 
