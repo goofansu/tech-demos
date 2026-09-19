@@ -73,7 +73,8 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
             <div>
               <CardTitle>Student</CardTitle>
               <CardDescription>
-                This becomes the Jev <code className="font-mono">state</code>. Send only what the questions need.
+                This becomes the Jev <code className="font-mono">state</code>. Blank fields stay in the
+                payload as empty strings so a cited key is not silently dropped.
               </CardDescription>
             </div>
             <Select

@@ -49,7 +49,10 @@ Edits the rubric and persists it to `localStorage` (`jev-student-profile.rubric.
   sample students (selectable).
 - **Evaluate** sends `{ state, questions }` to `POST /api/evaluate`. The
   server forwards one request to `https://api.typesafe.ai/v1/systemone`
-  with `model: "jev-latest"`.
+  with `model: "jev-latest"`. Every authored input key is included in
+  `state`, including empty strings. Omitting a blank `work_sample` used
+  to leave notes/reflection as the only writing, so Jev scored those
+  instead of the missing excerpt.
 - Result cards per question:
   - noul → probability meter, verdict vs `yesAt`.
   - choice → picked option, confidence, bar per option, verdict vs

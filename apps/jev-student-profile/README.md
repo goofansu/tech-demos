@@ -33,6 +33,8 @@ Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
   confidence, `score` fractional value + legend + per-level probabilities +
   confidence, and each field's threshold verdict. The summary lists which
   conditions fired. Expand the request panel to see the exact payload.
+  Blank inputs are sent as empty strings (not omitted) so a question that
+  cites `work_sample` can see that the excerpt is missing.
 
 ## Server
 

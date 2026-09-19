@@ -41,9 +41,10 @@ export const SAMPLE_RUBRIC: Rubric = {
       id: "writing_quality",
       type: "score",
       label: "Writing quality",
-      instructions: "Judge the writing in `work_sample` against the levels.",
+      instructions:
+        "Judge only the writing in `work_sample` against the levels. If `work_sample` is missing or empty, assign the lowest level.",
       levels: [
-        "Ideas are hard to follow; frequent grammar errors interrupt meaning.",
+        "No writing sample, or ideas are hard to follow; frequent grammar errors interrupt meaning.",
         "Ideas are present but loosely organised; noticeable errors.",
         "Clear structure with a main idea and support; minor errors.",
         "Well-organised, purposeful, and precise; errors are rare.",

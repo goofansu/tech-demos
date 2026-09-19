@@ -17,7 +17,8 @@ type Props = {
 export const TYPE_HELP: Record<JevQuestionType, string> = {
   noul: "Yes/no. Jev returns the probability the statement is true (0–1).",
   choice: "Pick one of N unordered options. Returns the pick, a probability per option, and confidence.",
-  score: "Position on an ordered scale. Returns a fractional score, probability per level, and confidence.",
+  score:
+    "Position on an ordered scale. Returns a fractional score, probability per level, and confidence. Say what to do if a cited input is empty.",
 };
 
 export function QuestionEditor({ field, index, total, onChange, onRemove, onMove }: Props) {

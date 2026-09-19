@@ -39,12 +39,13 @@ export function toJevQuestion(field: RubricField): JevQuestion {
 export function buildRequest(rubric: Rubric, state: JevState): EvaluateRequest {
   const questions: Record<string, JevQuestion> = {};
   for (const field of rubric.fields) questions[field.id] = toJevQuestion(field);
-  const filteredState: JevState = {};
+  // Keep blank inputs as empty strings. Dropping them hides a cited field
+  // (e.g. `work_sample`) and Jev scores leftover notes/reflection instead.
+  const nextState: JevState = {};
   for (const input of rubric.inputs) {
-    const v = state[input.key]?.trim();
-    if (v) filteredState[input.key] = v;
+    nextState[input.key] = state[input.key]?.trim() ?? "";
   }
-  return { state: filteredState, questions };
+  return { state: nextState, questions };
 }
 
 /** Author-time problems that would make the request fail validation. */
