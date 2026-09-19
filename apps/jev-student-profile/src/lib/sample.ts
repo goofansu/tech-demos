@@ -1,3 +1,5 @@
+import type { Locale } from "./i18n";
+import { SAMPLE_RUBRIC_ZH, SAMPLE_STUDENTS_ZH } from "./sample.zh-CN";
 import type { Rubric, SampleStudent } from "./types";
 
 export const SAMPLE_RUBRIC: Rubric = {
@@ -121,6 +123,7 @@ export const SAMPLE_RUBRIC: Rubric = {
 
 export const SAMPLE_STUDENTS: SampleStudent[] = [
   {
+    id: "maya",
     name: "Maya R.",
     state: {
       teacher_notes:
@@ -132,6 +135,7 @@ export const SAMPLE_STUDENTS: SampleStudent[] = [
     },
   },
   {
+    id: "dev",
     name: "Dev K.",
     state: {
       teacher_notes:
@@ -143,6 +147,7 @@ export const SAMPLE_STUDENTS: SampleStudent[] = [
     },
   },
   {
+    id: "sofia",
     name: "Sofia L.",
     state: {
       teacher_notes:
@@ -154,3 +159,29 @@ export const SAMPLE_STUDENTS: SampleStudent[] = [
     },
   },
 ];
+
+export const SAMPLE_RUBRICS: Record<Locale, Rubric> = {
+  en: SAMPLE_RUBRIC,
+  "zh-CN": SAMPLE_RUBRIC_ZH,
+};
+
+export const SAMPLE_STUDENTS_BY_LOCALE: Record<Locale, SampleStudent[]> = {
+  en: SAMPLE_STUDENTS,
+  "zh-CN": SAMPLE_STUDENTS_ZH,
+};
+
+export function sampleRubric(locale: Locale): Rubric {
+  return SAMPLE_RUBRICS[locale];
+}
+
+export function sampleStudents(locale: Locale): SampleStudent[] {
+  return SAMPLE_STUDENTS_BY_LOCALE[locale];
+}
+
+export function rubricsEqual(a: Rubric, b: Rubric): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export function isBundledSample(rubric: Rubric): boolean {
+  return Object.values(SAMPLE_RUBRICS).some((sample) => rubricsEqual(rubric, sample));
+}

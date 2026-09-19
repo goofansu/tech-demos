@@ -19,6 +19,11 @@ TYPESAFE_API_KEY=... bun run dev
 Open `http://localhost:8000/` (or `PORT` if set). A TypeSafe API key is
 required; without it the header warns **No API key** and Evaluate is disabled.
 
+The chrome, sample rubric, and sample students ship in **English** and
+**Simplified Chinese**. Use the header language toggle; the bundled sample
+swaps with the locale, and a custom rubric is left as-is. The choice is
+remembered in `localStorage`.
+
 Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
 (typecheck + Vite build), `bun run preview`.
 

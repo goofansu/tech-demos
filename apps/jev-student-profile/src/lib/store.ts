@@ -1,13 +1,15 @@
-import { SAMPLE_RUBRIC } from "./sample";
+import type { Locale } from "./i18n";
+import { sampleRubric } from "./sample";
 import type { Rubric } from "./types";
 
 export const STORAGE_KEY = "jev-student-profile.rubric.v1";
 
-export function loadRubric(): Rubric {
-  if (typeof localStorage === "undefined") return clone(SAMPLE_RUBRIC);
+export function loadRubric(locale: Locale): Rubric {
+  const fallback = clone(sampleRubric(locale));
+  if (typeof localStorage === "undefined") return fallback;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return clone(SAMPLE_RUBRIC);
+    if (!raw) return fallback;
     const parsed = JSON.parse(raw) as Partial<Rubric>;
     if (
       !parsed ||
@@ -15,16 +17,16 @@ export function loadRubric(): Rubric {
       !Array.isArray(parsed.fields) ||
       !Array.isArray(parsed.conditions)
     ) {
-      return clone(SAMPLE_RUBRIC);
+      return fallback;
     }
     return {
-      name: typeof parsed.name === "string" ? parsed.name : SAMPLE_RUBRIC.name,
+      name: typeof parsed.name === "string" ? parsed.name : fallback.name,
       inputs: parsed.inputs,
       fields: parsed.fields,
       conditions: parsed.conditions,
     };
   } catch {
-    return clone(SAMPLE_RUBRIC);
+    return fallback;
   }
 }
 
@@ -36,13 +38,13 @@ export function saveRubric(rubric: Rubric): void {
   }
 }
 
-export function resetRubric(): Rubric {
+export function resetRubric(locale: Locale): Rubric {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
     // ignore
   }
-  return clone(SAMPLE_RUBRIC);
+  return clone(sampleRubric(locale));
 }
 
 export function clone<T>(value: T): T {

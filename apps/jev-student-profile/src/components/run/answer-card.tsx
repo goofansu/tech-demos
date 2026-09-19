@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
 import { pct, verdictFor } from "@/lib/conditions";
+import { useI18n } from "@/lib/i18n-context";
 import type { JevAnswer, RubricField } from "@/lib/types";
 
 type Props = {
@@ -10,7 +11,8 @@ type Props = {
 };
 
 export function AnswerCard({ field, answer }: Props) {
-  const verdict = verdictFor(field, answer);
+  const { t } = useI18n();
+  const verdict = verdictFor(field, answer, t);
 
   return (
     <Card>
@@ -29,9 +31,7 @@ export function AnswerCard({ field, answer }: Props) {
         ) : null}
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        {!answer ? (
-          <p className="text-sm text-muted-foreground">No answer returned for this question.</p>
-        ) : null}
+        {!answer ? <p className="text-sm text-muted-foreground">{t("answers.noAnswer")}</p> : null}
         {answer?.type === "noul" && field.type === "noul" ? (
           <NoulBody noul={answer.noul} yesAt={field.yesAt} />
         ) : null}
@@ -59,16 +59,17 @@ export function AnswerCard({ field, answer }: Props) {
 }
 
 function NoulBody({ noul, yesAt }: { noul: number; yesAt: number }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
-        <span className="text-xs text-muted-foreground">P(yes)</span>
+        <span className="text-xs text-muted-foreground">{t("answers.pYes")}</span>
         <span className="font-mono text-2xl font-semibold tabular-nums">{pct(noul)}</span>
       </div>
-      <Meter value={noul} tone="noul" label="Probability of yes" />
+      <Meter value={noul} tone="noul" label={t("answers.probabilityYes")} />
       <div className="flex justify-between font-mono text-xs text-muted-foreground">
         <span>0%</span>
-        <span>threshold {pct(yesAt)}</span>
+        <span>{t("answers.threshold", { pct: pct(yesAt) })}</span>
         <span>100%</span>
       </div>
     </div>
@@ -83,15 +84,16 @@ type ChoiceBodyProps = {
 };
 
 function ChoiceBody({ choice, confidence, probabilities, descriptions }: ChoiceBodyProps) {
+  const { t } = useI18n();
   const rows = Object.entries(probabilities).toSorted((a, b) => b[1] - a[1]);
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
         <div className="min-w-0">
-          <span className="text-xs text-muted-foreground">Pick</span>
+          <span className="text-xs text-muted-foreground">{t("answers.pick")}</span>
           <p className="truncate font-mono text-xl font-semibold">{choice}</p>
         </div>
-        <Stat label="confidence" value={confidence.toFixed(2)} />
+        <Stat label={t("answers.confidence")} value={confidence.toFixed(2)} />
       </div>
       <ul className="flex flex-col gap-2">
         {rows.map(([key, p]) => (
@@ -103,7 +105,7 @@ function ChoiceBody({ choice, confidence, probabilities, descriptions }: ChoiceB
               </span>
               <span className="shrink-0 font-mono tabular-nums text-muted-foreground">{pct(p)}</span>
             </div>
-            <Meter value={p} tone={key === choice ? "choice" : "muted"} label={`${key} probability`} />
+            <Meter value={p} tone={key === choice ? "choice" : "muted"} label={t("answers.probability", { key })} />
           </li>
         ))}
       </ul>
@@ -120,6 +122,7 @@ type ScoreBodyProps = {
 };
 
 function ScoreBody({ score, confidence, legend, probabilities, meetsAt }: ScoreBodyProps) {
+  const { t } = useI18n();
   const levels = Object.keys(legend)
     .map(Number)
     .toSorted((a, b) => a - b);
@@ -129,16 +132,16 @@ function ScoreBody({ score, confidence, legend, probabilities, meetsAt }: ScoreB
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
         <div>
-          <span className="text-xs text-muted-foreground">Score (0–{max})</span>
+          <span className="text-xs text-muted-foreground">{t("answers.scoreRange", { max })}</span>
           <p className="font-mono text-2xl font-semibold tabular-nums">{score.toFixed(2)}</p>
         </div>
-        <Stat label="confidence" value={confidence.toFixed(2)} />
+        <Stat label={t("answers.confidence")} value={confidence.toFixed(2)} />
       </div>
       <div className="flex flex-col gap-1">
-        <Meter value={score / max} tone="score" label="Fractional score" />
+        <Meter value={score / max} tone="score" label={t("answers.fractionalScore")} />
         <div className="flex justify-between font-mono text-xs text-muted-foreground">
           <span>0</span>
-          <span>meets at {meetsAt}</span>
+          <span>{t("answers.meetsAt", { value: meetsAt })}</span>
           <span>{max}</span>
         </div>
       </div>
@@ -154,7 +157,11 @@ function ScoreBody({ score, confidence, legend, probabilities, meetsAt }: ScoreB
                 </span>
                 <span className="shrink-0 font-mono tabular-nums text-muted-foreground">{pct(p)}</span>
               </div>
-              <Meter value={p} tone={active ? "score" : "muted"} label={`Level ${lvl} probability`} />
+              <Meter
+                value={p}
+                tone={active ? "score" : "muted"}
+                label={t("answers.levelProbability", { n: lvl })}
+              />
             </li>
           );
         })}

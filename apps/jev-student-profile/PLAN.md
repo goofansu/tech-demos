@@ -62,6 +62,9 @@ Edits the rubric and persists it to `localStorage` (`jev-student-profile.rubric.
 - Profile summary: fired conditions, grouped by tone.
 - Footer: resolved model, token usage, latency.
 - Collapsible "request payload" so the demo shows exactly what Jev received.
+- Header language toggle: English and Simplified Chinese. Chrome, bundled
+  sample rubric, and sample students follow the locale; a custom rubric does
+  not. Choice is persisted in `localStorage`.
 - Without `TYPESAFE_API_KEY`, Evaluate is disabled and the UI warns that
   there is no API key. There is no mock evaluator.
 
@@ -104,7 +107,10 @@ apps/jev-student-profile/
   server/evaluate.ts        # /api/evaluate + /api/status, Jev client
   src/main.tsx  src/App.tsx  src/index.css
   src/lib/types.ts          # Rubric, Question, Condition, Jev answer types
+  src/lib/i18n.ts           # EN / zh-CN catalogs and translate()
+  src/lib/i18n-context.tsx  # locale provider, language persistence
   src/lib/sample.ts         # sample rubric + sample students
+  src/lib/sample.zh-CN.ts   # Simplified Chinese sample rubric + students
   src/lib/store.ts          # localStorage load/save/reset
   src/lib/jev.ts            # buildQuestions(rubric) → Jev questions map
   src/lib/conditions.ts     # threshold verdicts + condition evaluation

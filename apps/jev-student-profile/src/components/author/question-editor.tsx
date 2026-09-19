@@ -2,6 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n-context";
+import type { Translate } from "@/lib/i18n";
 import { slugify } from "@/lib/store";
 import type { ChoiceField, JevQuestionType, NoulField, RubricField, ScoreField } from "@/lib/types";
 
@@ -14,14 +16,19 @@ type Props = {
   onMove: (delta: -1 | 1) => void;
 };
 
-export const TYPE_HELP: Record<JevQuestionType, string> = {
-  noul: "Yes/no. Jev returns the probability the statement is true (0–1).",
-  choice: "Pick one of N unordered options. Returns the pick, a probability per option, and confidence.",
-  score:
-    "Position on an ordered scale. Returns a fractional score, probability per level, and confidence. Say what to do if a cited input is empty.",
-};
+function typeHelp(type: JevQuestionType, t: Translate): string {
+  switch (type) {
+    case "noul":
+      return t("questions.helpNoul");
+    case "choice":
+      return t("questions.helpChoice");
+    case "score":
+      return t("questions.helpScore");
+  }
+}
 
 export function QuestionEditor({ field, index, total, onChange, onRemove, onMove }: Props) {
+  const { t } = useI18n();
   const setCommon = (patch: Partial<Pick<RubricField, "id" | "label" | "instructions">>) =>
     onChange({ ...field, ...patch } as RubricField);
 
@@ -37,12 +44,17 @@ export function QuestionEditor({ field, index, total, onChange, onRemove, onMove
         options: [
           { key: "option_a", description: "" },
           { key: "option_b", description: "" },
-          { key: "other", description: "None of the above fit." },
+          { key: "other", description: t("questions.defaultOther") },
         ],
         minConfidence: 0.3,
       });
     } else {
-      onChange({ ...base, type, levels: ["Low", "Medium", "High"], meetsAt: 1 });
+      onChange({
+        ...base,
+        type,
+        levels: [t("questions.defaultLow"), t("questions.defaultMedium"), t("questions.defaultHigh")],
+        meetsAt: 1,
+      });
     }
   };
 
@@ -55,26 +67,32 @@ export function QuestionEditor({ field, index, total, onChange, onRemove, onMove
           <code className="font-mono text-xs text-muted-foreground">{field.id}</code>
         </div>
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" aria-label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={t("questions.moveUp")}
+            disabled={index === 0}
+            onClick={() => onMove(-1)}
+          >
             ↑
           </Button>
           <Button
             size="icon"
             variant="ghost"
-            aria-label="Move down"
+            aria-label={t("questions.moveDown")}
             disabled={index === total - 1}
             onClick={() => onMove(1)}
           >
             ↓
           </Button>
           <Button size="sm" variant="danger" onClick={onRemove}>
-            Remove
+            {t("questions.remove")}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-12">
-        <Field label="Label" className="sm:col-span-5">
+        <Field label={t("questions.label")} className="sm:col-span-5">
           <Input
             value={field.label}
             onChange={(e) =>
@@ -85,23 +103,23 @@ export function QuestionEditor({ field, index, total, onChange, onRemove, onMove
             }
           />
         </Field>
-        <Field label="Question id" className="sm:col-span-4" hint="Used as the key in the Jev request.">
+        <Field label={t("questions.id")} className="sm:col-span-4" hint={t("questions.idHint")}>
           <Input
             mono
             value={field.id}
             onChange={(e) => setCommon({ id: slugify(e.target.value) || e.target.value })}
           />
         </Field>
-        <Field label="Type" className="sm:col-span-3">
+        <Field label={t("questions.type")} className="sm:col-span-3">
           <Select value={field.type} onChange={(e) => changeType(e.target.value as JevQuestionType)}>
-            <option value="noul">Noul (yes/no)</option>
-            <option value="choice">Choice</option>
-            <option value="score">Score</option>
+            <option value="noul">{t("questions.typeNoul")}</option>
+            <option value="choice">{t("questions.typeChoice")}</option>
+            <option value="score">{t("questions.typeScore")}</option>
           </Select>
         </Field>
       </div>
 
-      <Field label="Instructions" hint={TYPE_HELP[field.type]}>
+      <Field label={t("questions.instructions")} hint={typeHelp(field.type, t)}>
         <Textarea
           className="min-h-16"
           value={field.instructions}
@@ -117,16 +135,17 @@ export function QuestionEditor({ field, index, total, onChange, onRemove, onMove
 }
 
 function NoulEditor({ field, onChange }: { field: NoulField; onChange: (f: NoulField) => void }) {
+  const { t } = useI18n();
   return (
     <div className="grid gap-3 sm:grid-cols-12">
-      <Field label="Criteria · true (optional)" className="sm:col-span-5">
+      <Field label={t("noul.criteriaTrue")} className="sm:col-span-5">
         <Textarea
           className="min-h-14"
           value={field.criteriaTrue}
           onChange={(e) => onChange({ ...field, criteriaTrue: e.target.value })}
         />
       </Field>
-      <Field label="Criteria · false (optional)" className="sm:col-span-5">
+      <Field label={t("noul.criteriaFalse")} className="sm:col-span-5">
         <Textarea
           className="min-h-14"
           value={field.criteriaFalse}
@@ -135,12 +154,12 @@ function NoulEditor({ field, onChange }: { field: NoulField; onChange: (f: NoulF
       </Field>
       <ThresholdField
         className="sm:col-span-2"
-        label="Yes at ≥"
+        label={t("noul.yesAt")}
         value={field.yesAt}
         min={0}
         max={1}
         step={0.05}
-        hint="Probability"
+        hint={t("noul.probability")}
         onChange={(yesAt) => onChange({ ...field, yesAt })}
       />
     </div>
@@ -148,6 +167,7 @@ function NoulEditor({ field, onChange }: { field: NoulField; onChange: (f: NoulF
 }
 
 function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: ChoiceField) => void }) {
+  const { t } = useI18n();
   const setOption = (i: number, patch: Partial<ChoiceField["options"][number]>) =>
     onChange({
       ...field,
@@ -158,7 +178,7 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
-          Options ({field.options.length}) — key + what belongs to it
+          {t("choice.options", { count: field.options.length })}
         </span>
         <Button
           size="sm"
@@ -171,7 +191,7 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
             })
           }
         >
-          + Option
+          {t("choice.add")}
         </Button>
       </div>
       {field.options.map((opt, i) => (
@@ -179,21 +199,21 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
           <Input
             mono
             className="sm:col-span-3"
-            aria-label="Option key"
+            aria-label={t("choice.key")}
             value={opt.key}
             onChange={(e) => setOption(i, { key: slugify(e.target.value) || e.target.value })}
           />
           <Input
             className="sm:col-span-8"
-            aria-label="Option description"
-            placeholder="Describe what belongs to this option (and what does not)."
+            aria-label={t("choice.description")}
+            placeholder={t("choice.descriptionPlaceholder")}
             value={opt.description}
             onChange={(e) => setOption(i, { description: e.target.value })}
           />
           <Button
             size="icon"
             variant="ghost"
-            aria-label="Remove option"
+            aria-label={t("choice.remove")}
             className="sm:col-span-1"
             disabled={field.options.length <= 2}
             onClick={() => onChange({ ...field, options: field.options.filter((_, idx) => idx !== i) })}
@@ -204,12 +224,12 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
       ))}
       <ThresholdField
         className="sm:max-w-48"
-        label="Confident when confidence ≥"
+        label={t("choice.confidentWhen")}
         value={field.minConfidence}
         min={0}
         max={1}
         step={0.05}
-        hint="Below this the pick is flagged as uncertain."
+        hint={t("choice.confidentHint")}
         onChange={(minConfidence) => onChange({ ...field, minConfidence })}
       />
     </div>
@@ -217,6 +237,7 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
 }
 
 function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: ScoreField) => void }) {
+  const { t } = useI18n();
   const setLevel = (i: number, text: string) =>
     onChange({ ...field, levels: field.levels.map((l, idx) => (idx === i ? text : l)) });
 
@@ -224,7 +245,7 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
-          Levels ({field.levels.length}/10), low → high. Describe situations, not degrees.
+          {t("score.levels", { count: field.levels.length })}
         </span>
         <Button
           size="sm"
@@ -232,22 +253,22 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
           disabled={field.levels.length >= 10}
           onClick={() => onChange({ ...field, levels: [...field.levels, ""] })}
         >
-          + Level
+          {t("score.add")}
         </Button>
       </div>
       {field.levels.map((level, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-6 shrink-0 text-right font-mono text-xs text-muted-foreground">{i}</span>
           <Input
-            aria-label={`Level ${i}`}
+            aria-label={t("score.level", { n: i })}
             value={level}
-            placeholder="What does a student at this level look like?"
+            placeholder={t("score.placeholder")}
             onChange={(e) => setLevel(i, e.target.value)}
           />
           <Button
             size="icon"
             variant="ghost"
-            aria-label="Remove level"
+            aria-label={t("score.remove")}
             disabled={field.levels.length <= 2}
             onClick={() => onChange({ ...field, levels: field.levels.filter((_, idx) => idx !== i) })}
           >
@@ -257,12 +278,12 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
       ))}
       <ThresholdField
         className="sm:max-w-48"
-        label="Meets level when score ≥"
+        label={t("score.meetsWhen")}
         value={field.meetsAt}
         min={0}
         max={Math.max(0, field.levels.length - 1)}
         step={0.1}
-        hint={`Fractional score, 0–${Math.max(0, field.levels.length - 1)}.`}
+        hint={t("score.meetsHint", { max: Math.max(0, field.levels.length - 1) })}
         onChange={(meetsAt) => onChange({ ...field, meetsAt })}
       />
     </div>

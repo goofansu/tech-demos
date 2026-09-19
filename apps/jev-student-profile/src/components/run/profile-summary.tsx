@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { describeClause, type ConditionResult } from "@/lib/conditions";
-import type { RubricField } from "@/lib/types";
+import { useI18n } from "@/lib/i18n-context";
+import type { ConditionTone, RubricField } from "@/lib/types";
 import { TONE_BADGE } from "@/components/author/conditions-editor";
 
 type Props = {
@@ -11,24 +12,36 @@ type Props = {
 };
 
 export function ProfileSummary({ results, fields, studentName }: Props) {
+  const { t } = useI18n();
   const byId = new Map(fields.map((f) => [f.id, f]));
   const fired = results.filter((r) => r.fired);
   const rest = results.filter((r) => !r.fired);
+
+  const toneLabel = (tone: ConditionTone) => {
+    switch (tone) {
+      case "positive":
+        return t("conditions.tonePositive");
+      case "neutral":
+        return t("conditions.toneNeutral");
+      case "attention":
+        return t("conditions.toneAttention");
+    }
+  };
 
   return (
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Profile · {studentName}</CardTitle>
-          <CardDescription>Outcomes computed in code from the thresholds and conditions you authored.</CardDescription>
+          <CardTitle>{t("profile.title", { name: studentName })}</CardTitle>
+          <CardDescription>{t("profile.hint")}</CardDescription>
         </div>
         <Badge tone={fired.length > 0 ? "default" : "outline"}>
-          {fired.length} of {results.length} fired
+          {t("profile.firedCount", { fired: fired.length, total: results.length })}
         </Badge>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {results.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No conditions defined. Add some in Author mode.</p>
+          <p className="text-sm text-muted-foreground">{t("profile.noConditions")}</p>
         ) : null}
 
         {fired.length > 0 ? (
@@ -42,7 +55,7 @@ export function ProfileSummary({ results, fields, studentName }: Props) {
             ))}
           </ul>
         ) : results.length > 0 ? (
-          <p className="text-sm text-muted-foreground">No conditions fired for this student.</p>
+          <p className="text-sm text-muted-foreground">{t("profile.noneFired")}</p>
         ) : null}
 
         <ul className="flex flex-col divide-y">
@@ -56,7 +69,7 @@ export function ProfileSummary({ results, fields, studentName }: Props) {
                   }
                 />
                 <span className={r.fired ? "font-medium" : "text-muted-foreground"}>{r.condition.label}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{r.condition.tone}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{toneLabel(r.condition.tone)}</span>
               </div>
               <ul className="ml-4 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs">
                 {r.clauses.map((c, i) => (
@@ -70,8 +83,8 @@ export function ProfileSummary({ results, fields, studentName }: Props) {
                           : "text-danger"
                     }
                   >
-                    {describeClause(c.clause, byId.get(c.clause.fieldId))}
-                    {c.holds === null ? " (unanswered)" : ""}
+                    {describeClause(c.clause, byId.get(c.clause.fieldId), t)}
+                    {c.holds === null ? t("profile.unanswered") : ""}
                   </li>
                 ))}
               </ul>

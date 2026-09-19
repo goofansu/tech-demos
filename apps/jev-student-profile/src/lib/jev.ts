@@ -1,3 +1,4 @@
+import { detectLocale, translate, type Translate } from "./i18n";
 import type {
   EvaluateError,
   EvaluateRequest,
@@ -49,45 +50,45 @@ export function buildRequest(rubric: Rubric, state: JevState): EvaluateRequest {
 }
 
 /** Author-time problems that would make the request fail validation. */
-export function rubricProblems(rubric: Rubric): string[] {
+export function rubricProblems(rubric: Rubric, t: Translate): string[] {
   const problems: string[] = [];
   const ids = new Set<string>();
-  if (rubric.inputs.length === 0) problems.push("Add at least one input field.");
+  if (rubric.inputs.length === 0) problems.push(t("problems.needInput"));
   for (const input of rubric.inputs) {
     if (!/^[a-z0-9_]+$/i.test(input.key)) {
-      problems.push(`Input key "${input.key || "(empty)"}" must be alphanumeric/underscore.`);
+      problems.push(t("problems.inputKey", { key: input.key || t("problems.empty") }));
     }
   }
-  if (rubric.fields.length === 0) problems.push("Add at least one question.");
+  if (rubric.fields.length === 0) problems.push(t("problems.needQuestion"));
   for (const f of rubric.fields) {
-    const name = f.label || f.id || "(untitled)";
-    if (!/^[a-z0-9_]+$/i.test(f.id)) problems.push(`"${name}": id must be alphanumeric/underscore.`);
-    if (ids.has(f.id)) problems.push(`Duplicate question id "${f.id}".`);
+    const name = f.label || f.id || t("problems.untitled");
+    if (!/^[a-z0-9_]+$/i.test(f.id)) problems.push(t("problems.badId", { name }));
+    if (ids.has(f.id)) problems.push(t("problems.duplicateId", { id: f.id }));
     ids.add(f.id);
-    if (!f.instructions.trim()) problems.push(`"${name}": instructions are required.`);
+    if (!f.instructions.trim()) problems.push(t("problems.needInstructions", { name }));
     if (f.type === "choice") {
       const keys = f.options.map((o) => o.key.trim()).filter(Boolean);
-      if (keys.length < 2) problems.push(`"${name}": choice needs at least 2 options.`);
-      if (new Set(keys).size !== keys.length) problems.push(`"${name}": option keys must be unique.`);
+      if (keys.length < 2) problems.push(t("problems.choiceMin", { name }));
+      if (new Set(keys).size !== keys.length) problems.push(t("problems.choiceUnique", { name }));
     }
     if (f.type === "score") {
       if (f.levels.length < 2 || f.levels.length > 10) {
-        problems.push(`"${name}": score needs 2–10 levels.`);
+        problems.push(t("problems.scoreLevels", { name }));
       }
-      if (f.levels.some((l) => !l.trim())) problems.push(`"${name}": every level needs text.`);
+      if (f.levels.some((l) => !l.trim())) problems.push(t("problems.scoreText", { name }));
     }
     if (f.type === "noul") {
-      const t = f.criteriaTrue.trim();
+      const truth = f.criteriaTrue.trim();
       const fl = f.criteriaFalse.trim();
-      if ((t && !fl) || (!t && fl)) {
-        problems.push(`"${name}": give both true and false criteria, or neither.`);
+      if ((truth && !fl) || (!truth && fl)) {
+        problems.push(t("problems.noulCriteria", { name }));
       }
     }
   }
   for (const c of rubric.conditions) {
     for (const clause of c.clauses) {
       if (!ids.has(clause.fieldId)) {
-        problems.push(`Condition "${c.label}" references a missing question.`);
+        problems.push(t("problems.missingQuestion", { label: c.label }));
       }
     }
   }
@@ -106,12 +107,13 @@ export async function evaluate(request: EvaluateRequest): Promise<EvaluateRespon
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   });
-  const data = (await res.json().catch(() => ({ error: "Malformed server response" }))) as
+  const locale = detectLocale();
+  const data = (await res.json().catch(() => ({ error: translate(locale, "errors.malformed") }))) as
     | EvaluateResponse
     | EvaluateError;
   if (!res.ok || "error" in data) {
     const err = data as EvaluateError;
-    throw new Error(err.error || `Request failed (${res.status})`);
+    throw new Error(err.error || translate(locale, "errors.requestFailed", { status: res.status }));
   }
   return data;
 }

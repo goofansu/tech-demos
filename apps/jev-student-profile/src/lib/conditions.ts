@@ -1,3 +1,4 @@
+import type { Translate } from "./i18n";
 import type { Clause, ClauseOp, Condition, JevAnswer, RubricField } from "./types";
 
 export type Verdict = {
@@ -7,7 +8,11 @@ export type Verdict = {
 };
 
 /** Apply the field's own threshold to its answer. Code owns the decision. */
-export function verdictFor(field: RubricField, answer: JevAnswer | undefined): Verdict | null {
+export function verdictFor(
+  field: RubricField,
+  answer: JevAnswer | undefined,
+  t: Translate,
+): Verdict | null {
   if (!answer) return null;
   switch (field.type) {
     case "noul": {
@@ -15,8 +20,12 @@ export function verdictFor(field: RubricField, answer: JevAnswer | undefined): V
       const met = answer.noul >= field.yesAt;
       return {
         met,
-        label: met ? "Yes" : "No",
-        detail: `${pct(answer.noul)} ${met ? "≥" : "<"} ${pct(field.yesAt)} threshold`,
+        label: met ? t("verdicts.yes") : t("verdicts.no"),
+        detail: t("verdicts.noulDetail", {
+          actual: pct(answer.noul),
+          op: met ? "≥" : "<",
+          threshold: pct(field.yesAt),
+        }),
       };
     }
     case "choice": {
@@ -24,8 +33,12 @@ export function verdictFor(field: RubricField, answer: JevAnswer | undefined): V
       const met = answer.confidence >= field.minConfidence;
       return {
         met,
-        label: met ? "Confident pick" : "Uncertain",
-        detail: `confidence ${answer.confidence.toFixed(2)} ${met ? "≥" : "<"} ${field.minConfidence.toFixed(2)}`,
+        label: met ? t("verdicts.confident") : t("verdicts.uncertain"),
+        detail: t("verdicts.choiceDetail", {
+          actual: answer.confidence.toFixed(2),
+          op: met ? "≥" : "<",
+          threshold: field.minConfidence.toFixed(2),
+        }),
       };
     }
     case "score": {
@@ -33,8 +46,12 @@ export function verdictFor(field: RubricField, answer: JevAnswer | undefined): V
       const met = answer.score >= field.meetsAt;
       return {
         met,
-        label: met ? "Meets level" : "Below level",
-        detail: `score ${answer.score.toFixed(2)} ${met ? "≥" : "<"} ${field.meetsAt}`,
+        label: met ? t("verdicts.meets") : t("verdicts.below"),
+        detail: t("verdicts.scoreDetail", {
+          actual: answer.score.toFixed(2),
+          op: met ? "≥" : "<",
+          threshold: field.meetsAt,
+        }),
       };
     }
   }
@@ -44,16 +61,16 @@ export function opsFor(type: RubricField["type"]): ClauseOp[] {
   return type === "choice" ? ["is", "is_not"] : [">=", "<"];
 }
 
-export function opLabel(op: ClauseOp): string {
+export function opLabel(op: ClauseOp, t: Translate): string {
   switch (op) {
     case ">=":
       return "≥";
     case "<":
       return "<";
     case "is":
-      return "is";
+      return t("conditions.opIs");
     case "is_not":
-      return "is not";
+      return t("conditions.opIsNot");
   }
 }
 
@@ -105,12 +122,12 @@ export function evaluateConditions(
   });
 }
 
-export function describeClause(clause: Clause, field: RubricField | undefined): string {
+export function describeClause(clause: Clause, field: RubricField | undefined, t: Translate): string {
   const name = field?.label || clause.fieldId;
   if (field?.type === "noul" && (clause.op === ">=" || clause.op === "<")) {
-    return `${name} ${opLabel(clause.op)} ${pct(Number(clause.value))}`;
+    return `${name} ${opLabel(clause.op, t)} ${pct(Number(clause.value))}`;
   }
-  return `${name} ${opLabel(clause.op)} ${clause.value}`;
+  return `${name} ${opLabel(clause.op, t)} ${clause.value}`;
 }
 
 export function pct(n: number): string {

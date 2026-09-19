@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Select } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n-context";
 import { opLabel, opsFor } from "@/lib/conditions";
 import { uid } from "@/lib/store";
 import type { Clause, ClauseOp, Condition, ConditionTone, RubricField } from "@/lib/types";
@@ -20,6 +21,7 @@ export const TONE_BADGE: Record<ConditionTone, "success" | "info" | "warning"> =
 };
 
 export function ConditionsEditor({ conditions, fields, onChange }: Props) {
+  const { t } = useI18n();
   const update = (i: number, patch: Partial<Condition>) =>
     onChange(conditions.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
 
@@ -29,7 +31,7 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
       ...conditions,
       {
         id: uid("cond"),
-        label: "New outcome",
+        label: t("conditions.defaultLabel"),
         tone: "neutral",
         clauses: first ? [defaultClause(first)] : [],
       },
@@ -40,35 +42,31 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Profile conditions</CardTitle>
-          <CardDescription>
-            Outcomes derived in code from Jev's answers. Every clause must hold (AND) for a condition to fire.
-          </CardDescription>
+          <CardTitle>{t("conditions.title")}</CardTitle>
+          <CardDescription>{t("conditions.hint")}</CardDescription>
         </div>
         <Button size="sm" variant="outline" onClick={add} disabled={fields.length === 0}>
-          + Condition
+          {t("conditions.add")}
         </Button>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {conditions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No conditions yet. Add one to turn answers into profile outcomes.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("conditions.empty")}</p>
         ) : null}
         {conditions.map((cond, i) => (
           <div key={cond.id} className="flex flex-col gap-3 rounded-lg border bg-muted/40 p-3">
             <div className="grid gap-3 sm:grid-cols-12">
-              <Field label="Outcome label" className="sm:col-span-7">
+              <Field label={t("conditions.outcomeLabel")} className="sm:col-span-7">
                 <Input value={cond.label} onChange={(e) => update(i, { label: e.target.value })} />
               </Field>
-              <Field label="Tone" className="sm:col-span-3">
+              <Field label={t("conditions.tone")} className="sm:col-span-3">
                 <Select
                   value={cond.tone}
                   onChange={(e) => update(i, { tone: e.target.value as ConditionTone })}
                 >
-                  <option value="positive">Positive</option>
-                  <option value="neutral">Neutral</option>
-                  <option value="attention">Attention</option>
+                  <option value="positive">{t("conditions.tonePositive")}</option>
+                  <option value="neutral">{t("conditions.toneNeutral")}</option>
+                  <option value="attention">{t("conditions.toneAttention")}</option>
                 </Select>
               </Field>
               <div className="flex items-end justify-end sm:col-span-2">
@@ -77,7 +75,7 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
                   variant="danger"
                   onClick={() => onChange(conditions.filter((_, idx) => idx !== i))}
                 >
-                  Remove
+                  {t("conditions.remove")}
                 </Button>
               </div>
             </div>
@@ -88,7 +86,7 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
                   key={ci}
                   clause={clause}
                   fields={fields}
-                  prefix={ci === 0 ? "WHEN" : "AND"}
+                  prefix={ci === 0 ? t("conditions.when") : t("conditions.and")}
                   onChange={(next) =>
                     update(i, { clauses: cond.clauses.map((c, idx) => (idx === ci ? next : c)) })
                   }
@@ -102,14 +100,14 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
                   disabled={fields.length === 0}
                   onClick={() => update(i, { clauses: [...cond.clauses, defaultClause(fields[0])] })}
                 >
-                  + AND clause
+                  {t("conditions.andClause")}
                 </Button>
               </div>
             </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Fires as</span>
-              <Badge tone={TONE_BADGE[cond.tone]}>{cond.label || "(untitled)"}</Badge>
+              <span>{t("conditions.firesAs")}</span>
+              <Badge tone={TONE_BADGE[cond.tone]}>{cond.label || t("conditions.untitled")}</Badge>
             </div>
           </div>
         ))}
@@ -138,6 +136,7 @@ type ClauseRowProps = {
 };
 
 function ClauseRow({ clause, fields, prefix, onChange, onRemove }: ClauseRowProps) {
+  const { t } = useI18n();
   const field = fields.find((f) => f.id === clause.fieldId);
   const ops = field ? opsFor(field.type) : ([">=", "<"] as ClauseOp[]);
 
@@ -146,36 +145,36 @@ function ClauseRow({ clause, fields, prefix, onChange, onRemove }: ClauseRowProp
       <span className="font-mono text-xs font-semibold text-muted-foreground sm:col-span-1">{prefix}</span>
       <Select
         className="sm:col-span-5"
-        aria-label="Question"
+        aria-label={t("conditions.question")}
         value={clause.fieldId}
         onChange={(e) => {
           const next = fields.find((f) => f.id === e.target.value);
           onChange(next ? defaultClause(next) : { ...clause, fieldId: e.target.value });
         }}
       >
-        {!field ? <option value={clause.fieldId}>(missing: {clause.fieldId})</option> : null}
+        {!field ? <option value={clause.fieldId}>{t("conditions.missing", { id: clause.fieldId })}</option> : null}
         {fields.map((f) => (
           <option key={f.id} value={f.id}>
-            {f.label || f.id} · {f.type}
+            {t("conditions.fieldType", { label: f.label || f.id, type: f.type })}
           </option>
         ))}
       </Select>
       <Select
         className="sm:col-span-2"
-        aria-label="Operator"
+        aria-label={t("conditions.operator")}
         value={clause.op}
         onChange={(e) => onChange({ ...clause, op: e.target.value as ClauseOp })}
       >
         {ops.map((op) => (
           <option key={op} value={op}>
-            {opLabel(op)}
+            {opLabel(op, t)}
           </option>
         ))}
       </Select>
       {field?.type === "choice" ? (
         <Select
           className="sm:col-span-3"
-          aria-label="Option"
+          aria-label={t("conditions.option")}
           value={clause.value}
           onChange={(e) => onChange({ ...clause, value: e.target.value })}
         >
@@ -188,7 +187,7 @@ function ClauseRow({ clause, fields, prefix, onChange, onRemove }: ClauseRowProp
       ) : (
         <Input
           className="sm:col-span-3"
-          aria-label="Value"
+          aria-label={t("conditions.value")}
           type="number"
           inputMode="decimal"
           step={field?.type === "noul" ? 0.05 : 0.1}
@@ -198,7 +197,13 @@ function ClauseRow({ clause, fields, prefix, onChange, onRemove }: ClauseRowProp
           onChange={(e) => onChange({ ...clause, value: e.target.value })}
         />
       )}
-      <Button size="icon" variant="ghost" aria-label="Remove clause" className="sm:col-span-1" onClick={onRemove}>
+      <Button
+        size="icon"
+        variant="ghost"
+        aria-label={t("conditions.removeClause")}
+        className="sm:col-span-1"
+        onClick={onRemove}
+      >
         ×
       </Button>
     </div>

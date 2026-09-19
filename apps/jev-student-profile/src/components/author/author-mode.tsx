@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { RichText, useI18n } from "@/lib/i18n-context";
 import { rubricProblems, toJevQuestion } from "@/lib/jev";
 import type { Rubric, RubricField } from "@/lib/types";
 import { ConditionsEditor } from "./conditions-editor";
@@ -15,7 +16,8 @@ type Props = {
 };
 
 export function AuthorMode({ rubric, onChange, onReset }: Props) {
-  const problems = rubricProblems(rubric);
+  const { t } = useI18n();
+  const problems = rubricProblems(rubric, t);
 
   const setFields = (fields: RubricField[]) => onChange({ ...rubric, fields });
 
@@ -26,7 +28,7 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
       {
         id: `question_${n}`,
         type: "noul",
-        label: `Question ${n}`,
+        label: t("author.defaultQuestion", { n }),
         instructions: "",
         criteriaTrue: "",
         criteriaFalse: "",
@@ -50,15 +52,15 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>Rubric</CardTitle>
-            <CardDescription>Saved to this browser automatically. Reset restores the bundled sample.</CardDescription>
+            <CardTitle>{t("author.rubric")}</CardTitle>
+            <CardDescription>{t("author.rubricHint")}</CardDescription>
           </div>
           <Button size="sm" variant="outline" onClick={onReset}>
-            Reset to sample
+            {t("author.reset")}
           </Button>
         </CardHeader>
         <CardContent>
-          <Field label="Rubric name" className="max-w-md">
+          <Field label={t("author.rubricName")} className="max-w-md">
             <Input value={rubric.name} onChange={(e) => onChange({ ...rubric, name: e.target.value })} />
           </Field>
         </CardContent>
@@ -66,7 +68,7 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
 
       {problems.length > 0 ? (
         <div role="alert" className="rounded-lg border border-warning/40 bg-warning-soft px-4 py-3 text-sm">
-          <p className="font-medium text-warning-foreground">Fix before running:</p>
+          <p className="font-medium text-warning-foreground">{t("author.fixBefore")}</p>
           <ul className="mt-1 list-disc pl-5 text-warning-foreground/90">
             {problems.map((p) => (
               <li key={p}>{p}</li>
@@ -80,19 +82,21 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>Questions ({rubric.fields.length})</CardTitle>
+            <CardTitle>{t("author.questionsTitle", { count: rubric.fields.length })}</CardTitle>
             <CardDescription>
-              Every question is sent in a single Jev <code className="font-mono">systemone</code> call. Jev
-              answers; your thresholds decide.
+              <RichText
+                path="author.questionsHint"
+                tokens={{ systemone: <code className="font-mono">systemone</code> }}
+              />
             </CardDescription>
           </div>
           <Button size="sm" onClick={addField}>
-            + Question
+            {t("author.addQuestion")}
           </Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {rubric.fields.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No questions yet.</p>
+            <p className="text-sm text-muted-foreground">{t("author.noQuestions")}</p>
           ) : null}
           {rubric.fields.map((field, i) => (
             <QuestionEditor
@@ -116,7 +120,10 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
 
       <details className="group rounded-xl border bg-card shadow-xs">
         <summary className="cursor-pointer px-5 py-3 text-sm font-medium text-muted-foreground select-none hover:text-foreground">
-          Jev <code className="font-mono">questions</code> payload preview
+          <RichText
+            path="author.payloadPreview"
+            tokens={{ questions: <code className="font-mono">questions</code> }}
+          />
         </summary>
         <pre className="overflow-x-auto border-t bg-muted/50 px-5 py-4 font-mono text-xs leading-relaxed">
           {JSON.stringify(preview, null, 2)}

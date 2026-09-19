@@ -128,4 +128,4 @@ export type Rubric = {
   conditions: Condition[];
 };
 
-export type SampleStudent = { name: string; state: JevState };
+export type SampleStudent = { id: string; name: string; state: JevState };
