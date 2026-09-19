@@ -178,47 +178,66 @@ function cap(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** Sample Grade 8 rubric condition ids each interleaved archetype is written to fire. */
+export const BATCH_ARCHETYPE_PROFILES = [
+  ["check_in", "reflection_coaching"],
+  ["advanced_writing_track"],
+  ["group_project_lead"],
+  ["reflection_coaching"],
+  ["advanced_writing_track", "group_project_lead"],
+] as const;
+
 function supportState(d: Detail): JevState {
   return {
-    teacher_notes: `Has missed recent ${d.subject} work and looked lost on ${d.topic}. Stayed quiet and did not ask for help. ${cap(d.extra)}. Pace is slipping.`,
+    teacher_notes: `Has missed four of the last six ${d.subject} submissions and has been quiet in class. Looked lost on ${d.topic} and did not ask for help. ${cap(d.extra)}. Pace has been slipping for weeks, not a one-off.`,
     student_reflection: `I'm okay at ${d.topic} I guess. I need to do better. I'll try harder next time.`,
-    work_sample: `the thing about ${d.topic} is hard, i try ${d.attempt} but it dont work. i think ${d.extra}. the writing is not organized`,
+    work_sample: `the thing about ${d.topic} is hard, i try ${d.attempt} but it dont work. i think ${d.extra}. the writing is not organized and there is no main idea`,
   };
 }
 
 function extensionState(d: Detail): JevState {
   return {
-    teacher_notes: `Finished the required ${d.subject} work on ${d.topic} early and started an optional extension without being asked. Homework is complete. No concerns about pace.`,
+    teacher_notes: `Finished the required ${d.subject} work on ${d.topic} ahead of the class and then quietly started the optional extension prompts without being asked. Prefers to figure the next step out privately. Homework is consistently complete. No concerns about pace.`,
     student_reflection: `My strongest move on ${d.topic} is ${d.attempt}. The gap is that ${d.extra}. Next time I will rewrite the shaky part first and check it against one worked example before I turn it in.`,
-    work_sample: `The usual account of ${d.topic} treats it as settled, but the details push back. After ${d.attempt}, the pattern is clearer: ${d.extra}. That compression is the argument; the rest is support.`,
+    work_sample: `The city's decision to treat ${d.topic} as settled was framed as progress, but the data tells a more complicated story. Volume rose 18% within two years, while the outcome that was promised moved by less than a minute. If the goal was a faster result, the project did not achieve it; if the goal was more of the same, it succeeded.`,
   };
 }
 
 function collaborationState(d: Detail): JevState {
   return {
-    teacher_notes: `Lights up in ${d.subject} discussion about ${d.topic} and pulls quieter classmates into the talk. After ${d.attempt}, the group moved because they compared steps out loud. Pace is fine.`,
+    teacher_notes: `Lights up in ${d.subject} discussion about ${d.topic} and often pulls quieter classmates into the conversation. After ${d.attempt}, the group moved because they compared steps out loud. Assignments arrive on time. Pace is fine; nothing to flag.`,
     student_reflection: `I think my strongest skill is talking ${d.topic} through with someone first. I still rush when I have to write alone. Next unit I want to draft with a partner and then check that every paragraph points at the same claim.`,
-    work_sample: `We kept returning to ${d.topic} as a group. Someone said ${d.extra}, and that became the hinge. The author — or in this case the class — uses the back-and-forth to arrive at a claim none of us had alone.`,
+    work_sample: `We kept returning to ${d.topic} as a group. Someone said ${d.extra}, and that became the hinge. The class uses the back-and-forth to arrive at a claim none of us had alone.`,
   };
 }
 
-function reflectionState(d: Detail): JevState {
+function coachingState(d: Detail): JevState {
   return {
-    teacher_notes: `Works steadily on ${d.subject} and prefers to sit apart when drafting. Assignments on ${d.topic} arrive on time. In groups they do their share but rarely speak up. Pace is fine.`,
-    student_reflection: `I'm good at ${d.attempt} on my own. My weakness is that I don't share ideas in groups because I worry they aren't ready. One thing I could try is writing the idea down and reading it out. The gap I still have is that ${d.extra}.`,
-    work_sample: `A first pass at ${d.topic} can stop at plot. After ${d.attempt}, the structure is visible: setup, turn, cost. ${cap(d.extra)}, which is why the ending has to do more than recap.`,
-  };
-}
-
-function mixedState(d: Detail): JevState {
-  return {
-    teacher_notes: `Kept pace in ${d.subject}. Some of ${d.topic} clicked after ${d.attempt}; some did not. Nothing urgent to flag this week.`,
-    student_reflection: `I got through most of ${d.topic}. Some of it clicked and some of it did not: ${d.extra}. I might ask a classmate later, or I might just reread the notes.`,
+    teacher_notes: `Works steadily on ${d.subject} and prefers to sit apart when drafting. Assignments on ${d.topic} arrive on time and are complete. In group projects they do their share but rarely speak up. Pace is fine; nothing to flag.`,
+    student_reflection: `I'm okay at ${d.topic} I guess. I need to do better. I'll try harder next time.`,
     work_sample: `${d.topic} is mainly about a change that is hard at first. I tried ${d.attempt}. ${cap(d.extra)}. The theme is that people get used to things.`,
   };
 }
 
-const BUILDERS = [supportState, extensionState, collaborationState, reflectionState, mixedState] as const;
+function leadAndExtendState(d: Detail): JevState {
+  return {
+    teacher_notes: `Finishes most ${d.subject} tasks on ${d.topic} ahead of the class and then quietly starts the optional extension without being asked. Lights up in seminar discussions and often pulls quieter classmates into the conversation. Homework is consistently complete. No concerns about pace.`,
+    student_reflection: `I think my strongest skill is building an argument about ${d.topic}, especially when I can talk it through with someone first. I still rush my conclusions. Next unit I want to draft my ending first after ${d.attempt} and then check that every paragraph points at it. The remaining gap is that ${d.extra}.`,
+    work_sample: `Although the narrator insists she is 'unbothered' by ${d.topic}, the repetition of that word across three scenes suggests the opposite. Each time it appears, the sentence around it grows shorter, as if she is running out of room to hide. The author uses this compression to show the claim without ever naming it.`,
+  };
+}
+
+const BUILDERS = [
+  supportState,
+  extensionState,
+  collaborationState,
+  coachingState,
+  leadAndExtendState,
+] as const;
+
+if (BUILDERS.length !== BATCH_ARCHETYPE_PROFILES.length) {
+  throw new Error("Each batch archetype needs an intended sample-rubric profile.");
+}
 
 function interleave<D>(
   nameFor: (index: number) => string,
@@ -300,41 +319,41 @@ function nameAtZh(index: number): string {
 
 function supportStateZh(d: DetailZh): JevState {
   return {
-    teacher_notes: `最近${d.subject}的作业有缺交，在${d.topic}上看起来很懵，也不敢问。${d.extra}。进度已经落后。`,
+    teacher_notes: `最近六次${d.subject}作业里缺交了四次，课堂上也很沉默。在${d.topic}上看起来很懵，却没有主动求助。${d.extra}。进度已经落后好几周，不是偶发。`,
     student_reflection: `我${d.topic}还可以吧。我得再努力一点。下次会加油。`,
-    work_sample: `${d.topic}好难，我试了${d.attempt}可是不行。我觉得${d.extra}。写得也比较乱`,
+    work_sample: `${d.topic}好难，我试了${d.attempt}可是不行。我觉得${d.extra}。写得也比较乱，没有中心观点`,
   };
 }
 
 function extensionStateZh(d: DetailZh): JevState {
   return {
-    teacher_notes: `提前做完了${d.subject}里${d.topic}的必做部分，没人布置就自己开始做延伸。作业齐全，进度没有问题。`,
+    teacher_notes: `提前做完了${d.subject}里${d.topic}的必做部分，然后不等人提醒就自己开始做选做的拓展题。更喜欢私下把下一步想清楚。作业一直交齐，进度没有问题。`,
     student_reflection: `我在${d.topic}上最稳的一步是${d.attempt}。缺口是${d.extra}。下次我会先改最不稳的那一段，再对照一道例题，然后才交。`,
-    work_sample: `通常对${d.topic}的说法把它当成定论，但细节并不配合。经过${d.attempt}之后更清楚：${d.extra}。真正的论点在这个收束里，其余都是支撑。`,
+    work_sample: `把${d.topic}说成已经定论，听起来像进步，但数据讲的是更复杂的故事。两年内规模上升了 18%，当初承诺的结果却只移动了不到一分钟。如果目标是更快见效，这个项目没有达成；如果目标是更多重复，它成功了。`,
   };
 }
 
 function collaborationStateZh(d: DetailZh): JevState {
   return {
-    teacher_notes: `在${d.subject}讨论${d.topic}时很投入，还会把话少的同学拉进来。${d.attempt}之后小组靠对照步骤才往前走。进度正常。`,
+    teacher_notes: `在${d.subject}讨论${d.topic}时很投入，还常常把比较安静的同学拉进对话。${d.attempt}之后小组靠对照步骤才往前走。作业按时交。进度正常，没有需要标记的问题。`,
     student_reflection: `我最强的是先跟别人把${d.topic}讲清楚。一个人写的时候还会写太赶。下一单元我想先和同伴起草，再检查每段是否指向同一个主张。`,
-    work_sample: `我们小组一直回到${d.topic}。有人说${d.extra}，这句话成了转折。作者——或者这一次是全班——靠来回讨论才得到谁都没单独想到的结论。`,
+    work_sample: `我们小组一直回到${d.topic}。有人说${d.extra}，这句话成了转折。全班靠来回讨论才得到谁都没单独想到的结论。`,
   };
 }
 
-function reflectionStateZh(d: DetailZh): JevState {
+function coachingStateZh(d: DetailZh): JevState {
   return {
-    teacher_notes: `在${d.subject}里写稿时习惯坐开一点。${d.topic}的作业按时交。小组里会做自己的份，但很少开口。进度正常。`,
-    student_reflection: `我一个人做${d.attempt}比较稳。弱项是不敢在小组里说想法，怕还没准备好。我可以先写下来再读出来。仍然存在的缺口是${d.extra}。`,
-    work_sample: `第一遍看${d.topic}往往只停在情节。经过${d.attempt}之后结构就清楚了：铺垫、转折、代价。${d.extra}，所以结尾不能只是复述。`,
-  };
-}
-
-function mixedStateZh(d: DetailZh): JevState {
-  return {
-    teacher_notes: `${d.subject}里进度跟得上。${d.topic}在${d.attempt}之后有的懂、有的不懂。这周没有需要特别标记的事。`,
-    student_reflection: `${d.topic}的大部分我做完了。有的懂，有的不懂：${d.extra}。我可能稍后问同学，也可能再看一遍笔记。`,
+    teacher_notes: `在${d.subject}里写稿时习惯坐开一点。${d.topic}的作业按时交，内容完整。小组项目里会做自己的份，但很少发言。进度正常，没有需要标记的问题。`,
+    student_reflection: `我${d.topic}还可以吧。我得再努力一点。下次会加油。`,
     work_sample: `${d.topic}主要讲一种一开始很难的变化。我试了${d.attempt}。${d.extra}。主题大概是人会慢慢习惯。`,
+  };
+}
+
+function leadAndExtendStateZh(d: DetailZh): JevState {
+  return {
+    teacher_notes: `多数${d.subject}里关于${d.topic}的任务会提前完成，然后不等人提醒就开始做选做的拓展题。研讨课上很投入，常常把比较安静的同学拉进讨论。作业一直按时交齐。进度方面没有担心。`,
+    student_reflection: `我觉得自己最擅长的是围绕${d.topic}搭建论点，尤其是能先和别人把思路说清楚的时候。我还是会把结尾写得很仓促。下一单元我想先${d.attempt}，再起草结尾，并检查每一段是否都指向它。仍然存在的缺口是${d.extra}。`,
+    work_sample: `尽管叙述者一再坚称自己对${d.topic}“毫不在意”，这个词在三个场景中反复出现，反而暗示了相反的情况。每次它出现，周围的句子就变得更短，仿佛能躲藏的空间正在消失。作者用这种压缩，在从不点明的情况下写出了主张。`,
   };
 }
 
@@ -342,8 +361,12 @@ const BUILDERS_ZH = [
   supportStateZh,
   extensionStateZh,
   collaborationStateZh,
-  reflectionStateZh,
-  mixedStateZh,
+  coachingStateZh,
+  leadAndExtendStateZh,
 ] as const;
+
+if (BUILDERS_ZH.length !== BATCH_ARCHETYPE_PROFILES.length) {
+  throw new Error("Each Chinese batch archetype needs an intended sample-rubric profile.");
+}
 
 export const BATCH_RECORDS_ZH: BatchRecord[] = interleave(nameAtZh, DETAILS_ZH, BUILDERS_ZH);

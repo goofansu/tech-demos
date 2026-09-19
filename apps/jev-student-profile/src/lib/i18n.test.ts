@@ -40,6 +40,15 @@ describe("i18n catalogs", () => {
     );
   });
 
+  test("score.levels names the Jev max, not a 10-point scale", () => {
+    expect(translate("en", "score.levels", { count: 4, max: 10 })).toBe(
+      "Levels (4 of 10 max), low → high. Describe situations, not degrees.",
+    );
+    expect(translate("zh-CN", "score.levels", { count: 3, max: 10 })).toBe(
+      "等级（已设 3 级，最多 10 级），由低到高。请描述具体情境，而不是程度词。",
+    );
+  });
+
   test("interpolate leaves unknown tokens in place", () => {
     expect(interpolate("Hello {name}", { other: "x" })).toBe("Hello {name}");
   });
@@ -80,6 +89,15 @@ describe("locale samples", () => {
 
   test("English sample still matches the default export", () => {
     expect(SAMPLE_RUBRICS.en).toBe(SAMPLE_RUBRIC);
+  });
+
+  test("sample score fields fill some of Jev's 10 level slots, not a 10-point scale", () => {
+    const writing = SAMPLE_RUBRIC.fields.find((f) => f.id === "writing_quality");
+    const awareness = SAMPLE_RUBRIC.fields.find((f) => f.id === "self_awareness");
+    if (!writing || writing.type !== "score") throw new Error("expected writing_quality score field");
+    if (!awareness || awareness.type !== "score") throw new Error("expected self_awareness score field");
+    expect(writing.levels).toHaveLength(4);
+    expect(awareness.levels).toHaveLength(3);
   });
 });
 

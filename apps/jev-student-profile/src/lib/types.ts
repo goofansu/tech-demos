@@ -91,12 +91,16 @@ export type ChoiceField = {
   minConfidence: number;
 };
 
+/** Jev Score questions take this many ordered level descriptions (low → high). */
+export const SCORE_LEVEL_MIN = 2;
+export const SCORE_LEVEL_MAX = 10;
+
 export type ScoreField = {
   id: string;
   type: "score";
   label: string;
   instructions: string;
-  /** Ordered low → high, 2..10 entries. */
+  /** Ordered low → high, `SCORE_LEVEL_MIN`..`SCORE_LEVEL_MAX` entries. */
   levels: string[];
   /** Fractional score at or above which the level counts as met. */
   meetsAt: number;
