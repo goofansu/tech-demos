@@ -284,31 +284,33 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
       </Card>
 
       <div className="max-h-batch overflow-auto rounded-xl border bg-card shadow-xs">
-        <table className="w-max min-w-full text-left text-sm">
+        <table className="w-full table-fixed text-left text-sm">
           <caption className="sr-only">{t("batch.tableCaption")}</caption>
           <thead className="sticky top-0 z-10 border-b bg-card">
             <tr className="text-xs text-muted-foreground">
-              <th className="sticky left-0 z-20 w-12 bg-card px-3 py-2 font-medium font-mono" scope="col">
+              <th className="sticky left-0 z-20 w-10 bg-card px-2 py-2 font-medium font-mono" scope="col">
                 {t("batch.colIndex")}
               </th>
-              <th className="sticky left-12 z-20 w-28 bg-card px-3 py-2 font-medium" scope="col">
+              <th className="sticky left-10 z-20 w-24 bg-card px-2 py-2 font-medium" scope="col">
                 {t("batch.colName")}
               </th>
-              <th className="w-24 px-3 py-2 font-medium" scope="col">
+              <th className="w-20 px-2 py-2 font-medium" scope="col">
                 {t("batch.colStatus")}
               </th>
               {rubric.fields.map((field) => (
-                <th key={field.id} className="min-w-28 px-3 py-2 font-medium" scope="col" title={field.instructions}>
-                  <span className="flex items-center gap-1.5">
-                    <Badge tone={field.type}>{field.type}</Badge>
-                    <span className="truncate">{field.label || field.id}</span>
-                  </span>
+                <th
+                  key={field.id}
+                  className="px-2 py-2 font-medium"
+                  scope="col"
+                  title={`${field.type} · ${field.label || field.id}`}
+                >
+                  <span className="block truncate">{field.label || field.id}</span>
                 </th>
               ))}
-              <th className="min-w-48 px-3 py-2 font-medium" scope="col">
+              <th className="w-44 px-2 py-2 font-medium" scope="col">
                 {t("batch.colProfile")}
               </th>
-              <th className="w-16 px-3 py-2 text-right font-medium font-mono" scope="col">
+              <th className="w-14 px-2 py-2 text-right font-medium font-mono" scope="col">
                 {t("batch.colLatency")}
               </th>
             </tr>
@@ -318,13 +320,13 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
               const row = results[record.id] ?? { status: "idle" as const };
               return (
                 <tr key={record.id} className={cn("border-b last:border-b-0", ROW_BG[row.status])}>
-                  <td className="sticky left-0 z-0 bg-inherit px-3 py-1.5 font-mono tabular-nums text-xs text-muted-foreground">
+                  <td className="sticky left-0 z-0 bg-inherit px-2 py-1.5 font-mono tabular-nums text-xs text-muted-foreground">
                     {index + 1}
                   </td>
-                  <td className="sticky left-12 z-0 truncate bg-inherit px-3 py-1.5 text-xs font-medium" title={record.name}>
+                  <td className="sticky left-10 z-0 truncate bg-inherit px-2 py-1.5 text-xs font-medium" title={record.name}>
                     {record.name}
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
                     {row.status === "idle" ? (
                       <span className="text-xs text-muted-foreground">{t("batch.statusIdle")}</span>
                     ) : row.status === "error" ? (
@@ -336,14 +338,14 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
                     )}
                   </td>
                   {rubric.fields.map((field) => (
-                    <td key={field.id} className="px-3 py-1.5">
+                    <td key={field.id} className="px-2 py-1.5">
                       <AnswerChip field={field} row={row} />
                     </td>
                   ))}
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
                     <ProfileChips rubric={rubric} row={row} />
                   </td>
-                  <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">
+                  <td className="px-2 py-1.5 text-right font-mono tabular-nums text-xs">
                     {typeof row.latencyMs === "number" ? row.latencyMs : t("batch.emptyCell")}
                   </td>
                 </tr>

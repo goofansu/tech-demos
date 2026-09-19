@@ -42,6 +42,7 @@
   --radius-xl: 1rem;
 
   --max-height-batch: 70dvh;
+  --max-width-wide: 90rem;
 }
 
 @layer base {
