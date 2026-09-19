@@ -14,6 +14,9 @@ export type BatchRowResult = {
   status: BatchRowStatus;
   answers?: Record<string, JevAnswer>;
   latencyMs?: number;
+  costUsd?: number;
+  inputTokens?: number;
+  outputTokens?: number;
   error?: string;
 };
 

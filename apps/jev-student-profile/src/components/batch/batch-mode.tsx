@@ -15,6 +15,7 @@ import {
   type BatchRowStatus,
 } from "@/lib/batch";
 import { evaluateConditions } from "@/lib/conditions";
+import { costUsdFromUsage, formatUsd } from "@/lib/cost";
 import { useI18n } from "@/lib/i18n-context";
 import type { MessagePath } from "@/lib/i18n";
 import { evaluate, rubricProblems } from "@/lib/jev";
@@ -143,6 +144,9 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
                 status: "done",
                 answers: response.answers,
                 latencyMs: response.latencyMs,
+                costUsd: costUsdFromUsage(response.usage),
+                inputTokens: response.usage?.input_tokens,
+                outputTokens: response.usage?.output_tokens,
               },
               runId,
             );
@@ -205,6 +209,10 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
     .filter((row) => row.status === "done" && typeof row.latencyMs === "number")
     .map((row) => row.latencyMs as number);
   const avgMs = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : null;
+  const costs = Object.values(results)
+    .filter((row) => row.status === "done" && typeof row.costUsd === "number")
+    .map((row) => row.costUsd as number);
+  const totalCost = costs.length > 0 ? costs.reduce((a, b) => a + b, 0) : null;
   const elapsedMs = timing ? (timing.end ?? clock) - timing.start : 0;
   const elapsedSec = timing ? (elapsedMs / 1000).toFixed(1) : null;
   const hasAnyResult = Object.keys(results).length > 0;
@@ -262,6 +270,7 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
                 </Badge>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground">{t("batch.costHint")}</p>
             <p className="text-xs text-muted-foreground">{t("batch.noPersist")}</p>
           </div>
 
@@ -272,6 +281,9 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
               </span>
               {elapsedSec !== null ? <span>{t("batch.elapsed", { seconds: elapsedSec })}</span> : null}
               {avgMs !== null ? <span>{t("batch.avgMs", { ms: avgMs })}</span> : null}
+              {totalCost !== null ? (
+                <span className="font-mono tabular-nums">{t("batch.totalCost", { cost: formatUsd(totalCost) })}</span>
+              ) : null}
             </div>
             <Meter
               value={doneCount / BATCH_SIZE}
@@ -301,6 +313,9 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
               </th>
               <th className="w-16 px-3 py-2 text-right font-medium font-mono" scope="col">
                 {t("batch.colLatency")}
+              </th>
+              <th className="w-24 px-3 py-2 text-right font-medium font-mono" scope="col">
+                {t("batch.colCost")}
               </th>
             </tr>
           </thead>
@@ -332,6 +347,9 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
                   <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">
                     {typeof row.latencyMs === "number" ? row.latencyMs : t("batch.emptyCell")}
                   </td>
+                  <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">
+                    <CostCell row={row} />
+                  </td>
                 </tr>
               );
             })}
@@ -339,6 +357,25 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
         </table>
       </div>
     </div>
+  );
+}
+
+function CostCell({ row }: { row: BatchRowResult }) {
+  const { t } = useI18n();
+  if (typeof row.costUsd !== "number") {
+    return <>{t("batch.emptyCell")}</>;
+  }
+  const cost = formatUsd(row.costUsd);
+  return (
+    <span
+      title={t("batch.costDetail", {
+        cost,
+        in: row.inputTokens ?? 0,
+        out: row.outputTokens ?? 0,
+      })}
+    >
+      {cost}
+    </span>
   );
 }
 
