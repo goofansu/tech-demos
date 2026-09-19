@@ -199,7 +199,7 @@ function extensionState(d: Detail): JevState {
   return {
     teacher_notes: `Finished the required ${d.subject} work on ${d.topic} ahead of the class and then quietly started the optional extension prompts without being asked. Prefers to figure the next step out privately. Homework is consistently complete. No concerns about pace.`,
     student_reflection: `My strongest move on ${d.topic} is ${d.attempt}. The gap is that ${d.extra}. Next time I will rewrite the shaky part first and check it against one worked example before I turn it in.`,
-    work_sample: `The usual account of ${d.topic} treats it as settled, but the details push back. After ${d.attempt}, the pattern is clearer: ${d.extra}. That compression is the argument; the rest is support. Each sentence points at the same claim.`,
+    work_sample: `The city's decision to treat ${d.topic} as settled was framed as progress, but the data tells a more complicated story. Volume rose 18% within two years, while the outcome that was promised moved by less than a minute. If the goal was a faster result, the project did not achieve it; if the goal was more of the same, it succeeded.`,
   };
 }
 
@@ -223,7 +223,7 @@ function leadAndExtendState(d: Detail): JevState {
   return {
     teacher_notes: `Finishes most ${d.subject} tasks on ${d.topic} ahead of the class and then quietly starts the optional extension without being asked. Lights up in seminar discussions and often pulls quieter classmates into the conversation. Homework is consistently complete. No concerns about pace.`,
     student_reflection: `I think my strongest skill is building an argument about ${d.topic}, especially when I can talk it through with someone first. I still rush my conclusions. Next unit I want to draft my ending first after ${d.attempt} and then check that every paragraph points at it. The remaining gap is that ${d.extra}.`,
-    work_sample: `Although the usual account of ${d.topic} treats it as settled, the details suggest the opposite. After ${d.attempt}, each sentence around the claim grows tighter: ${d.extra}. That compression is the argument; the rest is support.`,
+    work_sample: `Although the narrator insists she is 'unbothered' by ${d.topic}, the repetition of that word across three scenes suggests the opposite. Each time it appears, the sentence around it grows shorter, as if she is running out of room to hide. The author uses this compression to show the claim without ever naming it.`,
   };
 }
 
@@ -329,7 +329,7 @@ function extensionStateZh(d: DetailZh): JevState {
   return {
     teacher_notes: `提前做完了${d.subject}里${d.topic}的必做部分，然后不等人提醒就自己开始做选做的拓展题。更喜欢私下把下一步想清楚。作业一直交齐，进度没有问题。`,
     student_reflection: `我在${d.topic}上最稳的一步是${d.attempt}。缺口是${d.extra}。下次我会先改最不稳的那一段，再对照一道例题，然后才交。`,
-    work_sample: `通常对${d.topic}的说法把它当成定论，但细节并不配合。经过${d.attempt}之后更清楚：${d.extra}。真正的论点在这个收束里，其余都是支撑。每一句都指向同一个主张。`,
+    work_sample: `把${d.topic}说成已经定论，听起来像进步，但数据讲的是更复杂的故事。两年内规模上升了 18%，当初承诺的结果却只移动了不到一分钟。如果目标是更快见效，这个项目没有达成；如果目标是更多重复，它成功了。`,
   };
 }
 
@@ -353,7 +353,7 @@ function leadAndExtendStateZh(d: DetailZh): JevState {
   return {
     teacher_notes: `多数${d.subject}里关于${d.topic}的任务会提前完成，然后不等人提醒就开始做选做的拓展题。研讨课上很投入，常常把比较安静的同学拉进讨论。作业一直按时交齐。进度方面没有担心。`,
     student_reflection: `我觉得自己最擅长的是围绕${d.topic}搭建论点，尤其是能先和别人把思路说清楚的时候。我还是会把结尾写得很仓促。下一单元我想先${d.attempt}，再起草结尾，并检查每一段是否都指向它。仍然存在的缺口是${d.extra}。`,
-    work_sample: `尽管通常对${d.topic}的说法把它当成定论，细节却暗示了相反的情况。经过${d.attempt}之后，围绕主张的句子越来越紧：${d.extra}。真正的论点在这个收束里，其余都是支撑。`,
+    work_sample: `尽管叙述者一再坚称自己对${d.topic}“毫不在意”，这个词在三个场景中反复出现，反而暗示了相反的情况。每次它出现，周围的句子就变得更短，仿佛能躲藏的空间正在消失。作者用这种压缩，在从不点明的情况下写出了主张。`,
   };
 }
 

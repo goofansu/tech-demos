@@ -66,6 +66,8 @@ describe("batch dataset", () => {
       if (intended.includes("advanced_writing_track")) {
         expect(notes).toContain("optional extension");
         expect(zh.state.teacher_notes).toMatch(/拓展题/);
+        expect(record.state.work_sample).not.toMatch(/dont work|not organized/i);
+        expect(record.state.work_sample).toMatch(/18%|unbothered/);
       }
       if (intended.includes("group_project_lead")) {
         expect(notes).toContain("quieter classmates");
