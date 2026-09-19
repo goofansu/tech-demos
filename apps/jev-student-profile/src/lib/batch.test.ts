@@ -32,6 +32,11 @@ describe("batch dataset", () => {
     expect(batchRecords("en")).toBe(BATCH_RECORDS_EN);
     expect(batchRecords("zh-CN")).toBe(BATCH_RECORDS_ZH);
   });
+
+  test("interleaves signal archetypes so neighboring rows differ", () => {
+    const openings = BATCH_RECORDS_EN.slice(0, 5).map((r) => r.text.slice(0, 24));
+    expect(new Set(openings).size).toBe(5);
+  });
 });
 
 describe("batch question", () => {

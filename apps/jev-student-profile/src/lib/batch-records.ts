@@ -194,12 +194,19 @@ function mixedText(d: Detail): string {
 
 const BUILDERS = [supportText, extensionText, collaborationText, reflectionText, mixedText] as const;
 
-export const BATCH_RECORDS_EN: BatchRecord[] = BUILDERS.flatMap((build, kind) =>
-  DETAILS.map((detail, i) => {
-    const index = kind * DETAILS.length + i;
-    return { id: idAt(index), name: nameAt(index), text: build(detail) };
-  }),
-);
+function interleave<D>(
+  nameFor: (index: number) => string,
+  details: readonly D[],
+  builders: ReadonlyArray<(detail: D) => string>,
+): BatchRecord[] {
+  return Array.from({ length: details.length * builders.length }, (_, index) => {
+    const kind = index % builders.length;
+    const detail = details[Math.floor(index / builders.length)];
+    return { id: idAt(index), name: nameFor(index), text: builders[kind](detail) };
+  });
+}
+
+export const BATCH_RECORDS_EN: BatchRecord[] = interleave(nameAt, DETAILS, BUILDERS);
 
 const GIVEN_ZH = [
   "艾莎",
@@ -293,9 +300,4 @@ const BUILDERS_ZH = [
   mixedTextZh,
 ] as const;
 
-export const BATCH_RECORDS_ZH: BatchRecord[] = BUILDERS_ZH.flatMap((build, kind) =>
-  DETAILS_ZH.map((detail, i) => {
-    const index = kind * DETAILS_ZH.length + i;
-    return { id: idAt(index), name: nameAtZh(index), text: build(detail) };
-  }),
-);
+export const BATCH_RECORDS_ZH: BatchRecord[] = interleave(nameAtZh, DETAILS_ZH, BUILDERS_ZH);
