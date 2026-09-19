@@ -49,6 +49,17 @@ describe("i18n catalogs", () => {
     expect(translate("zh-CN", "app.author")).toBe("编辑");
   });
 
+  test("in-app links name Edit mode, not Author mode", () => {
+    expect(translate("en", "run.fixInAuthor")).toBe("Fix them in Edit mode");
+    expect(translate("zh-CN", "run.fixInAuthor")).toBe("前往编辑模式修复");
+    expect(translate("en", "profile.noConditions")).toBe(
+      "No conditions defined. Add some in Edit mode.",
+    );
+    expect(translate("zh-CN", "profile.noConditions")).toBe(
+      "尚未定义条件。请在编辑模式中添加。",
+    );
+  });
+
   test("score.levels names the Jev max, not a 10-point scale", () => {
     expect(translate("en", "score.levels", { count: 4, max: 10 })).toBe(
       "Levels (4 of 10 max), low → high. Describe situations, not degrees.",
