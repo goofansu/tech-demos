@@ -35,6 +35,16 @@ describe("batch dataset", () => {
     expect(new Set(BATCH_RECORDS_ZH.map((r) => JSON.stringify(r.state))).size).toBe(BATCH_SIZE);
   });
 
+  test("Chinese records are translations, not copies of the English text", () => {
+    expect(BATCH_RECORDS_ZH.map((r) => r.id)).toEqual(BATCH_RECORDS_EN.map((r) => r.id));
+    for (const [index, en] of BATCH_RECORDS_EN.entries()) {
+      const zh = BATCH_RECORDS_ZH[index];
+      expect(zh.state.teacher_notes).not.toBe(en.state.teacher_notes);
+      expect(zh.state.student_reflection).not.toBe(en.state.student_reflection);
+      expect(zh.state.work_sample).not.toBe(en.state.work_sample);
+    }
+  });
+
   test("locale helper returns the matching catalog", () => {
     expect(batchRecords("en")).toBe(BATCH_RECORDS_EN);
     expect(batchRecords("zh-CN")).toBe(BATCH_RECORDS_ZH);
@@ -68,6 +78,7 @@ describe("batch dataset", () => {
         expect(zh.state.teacher_notes).toMatch(/拓展题/);
         expect(record.state.work_sample).not.toMatch(/dont work|not organized/i);
         expect(record.state.work_sample).toMatch(/18%|unbothered/);
+        expect(zh.state.work_sample).toMatch(/18%|毫不在意/);
       }
       if (intended.includes("group_project_lead")) {
         expect(notes).toContain("quieter classmates");
