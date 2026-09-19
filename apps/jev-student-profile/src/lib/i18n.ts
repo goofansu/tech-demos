@@ -74,7 +74,7 @@ export const en = {
     helpChoice:
       "Pick one of N unordered options. Returns the pick, a probability per option, and confidence.",
     helpScore:
-      "Position on an ordered scale. Returns a fractional score, probability per level, and confidence. Say what to do if a cited input is empty.",
+      "Position on an ordered scale of 2–10 levels (fractional score 0 through n−1, not 0–10). Returns a fractional score, probability per level, and confidence. Say what to do if a cited input is empty.",
     defaultOther: "None of the above fit.",
     defaultLow: "Low",
     defaultMedium: "Medium",
@@ -97,7 +97,7 @@ export const en = {
     confidentHint: "Below this the pick is flagged as uncertain.",
   },
   score: {
-    levels: "Levels ({count}/10), low → high. Describe situations, not degrees.",
+    levels: "Levels ({count} of {max} max), low → high. Describe situations, not degrees.",
     add: "+ Level",
     level: "Level {n}",
     placeholder: "What does a student at this level look like?",
@@ -306,7 +306,7 @@ export const zhCN: DeepString<typeof en> = {
     helpNoul: "是/否判断。Jev 返回该陈述为真的概率（0–1）。",
     helpChoice: "从 N 个无序选项中选一。返回所选选项、各选项概率以及置信度。",
     helpScore:
-      "在有序量表上定位。返回分数、各等级概率以及置信度。请说明引用的输入为空时该如何处理。",
+      "在有序量表上定位（2–10 个等级；分数是 0 到 n−1，不是 0–10 分制）。返回分数、各等级概率以及置信度。请说明引用的输入为空时该如何处理。",
     defaultOther: "以上都不符合。",
     defaultLow: "低",
     defaultMedium: "中",
@@ -329,7 +329,7 @@ export const zhCN: DeepString<typeof en> = {
     confidentHint: "低于此值时，所选结果会标记为不确定。",
   },
   score: {
-    levels: "等级（{count}/10），由低到高。请描述具体情境，而不是程度词。",
+    levels: "等级（已设 {count} 级，最多 {max} 级），由低到高。请描述具体情境，而不是程度词。",
     add: "+ 等级",
     level: "等级 {n}",
     placeholder: "处于该等级的学生是什么样的？",

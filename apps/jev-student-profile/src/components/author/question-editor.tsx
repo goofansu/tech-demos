@@ -5,7 +5,15 @@ import { Input, Select, Textarea } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n-context";
 import type { Translate } from "@/lib/i18n";
 import { slugify } from "@/lib/store";
-import type { ChoiceField, JevQuestionType, NoulField, RubricField, ScoreField } from "@/lib/types";
+import {
+  SCORE_LEVEL_MAX,
+  SCORE_LEVEL_MIN,
+  type ChoiceField,
+  type JevQuestionType,
+  type NoulField,
+  type RubricField,
+  type ScoreField,
+} from "@/lib/types";
 
 type Props = {
   field: RubricField;
@@ -246,12 +254,12 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
-          {t("score.levels", { count: field.levels.length })}
+          {t("score.levels", { count: field.levels.length, max: SCORE_LEVEL_MAX })}
         </span>
         <Button
           size="sm"
           variant="outline"
-          disabled={field.levels.length >= 10}
+          disabled={field.levels.length >= SCORE_LEVEL_MAX}
           onClick={() => onChange({ ...field, levels: [...field.levels, ""] })}
         >
           {t("score.add")}
@@ -271,7 +279,7 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
               size="icon"
               variant="ghost"
               aria-label={t("score.remove")}
-              disabled={field.levels.length <= 2}
+              disabled={field.levels.length <= SCORE_LEVEL_MIN}
               onClick={() => onChange({ ...field, levels: field.levels.filter((_, idx) => idx !== i) })}
             >
               ×

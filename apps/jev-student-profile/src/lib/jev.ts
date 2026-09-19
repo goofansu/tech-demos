@@ -1,13 +1,15 @@
 import { detectLocale, translate, type Translate } from "./i18n";
-import type {
-  EvaluateError,
-  EvaluateRequest,
-  EvaluateResponse,
-  ApiStatus,
-  JevQuestion,
-  JevState,
-  Rubric,
-  RubricField,
+import {
+  SCORE_LEVEL_MAX,
+  SCORE_LEVEL_MIN,
+  type EvaluateError,
+  type EvaluateRequest,
+  type EvaluateResponse,
+  type ApiStatus,
+  type JevQuestion,
+  type JevState,
+  type Rubric,
+  type RubricField,
 } from "./types";
 
 /** Translate one authored field into a Jev question. */
@@ -72,7 +74,7 @@ export function rubricProblems(rubric: Rubric, t: Translate): string[] {
       if (new Set(keys).size !== keys.length) problems.push(t("problems.choiceUnique", { name }));
     }
     if (f.type === "score") {
-      if (f.levels.length < 2 || f.levels.length > 10) {
+      if (f.levels.length < SCORE_LEVEL_MIN || f.levels.length > SCORE_LEVEL_MAX) {
         problems.push(t("problems.scoreLevels", { name }));
       }
       if (f.levels.some((l) => !l.trim())) problems.push(t("problems.scoreText", { name }));

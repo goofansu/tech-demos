@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin, Connect } from "vite";
 import {
   NO_API_KEY_MESSAGE,
+  SCORE_LEVEL_MAX,
+  SCORE_LEVEL_MIN,
   type ApiStatus,
   type EvaluateRequest,
   type EvaluateResponse,
@@ -215,8 +217,8 @@ function validateRequest(body: unknown): Validation {
       }
       case "score": {
         const c = q.criteria;
-        if (!Array.isArray(c) || c.length < 2 || c.length > 10) {
-          return { error: `Score "${id}" needs 2–10 ordered levels.` };
+        if (!Array.isArray(c) || c.length < SCORE_LEVEL_MIN || c.length > SCORE_LEVEL_MAX) {
+          return { error: `Score "${id}" needs ${SCORE_LEVEL_MIN}–${SCORE_LEVEL_MAX} ordered levels.` };
         }
         if (!c.every((l) => typeof l === "string" && l.trim())) {
           return { error: `Score "${id}" levels must be non-empty strings.` };
