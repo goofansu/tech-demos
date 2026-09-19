@@ -69,7 +69,7 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
                   <option value="attention">{t("conditions.toneAttention")}</option>
                 </Select>
               </Field>
-              <div className="flex items-end justify-end sm:col-span-2">
+              <div className="flex items-center justify-end sm:col-span-2">
                 <Button
                   size="sm"
                   variant="danger"
@@ -197,15 +197,11 @@ function ClauseRow({ clause, fields, prefix, onChange, onRemove }: ClauseRowProp
           onChange={(e) => onChange({ ...clause, value: e.target.value })}
         />
       )}
-      <Button
-        size="icon"
-        variant="ghost"
-        aria-label={t("conditions.removeClause")}
-        className="sm:col-span-1"
-        onClick={onRemove}
-      >
-        ×
-      </Button>
+      <div className="flex h-9 items-center justify-center sm:col-span-1">
+        <Button size="icon" variant="ghost" aria-label={t("conditions.removeClause")} onClick={onRemove}>
+          ×
+        </Button>
+      </div>
     </div>
   );
 }

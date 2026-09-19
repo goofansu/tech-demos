@@ -13,7 +13,7 @@ const sizes = {
   sm: "h-8 px-3 text-xs gap-1.5",
   md: "h-9 px-4 text-sm gap-2",
   lg: "h-11 px-6 text-base gap-2",
-  icon: "size-8 text-sm",
+  icon: "size-9 text-base leading-none",
 } as const;
 
 export type ButtonProps = React.ComponentProps<"button"> & {

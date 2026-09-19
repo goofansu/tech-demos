@@ -195,7 +195,7 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
         </Button>
       </div>
       {field.options.map((opt, i) => (
-        <div key={i} className="grid gap-2 sm:grid-cols-12">
+        <div key={i} className="grid items-center gap-2 sm:grid-cols-12">
           <Input
             mono
             className="sm:col-span-3"
@@ -210,16 +210,17 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
             value={opt.description}
             onChange={(e) => setOption(i, { description: e.target.value })}
           />
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={t("choice.remove")}
-            className="sm:col-span-1"
-            disabled={field.options.length <= 2}
-            onClick={() => onChange({ ...field, options: field.options.filter((_, idx) => idx !== i) })}
-          >
-            ×
-          </Button>
+          <div className="flex h-9 items-center justify-center sm:col-span-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={t("choice.remove")}
+              disabled={field.options.length <= 2}
+              onClick={() => onChange({ ...field, options: field.options.filter((_, idx) => idx !== i) })}
+            >
+              ×
+            </Button>
+          </div>
         </div>
       ))}
       <ThresholdField
@@ -265,15 +266,17 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
             placeholder={t("score.placeholder")}
             onChange={(e) => setLevel(i, e.target.value)}
           />
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={t("score.remove")}
-            disabled={field.levels.length <= 2}
-            onClick={() => onChange({ ...field, levels: field.levels.filter((_, idx) => idx !== i) })}
-          >
-            ×
-          </Button>
+          <div className="flex h-9 items-center justify-center">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={t("score.remove")}
+              disabled={field.levels.length <= 2}
+              onClick={() => onChange({ ...field, levels: field.levels.filter((_, idx) => idx !== i) })}
+            >
+              ×
+            </Button>
+          </div>
         </div>
       ))}
       <ThresholdField

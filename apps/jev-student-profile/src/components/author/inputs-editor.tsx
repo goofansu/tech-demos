@@ -68,7 +68,7 @@ export function InputsEditor({ inputs, onChange }: Props) {
             <Field label={t("inputs.placeholder")} className="sm:col-span-4">
               <Input value={inp.placeholder} onChange={(e) => update(i, { placeholder: e.target.value })} />
             </Field>
-            <div className="flex items-end gap-2 sm:col-span-2">
+            <div className="flex items-center justify-end gap-2 sm:col-span-2">
               <label className="flex h-9 items-center gap-2 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
