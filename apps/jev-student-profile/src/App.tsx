@@ -77,7 +77,7 @@ export default function App() {
         {mode === "author" ? (
           <AuthorMode rubric={rubric} onChange={setRubric} onReset={() => setRubric(resetRubric())} />
         ) : (
-          <RunMode rubric={rubric} onGoAuthor={() => setMode("author")} />
+          <RunMode rubric={rubric} status={status} onGoAuthor={() => setMode("author")} />
         )}
       </main>
 
@@ -91,11 +91,7 @@ export default function App() {
 }
 
 function StatusBadge({ status }: { status: ApiStatus | null }) {
-  if (!status) return <Badge tone="outline">API status unknown</Badge>;
-  if (status.mode === "live") return <Badge tone="success">Live · {status.model}</Badge>;
-  return (
-    <Badge tone="warning" title="Set TYPESAFE_API_KEY on the server to call Jev for real.">
-      Mock mode · no API key
-    </Badge>
-  );
+  if (!status) return <Badge tone="outline">Checking Jev…</Badge>;
+  if (status.ready) return <Badge tone="success">Jev · {status.model}</Badge>;
+  return <Badge tone="warning">No API key</Badge>;
 }

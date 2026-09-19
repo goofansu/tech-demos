@@ -1,11 +1,12 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin, Connect } from "vite";
-import type {
-  ApiStatus,
-  EvaluateRequest,
-  EvaluateResponse,
-  JevAnswer,
-  JevQuestion,
+import {
+  NO_API_KEY_MESSAGE,
+  type ApiStatus,
+  type EvaluateRequest,
+  type EvaluateResponse,
+  type JevAnswer,
+  type JevQuestion,
 } from "../src/lib/types";
 
 const JEV_URL = "https://api.typesafe.ai/v1/systemone";
@@ -54,7 +55,7 @@ function wrap(handler: Handler): Connect.NextHandleFunction {
 async function handleStatus(req: IncomingMessage, res: ServerResponse) {
   if (req.method !== "GET") return sendJson(res, 405, { error: "Use GET" });
   const status: ApiStatus = {
-    mode: apiKey() ? "live" : "mock",
+    ready: Boolean(apiKey()),
     model: JEV_MODEL,
   };
   sendJson(res, 200, status);
@@ -80,15 +81,7 @@ async function handleEvaluate(req: IncomingMessage, res: ServerResponse) {
   const started = performance.now();
 
   if (!key) {
-    const answers = mockAnswers(request);
-    const payload: EvaluateResponse = {
-      model: "mock (no TYPESAFE_API_KEY)",
-      answers,
-      usage: { input_tokens: 0, output_tokens: 0 },
-      mock: true,
-      latencyMs: Math.round(performance.now() - started),
-    };
-    return sendJson(res, 200, payload);
+    return sendJson(res, 503, { error: NO_API_KEY_MESSAGE });
   }
 
   let upstream: Response;
@@ -136,7 +129,6 @@ async function handleEvaluate(req: IncomingMessage, res: ServerResponse) {
     model: result.model ?? JEV_MODEL,
     answers: result.answers ?? {},
     usage: result.usage,
-    mock: false,
     latencyMs: Math.round(performance.now() - started),
   };
   sendJson(res, 200, payload);
@@ -145,15 +137,15 @@ async function handleEvaluate(req: IncomingMessage, res: ServerResponse) {
 function upstreamMessage(status: number): string {
   switch (status) {
     case 401:
-      return "TypeSafe rejected the API key (401). Check TYPESAFE_API_KEY.";
+      return "TypeSafe didn't accept the API key. Check the key on the server and try again.";
     case 422:
-      return "TypeSafe rejected the request body (422). See detail.";
+      return "Jev couldn't read this request. Check the question types and try again.";
     case 429:
-      return "TypeSafe rate limit hit (429). Retry shortly.";
+      return "Jev is rate-limiting us right now. Wait a moment and try again.";
     case 529:
-      return "TypeSafe is overloaded (529). Retry shortly.";
+      return "Jev is busy right now. Wait a moment and try again.";
     default:
-      return `TypeSafe returned HTTP ${status}.`;
+      return `Jev returned an unexpected response (${status}).`;
   }
 }
 
@@ -238,106 +230,6 @@ function validateRequest(body: unknown): Validation {
   }
 
   return { request: { state: cleanState, questions: clean } };
-}
-
-// ---- mock mode --------------------------------------------------------------
-
-/**
- * Deterministic stand-in answers so the UI is fully explorable without a key.
- * Shapes match Jev exactly; values come from a hash of the state and ids.
- */
-function mockAnswers(request: EvaluateRequest): Record<string, JevAnswer> {
-  const stateText = Object.entries(request.state)
-    .map(([k, v]) => `${k}:${v}`)
-    .join("\n");
-  const answers: Record<string, JevAnswer> = {};
-
-  for (const [id, q] of Object.entries(request.questions)) {
-    const rng = seeded(`${id}::${stateText}`);
-    switch (q.type) {
-      case "noul": {
-        answers[id] = { type: "noul", noul: round(skew(rng())) };
-        break;
-      }
-      case "choice": {
-        const keys = Object.keys(q.criteria);
-        const probs = peakedDistribution(keys.length, rng);
-        const probabilities: Record<string, number> = {};
-        keys.forEach((k, i) => (probabilities[k] = probs[i]));
-        const top = keys.reduce((a, b) => (probabilities[a] >= probabilities[b] ? a : b));
-        answers[id] = {
-          type: "choice",
-          choice: top,
-          confidence: confidenceOf(probs),
-          probabilities,
-        };
-        break;
-      }
-      case "score": {
-        const probs = peakedDistribution(q.criteria.length, rng);
-        const probabilities: Record<string, number> = {};
-        const legend: Record<string, string> = {};
-        let score = 0;
-        q.criteria.forEach((label, i) => {
-          probabilities[String(i)] = probs[i];
-          legend[String(i)] = label;
-          score += i * probs[i];
-        });
-        answers[id] = {
-          type: "score",
-          score: round(score),
-          confidence: confidenceOf(probs),
-          legend,
-          probabilities,
-        };
-        break;
-      }
-    }
-  }
-  return answers;
-}
-
-function seeded(seed: string): () => number {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return () => {
-    h += 0x6d2b79f5;
-    let t = h;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Push uniform values toward the ends so mock nouls look decisive. */
-function skew(u: number): number {
-  const centered = u * 2 - 1;
-  return (Math.sign(centered) * Math.pow(Math.abs(centered), 0.6) + 1) / 2;
-}
-
-function peakedDistribution(n: number, rng: () => number): number[] {
-  const peak = Math.floor(rng() * n);
-  const sharpness = 1.2 + rng() * 2.5;
-  const raw = Array.from({ length: n }, (_, i) =>
-    Math.exp(-sharpness * Math.abs(i - peak)) * (0.6 + rng() * 0.8),
-  );
-  const sum = raw.reduce((a, b) => a + b, 0);
-  const probs = raw.map((v) => round(v / sum));
-  const drift = round(1 - probs.reduce((a, b) => a + b, 0));
-  probs[peak] = round(probs[peak] + drift);
-  return probs;
-}
-
-function confidenceOf(probs: number[]): number {
-  const sorted = probs.toSorted((a, b) => b - a);
-  return round(sorted[0] - (sorted[1] ?? 0));
-}
-
-function round(n: number): number {
-  return Math.round(n * 1000) / 1000;
 }
 
 // ---- http helpers -----------------------------------------------------------

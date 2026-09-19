@@ -7,12 +7,13 @@ import { Input, Select, Textarea } from "@/components/ui/input";
 import { evaluateConditions } from "@/lib/conditions";
 import { buildRequest, evaluate, rubricProblems } from "@/lib/jev";
 import { SAMPLE_STUDENTS } from "@/lib/sample";
-import type { EvaluateResponse, JevState, Rubric } from "@/lib/types";
+import { NO_API_KEY_MESSAGE, type ApiStatus, type EvaluateResponse, type JevState, type Rubric } from "@/lib/types";
 import { AnswerCard } from "./answer-card";
 import { ProfileSummary } from "./profile-summary";
 
 type Props = {
   rubric: Rubric;
+  status: ApiStatus | null;
   onGoAuthor: () => void;
 };
 
@@ -24,7 +25,7 @@ type RunState =
 
 const CUSTOM = "__custom__";
 
-export function RunMode({ rubric, onGoAuthor }: Props) {
+export function RunMode({ rubric, status, onGoAuthor }: Props) {
   const [sample, setSample] = React.useState<string>(SAMPLE_STUDENTS[0]?.name ?? CUSTOM);
   const [studentName, setStudentName] = React.useState<string>(SAMPLE_STUDENTS[0]?.name ?? "Student");
   const [state, setState] = React.useState<JevState>(() => SAMPLE_STUDENTS[0]?.state ?? {});
@@ -32,7 +33,8 @@ export function RunMode({ rubric, onGoAuthor }: Props) {
 
   const problems = rubricProblems(rubric);
   const hasText = rubric.inputs.some((i) => state[i.key]?.trim());
-  const canRun = problems.length === 0 && hasText && run.kind !== "loading";
+  const missingKey = status !== null && !status.ready;
+  const canRun = problems.length === 0 && hasText && run.kind !== "loading" && !missingKey;
 
   const pickSample = (name: string) => {
     setSample(name);
@@ -113,6 +115,13 @@ export function RunMode({ rubric, onGoAuthor }: Props) {
               </Field>
             ))}
 
+            {missingKey ? (
+              <div role="alert" className="rounded-lg border border-warning/40 bg-warning-soft px-3 py-2 text-sm">
+                <p className="font-medium text-warning-foreground">No API key</p>
+                <p className="mt-1 text-warning-foreground/90">{NO_API_KEY_MESSAGE}</p>
+              </div>
+            ) : null}
+
             {problems.length > 0 ? (
               <div role="alert" className="rounded-lg border border-warning/40 bg-warning-soft px-3 py-2 text-xs">
                 <p className="font-medium text-warning-foreground">The rubric has problems. </p>
@@ -186,11 +195,7 @@ export function RunMode({ rubric, onGoAuthor }: Props) {
 function ResultMeta({ response }: { response: EvaluateResponse }) {
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      {response.mock ? (
-        <Badge tone="warning">MOCK — no TYPESAFE_API_KEY on the server</Badge>
-      ) : (
-        <Badge tone="success">Live Jev</Badge>
-      )}
+      <Badge tone="success">Jev</Badge>
       <span>
         model <code className="font-mono text-foreground">{response.model}</code>
       </span>

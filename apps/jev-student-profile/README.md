@@ -13,11 +13,11 @@ Design notes and scope: [`PLAN.md`](./PLAN.md).
 ```bash
 cd apps/jev-student-profile
 bun install
-TYPESAFE_API_KEY=... bun run dev   # omit the key for labeled mock mode
+TYPESAFE_API_KEY=... bun run dev
 ```
 
-Open `http://localhost:8000/` (or `PORT` if set). The header badge shows
-**Live** or **Mock mode**.
+Open `http://localhost:8000/` (or `PORT` if set). A TypeSafe API key is
+required; without it the header warns **No API key** and Evaluate is disabled.
 
 Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
 (typecheck + Vite build), `bun run preview`.
@@ -38,16 +38,17 @@ Other scripts: `bun run lint` (Oxlint + `@shadcn/lint`), `bun run build`
 
 `server/evaluate.ts` is a Vite plugin (dev **and** preview) exposing:
 
-- `GET /api/status` → `{ mode: "live" | "mock", model }`
-- `POST /api/evaluate` `{ state, questions }` → `{ model, answers, usage, mock, latencyMs }`
+- `GET /api/status` → `{ ready, model }`
+- `POST /api/evaluate` `{ state, questions }` → `{ model, answers, usage, latencyMs }`
 
 `TYPESAFE_API_KEY` is read from `process.env` inside that plugin only. Vite
 ships only `VITE_*` variables to the client, so the key never reaches the
 browser. Requests are validated (question types, criteria arity, id format)
 before being forwarded to `https://api.typesafe.ai/v1/systemone` with
 `model: "jev-latest"`; upstream 401/422/429/529 are mapped to readable
-errors. Without a key the server returns deterministic, Jev-shaped mock
-answers flagged `mock: true`, and the UI labels them.
+errors. Without a key, `GET /api/status` reports `ready: false` and
+`POST /api/evaluate` returns 503 with a user-facing warning. There is no
+mock evaluator.
 
 ## Lint
 
@@ -60,7 +61,7 @@ system: `no-restyle` (layout only, with contracts for `Card*`),
 
 ## Structure
 
-- `server/evaluate.ts` — API routes, Jev client, validation, mock
+- `server/evaluate.ts` — API routes, Jev client, validation
 - `src/lib/types.ts` — Jev wire types + rubric model
 - `src/lib/sample.ts` — sample rubric and students
 - `src/lib/jev.ts` — rubric → Jev questions, request builder, client

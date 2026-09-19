@@ -49,13 +49,15 @@ export type EvaluateResponse = {
   model: string;
   answers: Record<string, JevAnswer>;
   usage?: { input_tokens?: number; output_tokens?: number };
-  mock: boolean;
   latencyMs: number;
 };
 
 export type EvaluateError = { error: string; status?: number; detail?: unknown };
 
-export type ApiStatus = { mode: "live" | "mock"; model: string };
+export type ApiStatus = { ready: boolean; model: string };
+
+export const NO_API_KEY_MESSAGE =
+  "No API key is set, so we can't ask Jev yet. Add a TypeSafe API key on the server and reload this page.";
 
 // ---- Rubric (authoring model) -----------------------------------------------
 

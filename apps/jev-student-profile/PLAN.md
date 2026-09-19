@@ -57,9 +57,10 @@ Edits the rubric and persists it to `localStorage` (`jev-student-profile.rubric.
   - score → fractional score on the level scale, legend, bar per level,
     confidence, verdict vs `meetsAt`.
 - Profile summary: fired conditions, grouped by tone.
-- Footer: resolved model, token usage, latency, and a **MOCK** badge when
-  the server answered in mock mode.
+- Footer: resolved model, token usage, latency.
 - Collapsible "request payload" so the demo shows exactly what Jev received.
+- Without `TYPESAFE_API_KEY`, Evaluate is disabled and the UI warns that
+  there is no API key. There is no mock evaluator.
 
 ## Server: `POST /api/evaluate`
 
@@ -73,11 +74,8 @@ browser, so the key never reaches the client.
   map of well-formed Jev questions (type, instructions, criteria arity).
 - With a key: forwards to Jev; relays `answers`, `model`, `usage`. Maps
   upstream 401/422/429/529 into readable errors.
-- Without a key: returns a deterministic **mock** response
-  (`mock: true`) derived from a hash of state + question ids, with the same
-  shape as Jev (`choice`/`probabilities`/`confidence`, `score`/`legend`,
-  `noul`). The UI labels it clearly. `GET /api/status` reports `{ mode }`
-  so the header can show "Live Jev" vs "Mock mode".
+- Without a key: `GET /api/status` reports `{ ready: false }` and
+  `POST /api/evaluate` returns 503 with a user-facing warning. No mock.
 
 ## Stack
 
@@ -100,7 +98,7 @@ browser, so the key never reaches the client.
 apps/jev-student-profile/
   PLAN.md  README.md  package.json  vite.config.ts  tsconfig.json
   .oxlintrc.json  .gitignore  .env.example  index.html
-  server/evaluate.ts        # /api/evaluate + /api/status, Jev client, mock
+  server/evaluate.ts        # /api/evaluate + /api/status, Jev client
   src/main.tsx  src/App.tsx  src/index.css
   src/lib/types.ts          # Rubric, Question, Condition, Jev answer types
   src/lib/sample.ts         # sample rubric + sample students
