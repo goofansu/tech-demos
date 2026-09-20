@@ -33,7 +33,11 @@ export function JudgmentCard({ judgment, outcome, answer }: Props) {
         {outcome.confidence !== null ? (
           <p className="text-xs text-muted-foreground">
             Confidence {outcome.confidence.toFixed(2)}
-            {outcome.escalated ? " — below floor, routed to Needs Review" : ""}
+            {outcome.escalated
+              ? outcome.role === "field"
+                ? " — below floor, routed to Needs Review"
+                : " — below floor; the distribution is spread, not that the answer is probably wrong"
+              : ""}
           </p>
         ) : null}
         {judgment.never_not_met && outcome.role === "field" ? (

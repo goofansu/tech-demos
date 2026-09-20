@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { compareQueueRows, sortQueue, type QueueRow } from "./sort";
+import { compareQueueRows, peakScoreLabel, sortQueue, type QueueRow } from "./sort";
 import type { Applicant, ApplicantResult, JevScoreAnswer } from "./types";
 
 function applicant(id: string): Applicant {
@@ -62,5 +62,21 @@ describe("attention sorting", () => {
     const a = done("A-0010", 1.5, 0.7);
     const b = done("A-0010", 1.5, 0.7);
     expect(compareQueueRows(a, b)).toBe(0);
+  });
+
+  test("peakScoreLabel reads the distribution, not a rounded score", () => {
+    const answer: JevScoreAnswer = {
+      type: "score",
+      score: 2.98,
+      confidence: 0.7,
+      legend: {
+        "0": "routine, process in order",
+        "1": "worth a look",
+        "2": "needs a human decision",
+        "3": "urgent, review first",
+      },
+      probabilities: { "0": 0.02, "1": 0.05, "2": 0.2, "3": 0.73 },
+    };
+    expect(peakScoreLabel(answer)).toBe("urgent, review first");
   });
 });

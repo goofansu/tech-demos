@@ -12,7 +12,7 @@ import { applicantContext, VERDICT_LABEL } from "@/lib/format";
 import { evaluate } from "@/lib/jev";
 import { isAbortError, runPool } from "@/lib/pool";
 import { buildRequest } from "@/lib/request";
-import { attentionAnswer, attentionReasonLabel, resultFor, sortQueue } from "@/lib/sort";
+import { attentionAnswer, attentionReasonLabel, peakScoreLabel, resultFor, sortQueue } from "@/lib/sort";
 import { deriveOutcomes } from "@/lib/verdicts";
 import { cn } from "@/lib/utils";
 import type { ApiStatus, Applicant, ApplicantResult, SchoolConfig } from "@/lib/types";
@@ -320,9 +320,7 @@ export function QueueMode({
                     {attention ? (
                       <span className="font-mono tabular-nums">
                         {attention.score.toFixed(2)}
-                        <span className="ml-1 text-muted-foreground">
-                          {attention.legend[String(Math.trunc(attention.score))] ?? ""}
-                        </span>
+                        <span className="ml-1 text-muted-foreground">{peakScoreLabel(attention)}</span>
                       </span>
                     ) : (
                       <span className="text-muted-foreground">—</span>

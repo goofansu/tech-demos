@@ -23,6 +23,13 @@ export function attentionAnswer(result: ApplicantResult): JevScoreAnswer | undef
   return answer?.type === "score" ? answer : undefined;
 }
 
+/** Label from the peak of the distribution — not a rounded score. */
+export function peakScoreLabel(answer: JevScoreAnswer): string {
+  const peak = Object.entries(answer.probabilities).toSorted((a, b) => b[1] - a[1])[0];
+  if (peak) return answer.legend[peak[0]] ?? "";
+  return answer.legend[String(Math.trunc(answer.score))] ?? "";
+}
+
 export function attentionReasonAnswer(result: ApplicantResult): JevChoiceAnswer | undefined {
   const answer = result.answers?.[ATTENTION_REASON_ID];
   return answer?.type === "choice" ? answer : undefined;
