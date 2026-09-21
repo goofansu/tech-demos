@@ -41,7 +41,7 @@ export function ConditionsEditor({ conditions, fields, onChange }: Props) {
   return (
     <Card>
       <CardHeader>
-        <div>
+        <div className="min-w-0">
           <CardTitle>{t("conditions.title")}</CardTitle>
           <CardDescription>{t("conditions.hint")}</CardDescription>
         </div>

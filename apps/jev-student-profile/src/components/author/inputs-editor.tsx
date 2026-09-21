@@ -26,7 +26,7 @@ export function InputsEditor({ inputs, onChange }: Props) {
   return (
     <Card>
       <CardHeader>
-        <div>
+        <div className="min-w-0">
           <CardTitle>{t("inputs.title")}</CardTitle>
           <CardDescription>
             <RichText

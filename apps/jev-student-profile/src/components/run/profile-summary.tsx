@@ -31,7 +31,7 @@ export function ProfileSummary({ results, fields, studentName }: Props) {
   return (
     <Card>
       <CardHeader>
-        <div>
+        <div className="min-w-0">
           <CardTitle>{t("profile.title", { name: studentName })}</CardTitle>
           <CardDescription>{t("profile.hint")}</CardDescription>
         </div>

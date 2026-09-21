@@ -184,8 +184,8 @@ function ChoiceEditor({ field, onChange }: { field: ChoiceField; onChange: (f: C
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 text-xs font-medium text-muted-foreground">
           {t("choice.options", { count: field.options.length })}
         </span>
         <Button
@@ -252,8 +252,8 @@ function ScoreEditor({ field, onChange }: { field: ScoreField; onChange: (f: Sco
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 text-xs font-medium text-muted-foreground">
           {t("score.levels", { count: field.levels.length, max: SCORE_LEVEL_MAX })}
         </span>
         <Button

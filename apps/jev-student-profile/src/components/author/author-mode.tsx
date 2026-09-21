@@ -51,7 +51,7 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
     <div className="flex flex-col gap-5">
       <Card>
         <CardHeader>
-          <div>
+          <div className="min-w-0">
             <CardTitle>{t("author.rubric")}</CardTitle>
             <CardDescription>{t("author.rubricHint")}</CardDescription>
           </div>
@@ -83,7 +83,7 @@ export function AuthorMode({ rubric, onChange, onReset }: Props) {
 
       <Card>
         <CardHeader>
-          <div>
+          <div className="min-w-0">
             <CardTitle>{t("author.questionsTitle", { count: rubric.fields.length })}</CardTitle>
             <CardDescription>
               <RichText
