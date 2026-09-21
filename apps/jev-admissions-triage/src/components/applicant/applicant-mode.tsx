@@ -7,10 +7,11 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { ADMISSIONS_PRESET, FIELD_JUDGMENTS, QUEUE_JUDGMENTS } from "@/lib/admissions-preset";
-import { APPLICANTS } from "@/lib/applicants";
+import { applicantsFor } from "@/lib/applicants";
 import { costUsdFromUsage } from "@/lib/cost";
 import { applicantContext, VERDICT_LABEL, VERDICT_TONE } from "@/lib/format";
 import { evaluate } from "@/lib/jev";
+import { useI18n } from "@/lib/i18n-context";
 import { buildRequest } from "@/lib/request";
 import { resultFor } from "@/lib/sort";
 import { deriveOutcomes } from "@/lib/verdicts";
@@ -42,6 +43,7 @@ export function ApplicantMode({
   confidenceFloor,
   status,
 }: Props) {
+  const { locale } = useI18n();
   const applicant = applicants.find((row) => row.id === selectedId) ?? applicants[0];
   const result = resultFor(results, applicant.id);
   const missingKey = status !== null && !status.ready;
@@ -79,7 +81,7 @@ export function ApplicantMode({
   };
 
   const restore = () => {
-    const original = APPLICANTS.find((row) => row.id === applicant.id);
+    const original = applicantsFor(locale).find((row) => row.id === applicant.id);
     if (original) onChange(applicant.id, original);
   };
 

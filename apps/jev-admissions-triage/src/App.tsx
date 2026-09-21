@@ -4,12 +4,12 @@ import { PresetMode } from "@/components/preset/preset-mode";
 import { QueueMode } from "@/components/queue/queue-mode";
 import { Badge } from "@/components/ui/badge";
 import { DEFAULT_CONFIDENCE_FLOOR } from "@/lib/admissions-preset";
-import { APPLICANTS } from "@/lib/applicants";
+import { applicantsFor } from "@/lib/applicants";
 import { cloneApplicant } from "@/lib/fields";
-import { LOCALES, LOCALE_LABELS, type MessagePath } from "@/lib/i18n";
+import { LOCALES, LOCALE_LABELS, type Locale, type MessagePath } from "@/lib/i18n";
 import { RichText, useI18n } from "@/lib/i18n-context";
 import { fetchStatus } from "@/lib/jev";
-import { SCHOOL } from "@/lib/school";
+import { schoolFor } from "@/lib/school";
 import { cn } from "@/lib/utils";
 import type { ApiStatus, Applicant, ApplicantResult } from "@/lib/types";
 
@@ -25,8 +25,10 @@ export default function App() {
   const { locale, setLocale, t } = useI18n();
   const [mode, setMode] = React.useState<Mode>("queue");
   const [confidenceFloor, setConfidenceFloor] = React.useState(DEFAULT_CONFIDENCE_FLOOR);
-  const [applicants, setApplicants] = React.useState<Applicant[]>(() => APPLICANTS.map(cloneApplicant));
-  const [selectedId, setSelectedId] = React.useState(APPLICANTS[0]?.id ?? "A-0001");
+  const [applicants, setApplicants] = React.useState<Applicant[]>(() =>
+    applicantsFor(locale).map(cloneApplicant),
+  );
+  const [selectedId, setSelectedId] = React.useState(applicantsFor(locale)[0]?.id ?? "A-0001");
   const [results, setResults] = React.useState<Record<string, ApplicantResult>>({});
   const [status, setStatus] = React.useState<ApiStatus | null>(null);
 
@@ -44,6 +46,14 @@ export default function App() {
     };
   }, []);
 
+  /** Stored answers came from the other locale's questions, so they cannot be reused. */
+  const changeLocale = (next: Locale) => {
+    if (next === locale) return;
+    setApplicants(applicantsFor(next).map(cloneApplicant));
+    setResults({});
+    setLocale(next);
+  };
+
   const openApplicant = (id: string) => {
     setSelectedId(id);
     setMode("applicant");
@@ -52,6 +62,8 @@ export default function App() {
   const patchApplicant = (id: string, patch: Partial<Applicant>) => {
     setApplicants((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
   };
+
+  const school = schoolFor(locale);
 
   return (
     <div className="min-h-dvh">
@@ -84,7 +96,7 @@ export default function App() {
                   key={id}
                   type="button"
                   aria-pressed={locale === id}
-                  onClick={() => setLocale(id)}
+                  onClick={() => changeLocale(id)}
                   className={cn(
                     "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                     locale === id
@@ -106,7 +118,7 @@ export default function App() {
         {mode === "queue" ? (
           <QueueMode
             applicants={applicants}
-            school={SCHOOL}
+            school={school}
             results={results}
             setResults={setResults}
             confidenceFloor={confidenceFloor}
@@ -121,7 +133,7 @@ export default function App() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             onChange={patchApplicant}
-            school={SCHOOL}
+            school={school}
             results={results}
             setResults={setResults}
             confidenceFloor={confidenceFloor}
