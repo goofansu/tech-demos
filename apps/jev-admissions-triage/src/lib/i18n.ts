@@ -128,6 +128,24 @@ export const en = {
     perLevel: "Per-level probabilities",
     levelProbability: "Level {n} probability",
   },
+  preset: {
+    title: "Admissions preset",
+    description:
+      "Fixed questions for {school}. This is not a rubric authoring product — wording lives in one source file. {reads} documents intent and generation; every question still sees the whole state.",
+    schoolLine: "{name} · {country} · {year}",
+    grades: "Configured grades: {list}. An applied grade outside this list becomes Needs Review, never Not Met.",
+    gradeItem: "{name} (ages {min}–{max})",
+    floorHint:
+      "Floor {value} applies to every judgment. Compare 0.5 / 0.6 / 0.7 on the Queue after a batch — verdicts recompute from stored distributions.",
+    roleQueue: "queue",
+    roleField: "field",
+    reads: "Intends to read {keys} — documentation only, not model-level scoping.",
+    criteriaTrue: "true: {text}",
+    criteriaFalse: "false: {text}",
+    metAtLeast: "Met ≥ {value}",
+    notMetAtMost: " · Not Met ≤ {value}",
+    otherwiseReview: " · otherwise Needs Review",
+  },
   verdict: {
     met: "Met",
     not_met: "Not Met",
@@ -281,6 +299,24 @@ export const zhCN: DeepString<typeof en> = {
     fractionalScore: "小数分数",
     perLevel: "各等级概率",
     levelProbability: "等级 {n} 的概率",
+  },
+  preset: {
+    title: "招生预设题组",
+    description:
+      "{school} 的固定题目。这不是一个量表编写产品——所有措辞都写在同一个源文件里。{reads} 用于记录设计意图与生成依据；每道题实际上仍然能看到完整的 state。",
+    schoolLine: "{name} · {country} · {year}",
+    grades: "已配置年级：{list}。不在此列表内的所申年级会判为「待人工复核」，绝不会判为「不符合」。",
+    gradeItem: "{name}（{min}–{max} 岁）",
+    floorHint:
+      "下限 {value} 对所有判定项生效。跑完一批后，可以在「队列」里比较 0.5 / 0.6 / 0.7——判定会用已存的概率分布重新计算。",
+    roleQueue: "队列",
+    roleField: "字段",
+    reads: "设计上读取 {keys}——这只是文档说明，不是模型层面的范围限制。",
+    criteriaTrue: "真：{text}",
+    criteriaFalse: "假：{text}",
+    metAtLeast: "符合 ≥ {value}",
+    notMetAtMost: " · 不符合 ≤ {value}",
+    otherwiseReview: " · 其余为待人工复核",
   },
   verdict: {
     met: "符合",
