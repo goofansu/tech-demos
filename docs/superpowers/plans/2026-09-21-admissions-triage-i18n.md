@@ -60,7 +60,7 @@
 
 参考实现直接读 `apps/jev-student-profile/src/lib/i18n.ts` 与 `i18n-context.tsx`，机制部分**原样照抄**（`Paths`、`DeepString`、`interpolate`、`lookup` 的英文回落、`persistLocale` 的 try/catch、`applyDocumentLocale`），只换 `LOCALE_KEY` 和 catalog 内容。
 
-- [ ] **Step 1: 写 catalog parity 测试（会失败，因为 i18n.ts 还不存在）**
+- [x] **Step 1: 写 catalog parity 测试（会失败，因为 i18n.ts 还不存在）**
 
 创建 `src/lib/i18n.test.ts`：
 
@@ -106,12 +106,12 @@ describe("i18n catalogs", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: FAIL — `Cannot find module './i18n'`
 
-- [ ] **Step 3: 写 `src/lib/i18n.ts`**
+- [x] **Step 3: 写 `src/lib/i18n.ts`**
 
 机制部分照抄 student-profile。catalog 这一轮只放三个 namespace：
 
@@ -164,16 +164,16 @@ export const zhCN: DeepString<typeof en> = {
 
 注意 footer 原文里的两个 `<code>` 片段（`systemone`、`POST /api/evaluate`）改成 `{systemone}` / `{evaluate}` token，由 `RichText` 还原成 `<code>`。
 
-- [ ] **Step 4: 写 `src/lib/i18n-context.tsx`**
+- [x] **Step 4: 写 `src/lib/i18n-context.tsx`**
 
 从 `apps/jev-student-profile/src/lib/i18n-context.tsx` 原样复制，不改一行（它不含任何 app 专有内容）。
 
-- [ ] **Step 5: 跑测试确认通过**
+- [x] **Step 5: 跑测试确认通过**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: PASS（4 个 test）
 
-- [ ] **Step 6: `main.tsx` 包 Provider**
+- [x] **Step 6: `main.tsx` 包 Provider**
 
 ```tsx
 import { StrictMode } from "react";
@@ -191,7 +191,7 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-- [ ] **Step 7: `index.html` 补中文字体**
+- [x] **Step 7: `index.html` 补中文字体**
 
 在 `<link rel="icon" …>` 之后插入（`--font-sans` 已经声明了 `"Noto Sans SC"`，缺的只是 webfont 本身）：
 
@@ -206,7 +206,7 @@ createRoot(document.getElementById("root")!).render(
 
 `lang="en"`、`<title>`、meta description 保持不动，由 `applyDocumentLocale` 运行时改写。
 
-- [ ] **Step 8: `App.tsx` 顶栏加语言切换**
+- [x] **Step 8: `App.tsx` 顶栏加语言切换**
 
 - `MODES` 常量从 `{ id, label }` 改成 `{ id: Mode; path: MessagePath }`，三项分别指向 `app.queue` / `app.applicant` / `app.preset`。
 - 组件顶部 `const { locale, setLocale, t } = useI18n();`
@@ -217,14 +217,14 @@ createRoot(document.getElementById("root")!).render(
 
 这一轮 `applicants` / `SCHOOL` / preset 仍用英文单例，不要动——数据分语种是 Task 2–4 的事。
 
-- [ ] **Step 9: 验证**
+- [x] **Step 9: 验证**
 
 Run: `bun run test && bun run lint && bun run build`
 Expected: 全绿。
 
 手动确认：`bun run dev` 打开页面，顶栏出现 `EN / 简体中文`；点中文后标题、模式名、footer、`<title>` 变中文，其余内容仍是英文（预期中的半成品状态）；刷新后语言保持。
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/lib/i18n.ts src/lib/i18n-context.tsx src/lib/i18n.test.ts src/main.tsx src/App.tsx index.html
