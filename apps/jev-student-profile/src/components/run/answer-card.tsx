@@ -101,7 +101,7 @@ function ChoiceBody({ choice, confidence, probabilities, descriptions }: ChoiceB
         {rows.map(([key, p]) => (
           <li key={key} className="flex flex-col gap-1">
             <div className="flex items-baseline justify-between gap-2 text-xs">
-              <span className={key === choice ? "font-semibold text-foreground" : "text-muted-foreground"}>
+              <span className={key === choice ? "min-w-0 break-words font-semibold text-foreground" : "min-w-0 break-words text-muted-foreground"}>
                 <span className="font-mono">{key}</span>
                 {descriptions[key] ? <span className="text-muted-foreground"> — {descriptions[key]}</span> : null}
               </span>
@@ -154,7 +154,7 @@ function ScoreBody({ score, confidence, legend, probabilities, meetsAt }: ScoreB
           return (
             <li key={lvl} className="flex flex-col gap-1">
               <div className="flex items-baseline justify-between gap-2 text-xs">
-                <span className={active ? "font-semibold text-foreground" : "text-muted-foreground"}>
+                <span className={active ? "min-w-0 break-words font-semibold text-foreground" : "min-w-0 break-words text-muted-foreground"}>
                   <span className="font-mono">{lvl}</span> · {legend[String(lvl)]}
                 </span>
                 <span className="shrink-0 font-mono tabular-nums text-muted-foreground">{pct(p)}</span>

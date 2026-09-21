@@ -90,7 +90,7 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
             <CardAction>
               <Select
                 aria-label={t("run.sampleStudent")}
-                className="w-auto"
+                className="max-w-full sm:w-auto"
                 value={sample}
                 onChange={(e) => pickSample(e.target.value)}
               >
@@ -149,7 +149,7 @@ export function RunMode({ rubric, status, onGoAuthor }: Props) {
             ) : null}
 
             <div className="flex items-center gap-3">
-              <Button type="submit" size="lg" disabled={!canRun}>
+              <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!canRun}>
                 {run.kind === "loading"
                   ? t("run.evaluating")
                   : t("run.evaluate", { count: rubric.fields.length })}

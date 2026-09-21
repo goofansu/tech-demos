@@ -65,10 +65,10 @@ export default function App() {
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-3">
-          <h1 className="min-w-0 truncate text-sm font-semibold tracking-tight">{t("app.title")}</h1>
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
+          <h1 className="text-sm font-semibold tracking-tight text-pretty">{t("app.title")}</h1>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <nav aria-label={t("app.mode")} className="flex rounded-lg bg-muted p-1">
               {MODES.map((m) => (
                 <button
@@ -77,7 +77,7 @@ export default function App() {
                   aria-pressed={mode === m}
                   onClick={() => setMode(m)}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    "shrink-0 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors sm:px-3",
                     mode === m
                       ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground",
@@ -96,7 +96,7 @@ export default function App() {
                   aria-pressed={locale === id}
                   onClick={() => changeLocale(id)}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    "shrink-0 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors sm:px-3",
                     locale === id
                       ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground",
@@ -112,7 +112,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-5 py-6">
+      <main className="mx-auto max-w-7xl px-4 py-5 sm:px-5 sm:py-6">
         {mode === "author" ? (
           <AuthorMode
             rubric={rubric}
@@ -126,7 +126,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="mx-auto max-w-7xl px-5 pb-8 text-xs text-muted-foreground">
+      <footer className="mx-auto max-w-7xl px-4 pb-8 text-xs break-words text-muted-foreground sm:px-5">
         <RichText
           path={mode === "batch" ? "app.batchFooter" : "app.footer"}
           tokens={{

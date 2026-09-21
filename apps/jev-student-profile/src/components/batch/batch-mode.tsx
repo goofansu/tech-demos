@@ -297,7 +297,7 @@ export function BatchMode({ rubric, status, onGoAuthor }: Props) {
       </Card>
 
       <div className="max-h-batch overflow-auto rounded-xl border bg-card shadow-xs">
-        <table className="w-full table-fixed text-left text-sm">
+        <table className="w-full min-w-3xl table-fixed text-left text-sm">
           <caption className="sr-only">{t("batch.tableCaption")}</caption>
           <thead className="sticky top-0 z-10 border-b bg-card">
             <tr className="text-xs text-muted-foreground">
