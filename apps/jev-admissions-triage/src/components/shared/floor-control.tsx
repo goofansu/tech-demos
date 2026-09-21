@@ -1,5 +1,6 @@
 import { CONFIDENCE_FLOOR_PRESETS } from "@/lib/admissions-preset";
 import { formatFloor } from "@/lib/format";
+import { useI18n } from "@/lib/i18n-context";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -8,10 +9,11 @@ type Props = {
 };
 
 export function FloorControl({ value, onChange }: Props) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-muted-foreground">Confidence floor</span>
-      <div className="flex rounded-lg bg-muted p-1" role="group" aria-label="Confidence floor">
+      <span className="text-xs text-muted-foreground">{t("floor.label")}</span>
+      <div className="flex rounded-lg bg-muted p-1" role="group" aria-label={t("floor.label")}>
         {CONFIDENCE_FLOOR_PRESETS.map((floor) => (
           <button
             key={floor}

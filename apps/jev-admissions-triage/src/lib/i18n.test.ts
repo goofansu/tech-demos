@@ -201,3 +201,18 @@ describe("localized lib output", () => {
     expect(/[\u4e00-\u9fff]/.test(request.state.school_grade_bands)).toBe(true);
   });
 });
+
+describe("attention reason labels", () => {
+  const keys = ["incomplete", "ambiguous", "time_critical", "exceptional", "concerning", "other"] as const;
+
+  test("every choice option key has a display label in both locales", () => {
+    const reason = presetFor("en").find((j) => j.id === "attention_reason");
+    if (!reason || reason.primitive !== "choice") throw new Error("preset");
+    expect(Object.keys(reason.options)).toEqual([...keys]);
+    for (const key of keys) {
+      const path = `attentionReason.${key}` as MessagePath;
+      expect(translate("en", path)).not.toBe(path);
+      expect(/[\u4e00-\u9fff]/.test(translate("zh-CN", path)), key).toBe(true);
+    }
+  });
+});
