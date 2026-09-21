@@ -303,7 +303,7 @@ export const zhCN: DeepString<typeof en> = {
   preset: {
     title: "招生预设题组",
     description:
-      "{school} 的固定题目。这不是一个量表编写产品——所有措辞都写在同一个源文件里。{reads} 用于记录设计意图与生成依据；每道题实际上仍然能看到完整的 state。",
+      "{school}的固定题目。这不是一个量表编写产品——所有措辞都写在同一个源文件里。{reads} 用于记录设计意图与生成依据；每道题实际上仍然能看到完整的 state。",
     schoolLine: "{name} · {country} · {year}",
     grades: "已配置年级：{list}。不在此列表内的所申年级会判为「待人工复核」，绝不会判为「不符合」。",
     gradeItem: "{name}（{min}–{max} 岁）",

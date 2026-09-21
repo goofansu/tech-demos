@@ -247,7 +247,7 @@ git commit -m "feat(admissions-triage): add the i18n layer and header language t
   - `PRESETS: Record<Locale, Judgment[]>`、`presetFor(locale: Locale): Judgment[]`、`fieldJudgments(locale: Locale): Judgment[]`、`queueJudgments(locale: Locale): Judgment[]`、`judgmentById(locale: Locale, id: string): Judgment | undefined`
   - 保留 `ADMISSIONS_PRESET`（= 英文，`PRESETS.en`）、`FIELD_JUDGMENTS`、`QUEUE_JUDGMENTS`、`DEFAULT_CONFIDENCE_FLOOR`、`CONFIDENCE_FLOOR_PRESETS`、`ATTENTION_ID`、`ATTENTION_REASON_ID`、`APPLICANT_STATE_KEYS` 原样导出，本任务不动任何调用方
 
-- [ ] **Step 1: 写 preset parity 测试（会失败）**
+- [x] **Step 1: 写 preset parity 测试（会失败）**
 
 追加到 `src/lib/i18n.test.ts`：
 
@@ -310,12 +310,12 @@ describe("preset parity across locales", () => {
 
 顶部 import 补上 `presetFor`。
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: FAIL — `PRESETS` / `presetFor` 未导出。
 
-- [ ] **Step 3: 写 `src/lib/admissions-preset.zh-CN.ts`**
+- [x] **Step 3: 写 `src/lib/admissions-preset.zh-CN.ts`**
 
 结构与 `admissions-preset.ts` 一一对应：同样 8 个 `const`，同样的 `id` / `primitive` / `role` / `reads` / `never_not_met`，`thresholds` 与 `verdict_map` 逐字照抄，`confidence_floor` 从 `./admissions-preset` import `DEFAULT_CONFIDENCE_FLOOR` 复用。只翻 `label`、`question`、`criteria.true/false`、`levels[]`、`options[key].what/not_for/examples[]`。
 
@@ -364,7 +364,7 @@ export const ADMISSIONS_PRESET_ZH: Judgment[] = [
 ];
 ```
 
-- [ ] **Step 4: `admissions-preset.ts` 加 locale 映射**
+- [x] **Step 4: `admissions-preset.ts` 加 locale 映射**
 
 在文件末尾追加（已有导出全部保留不动）：
 
@@ -406,12 +406,12 @@ import { CONFIDENCE_FLOOR_PRESETS, DEFAULT_CONFIDENCE_FLOOR } from "./floor";
 export { CONFIDENCE_FLOOR_PRESETS, DEFAULT_CONFIDENCE_FLOOR };
 ```
 
-- [ ] **Step 5: 跑测试确认通过**
+- [x] **Step 5: 跑测试确认通过**
 
 Run: `bun test`
 Expected: PASS，`i18n.test.ts` 新增 5 个 test 全过，其余测试不受影响。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/admissions-preset.zh-CN.ts src/lib/admissions-preset.ts src/lib/floor.ts src/lib/i18n.test.ts
@@ -436,7 +436,7 @@ git commit -m "feat(admissions-triage): add the Simplified Chinese admissions pr
   - `APPLICANTS_BY_LOCALE: Record<Locale, Applicant[]>`、`applicantsFor(locale: Locale): Applicant[]`，保留 `APPLICANTS`（= 英文）、`APPLICANT_COUNT`、`REQUIRED_TAGS`
   - `applicantsWithTag(tag: string, locale?: Locale): Applicant[]`（`locale` 默认 `"en"`，现有调用方无需改）
 
-- [ ] **Step 1: 写 school + applicants parity 测试（会失败）**
+- [x] **Step 1: 写 school + applicants parity 测试（会失败）**
 
 追加到 `src/lib/i18n.test.ts`：
 
@@ -521,12 +521,12 @@ describe("applicant parity across locales", () => {
 
 注意第三个 test 里 `gradeBand(...)!` 在 grade 为 `null` 或未配置时会是 `undefined`，`indexOf(undefined!)` 返回 `-1`，两边同为 `-1` 即视为一致——这正是想要的行为。
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: FAIL — `SCHOOLS` / `APPLICANTS_BY_LOCALE` 未导出。
 
-- [ ] **Step 3: `school.ts` 加中文学校**
+- [x] **Step 3: `school.ts` 加中文学校**
 
 ```ts
 import type { Locale } from "./i18n";
@@ -554,7 +554,7 @@ export function schoolFor(locale: Locale): SchoolConfig {
 
 `formatGradeBands` 这一轮先不动（Task 5 再改成接收 `t`）。
 
-- [ ] **Step 4: 写 `src/lib/applicants.zh-CN.ts`**
+- [x] **Step 4: 写 `src/lib/applicants.zh-CN.ts`**
 
 结构照抄 `applicants.ts`：同样的 `idOf`、`base`、`PLANTED`（36 份）、五个池（`FIRST`/`LAST`/`ROUTINE_SCHOOLS`/`ROUTINE_REASONS`/`ROUTINE_ACTIVITIES`）、`GRADES`、`routineApplicant`、`buildApplicants`。**下标算术逐字照抄**（`index % GRADES.length`、`(index * 3) % LAST.length`、`index % 7`、`index % 5`、`index % 11`），池的长度必须与英文一致（`FIRST` 20、`LAST` 20、`ROUTINE_SCHOOLS` 10、`ROUTINE_REASONS` 4、`ROUTINE_ACTIVITIES` 4、`GRADES` 6），否则第 37–100 份的 `age` / `tags` 会对不上，parity 测试会红。
 
@@ -588,7 +588,7 @@ const GRADES: { name: string; age: number }[] = [
 
 姓名列（`Blank Prior`、`Deadline Dani`、`Year Eleven at Thirteen` 这类说明性假名）译成同样自解释的中文名，例如 `原校空白`、`截止丹妮`、`十三岁报十一年级`。
 
-- [ ] **Step 5: `applicants.ts` 加 locale 映射**
+- [x] **Step 5: `applicants.ts` 加 locale 映射**
 
 文件末尾追加（已有导出保留）：
 
@@ -616,12 +616,12 @@ export function applicantsWithTag(tag: string, locale: Locale = "en"): Applicant
 
 `applicantById` 同样加 `locale: Locale = "en"` 第二参。
 
-- [ ] **Step 6: 跑测试确认通过**
+- [x] **Step 6: 跑测试确认通过**
 
 Run: `bun test`
 Expected: PASS。若 "each Chinese grade resolves to the same configured band index" 红了，先查中文 `GRADES` 顺序和 planted 的 `grade` 字面量是否与 `SCHOOL_ZH.grades[].name` 完全一致（全角/半角、"十一年级" vs "11年级"）。
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/lib/applicants.zh-CN.ts src/lib/applicants.ts src/lib/school.ts src/lib/i18n.test.ts
@@ -639,7 +639,7 @@ git commit -m "feat(admissions-triage): add the Simplified Chinese school config
 - Consumes: `applicantsFor`（Task 3）、`schoolFor`（Task 3）、`useI18n`（Task 1）
 - Produces: `App` 内部状态按 locale 切换，`QueueMode` / `ApplicantMode` / `PresetMode` 收到的 `school`、`applicants` 是当前语言的
 
-- [ ] **Step 1: 改 `App.tsx`**
+- [x] **Step 1: 改 `App.tsx`**
 
 - `applicants` 初值改为 `() => applicantsFor(locale).map(cloneApplicant)`。
 - `selectedId` 初值改为 `applicantsFor(locale)[0]?.id ?? "A-0001"`。
@@ -658,14 +658,14 @@ const changeLocale = (next: Locale) => {
 
 语言按钮的 `onClick` 从 `setLocale(id)` 改为 `changeLocale(id)`。`selectedId` 不重置——两个语种 id 一致。`confidenceFloor` 不重置。
 
-- [ ] **Step 2: 验证**
+- [x] **Step 2: 验证**
 
 Run: `bun run test && bun run lint && bun run build`
 Expected: 全绿。
 
 手动确认：`bun run dev`，Queue 里跑几行 Evaluate → 切到中文 → 申请人姓名/年级变中文、结果被清空、进度归零；Preset mode 里学校名显示 `法瑞亚国际学校`、年级段显示中文；切回 EN 恢复英文样本。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/App.tsx
@@ -696,7 +696,7 @@ git commit -m "feat(admissions-triage): swap fixtures with the locale and drop s
   - `deriveOutcomes(applicant: Applicant, school: SchoolConfig, answers: Record<string, JevAnswer> | undefined, confidenceFloor: number, preset: Judgment[], t: Translate): JudgmentOutcome[]`
   - `types.ts` 删除 `MISSING_STATE_LABEL` 与 `NO_API_KEY_MESSAGE` 两个常量
 
-- [ ] **Step 1: 先加 catalog 的四个 namespace**
+- [x] **Step 1: 先加 catalog 的四个 namespace**
 
 `en` 侧（中文按术语表对译，`{token}` 名与数量必须一致）：
 
@@ -737,7 +737,7 @@ git commit -m "feat(admissions-triage): swap fixtures with the locale and drop s
 
 中文 `state.notProvided` 用 `"（未提供）"`，`state.gradeBand` 用 `"{name}：通常年龄 {min}–{max} 岁"`。
 
-- [ ] **Step 2: 写 lib 本地化测试（会失败）**
+- [x] **Step 2: 写 lib 本地化测试（会失败）**
 
 追加到 `src/lib/i18n.test.ts`：
 
@@ -780,12 +780,12 @@ describe("localized lib output", () => {
 });
 ```
 
-- [ ] **Step 3: 跑测试确认失败**
+- [x] **Step 3: 跑测试确认失败**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: FAIL — `verdictLabel` 未导出、`deriveJudgment` / `buildRequest` 参数个数不符。
 
-- [ ] **Step 4: 改 lib**
+- [x] **Step 4: 改 lib**
 
 `format.ts`：
 
@@ -818,11 +818,11 @@ export function applicantContext(applicant: Applicant, t: Translate): string {
 
 `types.ts`：删 `MISSING_STATE_LABEL` 与 `NO_API_KEY_MESSAGE`。
 
-- [ ] **Step 5: 调用方补参（文案暂不翻）**
+- [x] **Step 5: 调用方补参（文案暂不翻）**
 
 三个组件里加 `const { locale, t } = useI18n();` 与 `const preset = presetFor(locale);`，把新参数传进 `deriveOutcomes` / `buildRequest` / `missingFieldCount` / `applicantContext`，`VERDICT_LABEL[x]` 改 `verdictLabel(x, t)`。组件自身的英文文案这一轮**不动**。
 
-- [ ] **Step 6: 更新既有测试**
+- [x] **Step 6: 更新既有测试**
 
 三个测试文件顶部加：
 
@@ -835,12 +835,12 @@ const tEn = (path: MessagePath, vars?: Vars) => translate("en", path, vars);
 - `request.test.ts`：`buildRequest(x, SCHOOL)` → `buildRequest(x, SCHOOL, ADMISSIONS_PRESET, tEn)`；`applicableJudgments(x, SCHOOL)` → 补 `ADMISSIONS_PRESET`；`import { MISSING_STATE_LABEL } from "./types"` 删掉，改用 `translate("en", "state.notProvided")`。
 - `applicants.test.ts`：现有断言改为跑 `applicantsFor("en")`，然后**整组复制一份**跑 `applicantsFor("zh-CN")`（id、tag 覆盖、每个 attention reason 至少两例这三组断言对中文同样成立）。
 
-- [ ] **Step 7: 跑全量测试**
+- [x] **Step 7: 跑全量测试**
 
 Run: `bun run test && bun run lint && bun run build`
 Expected: 全绿。英文断言一条都不该改内容——如果改了，说明本地化动了英文措辞，回去修。
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/lib src/components
@@ -868,7 +868,7 @@ git commit -m "feat(admissions-triage): route lib-produced copy through the loca
 
 列头 `ID` / `ms` 保持英文（它们是单位/标识符）；`Miss` / `Conf` 这类缩写译成 `缺失` / `置信度`。
 
-- [ ] **Step 1: 写 attentionReason 测试（会失败）**
+- [x] **Step 1: 写 attentionReason 测试（会失败）**
 
 追加到 `src/lib/i18n.test.ts`：
 
@@ -889,25 +889,25 @@ describe("attention reason labels", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: FAIL — `attentionReason.*` 回落成 path 字符串。
 
-- [ ] **Step 3: 加 catalog 并改三个组件**
+- [x] **Step 3: 加 catalog 并改三个组件**
 
 `attentionReason` 中文：`incomplete` 资料不全 / `ambiguous` 需要权衡 / `time_critical` 时间紧迫 / `exceptional` 值得争取 / `concerning` 存在疑虑 / `other` 其他。
 
 Queue 的 Why 列把 `{reason}` 改成 `t(\`attentionReason.${reason}\` as MessagePath)`，badge 的 tone 判断（`reason === "other" ? "outline" : "choice"`）保持按 key 判断，不要改成按译文判断。
 
-- [ ] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `bun run test && bun run lint && bun run build`
 Expected: 全绿。
 
 手动确认：中文下 Queue 表头、按钮、说明、Why 列徽章全中文；英文下与改动前逐字一致。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/i18n.ts src/lib/i18n.test.ts src/components/queue src/components/shared
@@ -937,7 +937,7 @@ git commit -m "feat(admissions-triage): localize Queue mode, the floor control a
 - 年级下拉 `GRADES = ["Year 7", "Year 8", "Year 9", "Year 11", ""]` 移到 `src/lib/grades.ts` 的 `gradeOptions(locale)`，中文为 `["七年级", "八年级", "九年级", "十一年级", ""]`。第二项故意不在 `SCHOOL_ZH.grades` 里。
 - `judgment-card.tsx`：`"Confidence {value}"`、`" — below floor, routed to Needs Review"`、`" — below floor; the distribution is spread, not that the answer is probably wrong"`、`"never_not_met replaced Not Met with Needs Review."`、`"Protected judgment — cannot be Not Met."`、`"P(yes)"`、`"Probability yes"`、`"{choice} · confidence {value} · show distribution"`、`"Probability {key}"`、`"Weighted score (not rounded)"`、`"Confidence"`、`"Fractional score"`、`"Per-level probabilities"`、`"Level {n} probability"`
 
-- [ ] **Step 1: 写年级下拉测试（会失败）**
+- [x] **Step 1: 写年级下拉测试（会失败）**
 
 追加到 `src/lib/i18n.test.ts`：
 
@@ -965,12 +965,12 @@ describe("applicant grade options", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `bun test src/lib/i18n.test.ts`
 Expected: FAIL — `Cannot find module './grades'`
 
-- [ ] **Step 3: 写 `src/lib/grades.ts`，加 catalog，翻两个组件**
+- [x] **Step 3: 写 `src/lib/grades.ts`，加 catalog，翻两个组件**
 
 ```ts
 import type { Locale } from "./i18n";
@@ -988,14 +988,14 @@ export function gradeOptions(locale: Locale): string[] {
 
 `applicant-mode.tsx` 删掉本地的 `GRADES` 常量，改用 `gradeOptions(locale)`。
 
-- [ ] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `bun run test && bun run lint && bun run build`
 Expected: 全绿。
 
 手动确认：中文下 Applicant 表单 14 个标签、两个按钮、右侧空态/加载/错误三态、Queue metadata 卡片、JudgmentCard 里的置信度行与分布展开区全中文；`Request that would be sent` 展开后 `questions` 的 `instructions` 是中文，而 key 仍是 `prior_school` / `attention_reason` 这些英文标识符。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/i18n.ts src/lib/i18n.test.ts src/lib/grades.ts src/components/applicant src/components/shared/judgment-card.tsx
@@ -1027,16 +1027,16 @@ git commit -m "feat(admissions-triage): localize Applicant mode and the judgment
 
 `PresetMode` 当前直接 import `ADMISSIONS_PRESET` 和 `SCHOOL`，改为从 props 收 `preset` 与 `school`，`App.tsx` 传 `presetFor(locale)` / `schoolFor(locale)`。
 
-- [ ] **Step 1: 加 catalog 并改组件**
+- [x] **Step 1: 加 catalog 并改组件**
 
-- [ ] **Step 2: 验证**
+- [x] **Step 2: 验证**
 
 Run: `bun run test && bun run lint && bun run build`
 Expected: 全绿。
 
 手动确认：中文下 Preset mode 的 8 张卡片标题与题干是中文；score 的等级列表、choice 的六个选项描述是中文；`verdict_map` 映射出的 `met` / `needs_review` / `not_met` 仍显示为代码值（它们是 `VerdictState` 字面量，不翻）。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lib/i18n.ts src/components/preset src/App.tsx
@@ -1051,7 +1051,7 @@ git commit -m "feat(admissions-triage): localize Preset mode"
 - Modify: `apps/jev-admissions-triage/README.md`
 - Modify: `README.md`（仓库根）
 
-- [ ] **Step 1: app README 加 Language 一节**
+- [x] **Step 1: app README 加 Language 一节**
 
 放在 `## Run` 的脚本说明之后、`## Modes` 之前，口径对齐 `apps/jev-student-profile/README.md` 第 24–26 行：
 
@@ -1074,13 +1074,13 @@ from the other locale's questions. The choice is remembered in
   together — if you add a judgment or a fixture, add it on both sides.
 ```
 
-- [ ] **Step 2: 根 README 更新 bullet**
+- [x] **Step 2: 根 README 更新 bullet**
 
 ```markdown
 - [Admissions Triage](apps/jev-admissions-triage/) — Sort 100 fabricated applications by Jev attention, then inspect calibrated field verdicts (English and Simplified Chinese).
 ```
 
-- [ ] **Step 3: 全量验收**
+- [x] **Step 3: 全量验收**
 
 Run（在 `apps/jev-admissions-triage/`）：`bun run test && bun run lint && bun run build`
 
@@ -1092,7 +1092,7 @@ Run（在 `apps/jev-admissions-triage/`）：`bun run test && bun run lint && bu
 - 切语言后 results 清空，重新 Evaluate 正常返回并渲染
 - 用 `git diff` 抽查英文界面是否逐字未变（唯一例外：`applicant.readyBody` 的 `{count}`）
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md apps/jev-admissions-triage/README.md
