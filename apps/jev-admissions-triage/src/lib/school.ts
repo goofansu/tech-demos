@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n";
+import type { Locale, Translate } from "./i18n";
 import type { SchoolConfig } from "./types";
 
 export const SCHOOL: SchoolConfig = {
@@ -37,8 +37,8 @@ export function gradeBand(school: SchoolConfig, grade: string | null) {
   return school.grades.find((g) => g.name === grade);
 }
 
-export function formatGradeBands(school: SchoolConfig): string {
+export function formatGradeBands(school: SchoolConfig, t: Translate): string {
   return school.grades
-    .map((g) => `${g.name}: typical ages ${g.min_age}–${g.max_age}`)
+    .map((g) => t("state.gradeBand", { name: g.name, min: g.min_age, max: g.max_age }))
     .join("; ");
 }

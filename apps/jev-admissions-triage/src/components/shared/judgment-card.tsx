@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
-import { VERDICT_LABEL, VERDICT_TONE } from "@/lib/format";
+import { verdictLabel, VERDICT_TONE } from "@/lib/format";
+import { useI18n } from "@/lib/i18n-context";
 import { pct } from "@/lib/verdicts";
 import type { JevAnswer, Judgment, JudgmentOutcome } from "@/lib/types";
 
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function JudgmentCard({ judgment, outcome, answer }: Props) {
+  const { t } = useI18n();
   return (
     <Card>
       <CardHeader>
@@ -24,7 +26,7 @@ export function JudgmentCard({ judgment, outcome, answer }: Props) {
         </div>
         {outcome.verdict ? (
           <CardAction>
-            <Badge tone={VERDICT_TONE[outcome.verdict]}>{VERDICT_LABEL[outcome.verdict]}</Badge>
+            <Badge tone={VERDICT_TONE[outcome.verdict]}>{verdictLabel(outcome.verdict, t)}</Badge>
           </CardAction>
         ) : null}
       </CardHeader>

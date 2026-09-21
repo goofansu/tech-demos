@@ -1,5 +1,6 @@
-import { ADMISSIONS_PRESET, APPLICANT_STATE_KEYS } from "./admissions-preset";
+import { APPLICANT_STATE_KEYS } from "./admissions-preset";
 import { omitReason } from "./fields";
+import type { Translate } from "./i18n";
 import { formatGradeBands } from "./school";
 import type {
   Applicant,
@@ -10,7 +11,6 @@ import type {
   Judgment,
   SchoolConfig,
 } from "./types";
-import { MISSING_STATE_LABEL } from "./types";
 
 export function serializeChoiceOption(option: ChoiceOptionSpec): string {
   const parts = [`what: ${option.what}`];
@@ -45,41 +45,51 @@ export function toJevQuestion(judgment: Judgment): JevQuestion {
   }
 }
 
-function fieldText(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return MISSING_STATE_LABEL;
-  if (typeof value === "number") return Number.isFinite(value) ? String(value) : MISSING_STATE_LABEL;
+function fieldText(value: string | number | null | undefined, missing: string): string {
+  if (value === null || value === undefined) return missing;
+  if (typeof value === "number") return Number.isFinite(value) ? String(value) : missing;
   const trimmed = value.trim();
-  return trimmed === "" ? MISSING_STATE_LABEL : trimmed;
+  return trimmed === "" ? missing : trimmed;
 }
 
 /** Whole-applicant state. Missing values are explicit so attention can see them. */
-export function applicantState(applicant: Applicant, school: SchoolConfig): JevState {
+export function applicantState(applicant: Applicant, school: SchoolConfig, t: Translate): JevState {
+  const missing = t("state.notProvided");
   const state: JevState = {
     applicant_id: applicant.id,
     applicant_name: applicant.name,
     school_name: school.name,
     school_country: school.country,
     school_academic_year: String(school.current_academic_year),
-    school_grade_bands: formatGradeBands(school),
+    school_grade_bands: formatGradeBands(school, t),
   };
   for (const key of APPLICANT_STATE_KEYS) {
     if (key === "age") {
-      state.age = fieldText(applicant.age);
+      state.age = fieldText(applicant.age, missing);
     } else {
-      state[key] = fieldText(applicant[key]);
+      state[key] = fieldText(applicant[key], missing);
     }
   }
   return state;
 }
 
-export function applicableJudgments(applicant: Applicant, school: SchoolConfig): Judgment[] {
-  return ADMISSIONS_PRESET.filter((judgment) => omitReason(judgment, applicant, school) === null);
+export function applicableJudgments(
+  applicant: Applicant,
+  school: SchoolConfig,
+  preset: Judgment[],
+): Judgment[] {
+  return preset.filter((judgment) => omitReason(judgment, applicant, school) === null);
 }
 
-export function buildRequest(applicant: Applicant, school: SchoolConfig): EvaluateRequest {
+export function buildRequest(
+  applicant: Applicant,
+  school: SchoolConfig,
+  preset: Judgment[],
+  t: Translate,
+): EvaluateRequest {
   const questions: Record<string, JevQuestion> = {};
-  for (const judgment of applicableJudgments(applicant, school)) {
+  for (const judgment of applicableJudgments(applicant, school, preset)) {
     questions[judgment.id] = toJevQuestion(judgment);
   }
-  return { state: applicantState(applicant, school), questions };
+  return { state: applicantState(applicant, school, t), questions };
 }

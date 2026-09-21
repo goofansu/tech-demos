@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
-import { ADMISSIONS_PRESET } from "@/lib/admissions-preset";
+import { presetFor } from "@/lib/admissions-preset";
 import { costUsdFromUsage, formatUsd } from "@/lib/cost";
 import { missingFieldCount } from "@/lib/fields";
-import { applicantContext, VERDICT_LABEL } from "@/lib/format";
+import { applicantContext, verdictLabel } from "@/lib/format";
+import { useI18n } from "@/lib/i18n-context";
 import { evaluate } from "@/lib/jev";
 import { isAbortError, runPool } from "@/lib/pool";
 import { buildRequest } from "@/lib/request";
@@ -56,6 +57,8 @@ export function QueueMode({
   status,
   onOpenApplicant,
 }: Props) {
+  const { locale, t } = useI18n();
+  const preset = presetFor(locale);
   const [running, setRunning] = React.useState(false);
   const [clock, setClock] = React.useState(0);
   const [timing, setTiming] = React.useState<{ start: number; end: number | null } | null>(null);
@@ -101,7 +104,7 @@ export function QueueMode({
           patch(record.id, { status: "running" }, runId);
           const started = performance.now();
           try {
-            const request = buildRequest(record, school);
+            const request = buildRequest(record, school, preset, t);
             const response = await evaluate(request, { signal: controller.signal });
             patch(
               record.id,
@@ -213,11 +216,11 @@ export function QueueMode({
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline gap-2">
               <p className="text-sm font-medium">Admissions preset</p>
-              <span className="text-xs text-muted-foreground">{ADMISSIONS_PRESET.length} judgments</span>
+              <span className="text-xs text-muted-foreground">{preset.length} judgments</span>
               <span className="text-xs text-muted-foreground">concurrency {QUEUE_CONCURRENCY}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {ADMISSIONS_PRESET.map((field) => (
+              {preset.map((field) => (
                 <Badge key={field.id} tone={field.primitive} title={field.question}>
                   {field.label}
                 </Badge>
@@ -293,7 +296,7 @@ export function QueueMode({
               const reason = attentionReasonLabel(result);
               const outcomes =
                 result.status === "done"
-                  ? deriveOutcomes(applicant, school, result.answers, confidenceFloor)
+                  ? deriveOutcomes(applicant, school, result.answers, confidenceFloor, preset, t)
                   : [];
               const reviewCount = outcomes.filter((o) => o.verdict === "needs_review").length;
               return (
@@ -306,15 +309,15 @@ export function QueueMode({
                       type="button"
                       onClick={() => onOpenApplicant(applicant.id)}
                       className="block max-w-full truncate text-left text-xs font-medium hover:underline"
-                      title={applicantContext(applicant)}
+                      title={applicantContext(applicant, t)}
                     >
                       {applicant.name}
                     </button>
-                    <p className="truncate text-xs text-muted-foreground">{applicantContext(applicant)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{applicantContext(applicant, t)}</p>
                   </td>
                   <td className="truncate px-3 py-1.5 text-xs">{applicant.grade ?? "—"}</td>
                   <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">
-                    {missingFieldCount(applicant)}
+                    {missingFieldCount(applicant, preset)}
                   </td>
                   <td className="px-3 py-1.5 text-xs">
                     {attention ? (
@@ -344,7 +347,7 @@ export function QueueMode({
                         error
                       </Badge>
                     ) : result.status === "done" && reviewCount > 0 ? (
-                      <Badge tone="warning" title={`${reviewCount} ${VERDICT_LABEL.needs_review}`}>
+                      <Badge tone="warning" title={`${reviewCount} ${verdictLabel("needs_review", t)}`}>
                         done
                       </Badge>
                     ) : (

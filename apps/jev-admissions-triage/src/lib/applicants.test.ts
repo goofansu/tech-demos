@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { APPLICANT_COUNT, APPLICANTS, REQUIRED_TAGS, applicantsWithTag } from "./applicants";
+import { APPLICANT_COUNT, REQUIRED_TAGS, applicantsFor } from "./applicants";
+import { LOCALES } from "./i18n";
 
-describe("100 fabricated applicants", () => {
+describe.each(LOCALES)("100 fabricated applicants (%s)", (locale) => {
+  const APPLICANTS = applicantsFor(locale);
+  const applicantsWithTag = (tag: string) => APPLICANTS.filter((row) => row.tags.includes(tag));
+
   test("is a deterministic set of 100 unique A-0001..A-0100 ids", () => {
     expect(APPLICANT_COUNT).toBe(100);
     expect(APPLICANTS).toHaveLength(100);

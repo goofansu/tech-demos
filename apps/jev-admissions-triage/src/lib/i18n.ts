@@ -28,6 +28,38 @@ export const en = {
   status: {
     noKey: "No API key",
   },
+  verdict: {
+    met: "Met",
+    not_met: "Not Met",
+    needs_review: "Needs Review",
+    missing: "Missing",
+  },
+  outcome: {
+    noAnswer: "No model answer",
+    unexpected: "Unexpected answer type",
+    missingSemantic: "Field empty — decided in code, not sent to Jev",
+    missingDetail: "Missing prerequisite. This question was omitted from the request.",
+    unconfiguredSemantic: "School prerequisite is not configured",
+    unconfiguredDetail:
+      "This applied grade is not in the school's configured bands, so the verdict is Needs Review rather than Not Met.",
+    waitingSemantic: "Waiting for a Jev answer",
+    waitingDetail: "No answer yet.",
+    escalatedDetail:
+      "Routed to Needs Review because confidence {confidence} is below the floor {floor}. Low confidence means the distribution is spread — not that the model is probably wrong.",
+    neverNotMetDetail: "never_not_met blocked a Not Met verdict.",
+    pYes: "P(yes) {pct}",
+    scoreSemantic: "{score} · {level}",
+    noGrade: "No grade",
+    age: "age {age}",
+  },
+  state: {
+    notProvided: "(not provided)",
+    gradeBand: "{name}: typical ages {min}–{max}",
+  },
+  errors: {
+    malformed: "Jev returned a response we couldn't read.",
+    requestFailed: "Request failed ({status})",
+  },
 } as const;
 
 type DeepString<T> = T extends string ? string : { [K in keyof T]: DeepString<T[K]> };
@@ -49,6 +81,37 @@ export const zhCN: DeepString<typeof en> = {
   },
   status: {
     noKey: "未配置 API 密钥",
+  },
+  verdict: {
+    met: "符合",
+    not_met: "不符合",
+    needs_review: "待人工复核",
+    missing: "缺失",
+  },
+  outcome: {
+    noAnswer: "模型没有返回答案",
+    unexpected: "答案类型不符合预期",
+    missingSemantic: "字段为空——在代码中判定，没有发给 Jev",
+    missingDetail: "缺少必需信息。这道题已从请求中省略。",
+    unconfiguredSemantic: "学校侧的前置条件未配置",
+    unconfiguredDetail: "所申年级不在本校已配置的年龄段内，因此判定为待人工复核，而不是不符合。",
+    waitingSemantic: "等待 Jev 的回答",
+    waitingDetail: "还没有答案。",
+    escalatedDetail:
+      "因为置信度 {confidence} 低于下限 {floor}，已转为待人工复核。置信度低表示概率分布比较分散——并不表示模型多半答错了。",
+    neverNotMetDetail: "never_not_met 阻止了一个「不符合」的判定。",
+    pYes: "P(是) {pct}",
+    scoreSemantic: "{score} · {level}",
+    noGrade: "未填年级",
+    age: "{age} 岁",
+  },
+  state: {
+    notProvided: "（未提供）",
+    gradeBand: "{name}：通常年龄 {min}–{max} 岁",
+  },
+  errors: {
+    malformed: "Jev 返回了无法解析的响应。",
+    requestFailed: "请求失败（{status}）",
   },
 };
 

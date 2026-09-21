@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
-import { ADMISSIONS_PRESET, FIELD_JUDGMENTS, QUEUE_JUDGMENTS } from "@/lib/admissions-preset";
+import { fieldJudgments, presetFor, queueJudgments } from "@/lib/admissions-preset";
 import { applicantsFor } from "@/lib/applicants";
 import { costUsdFromUsage } from "@/lib/cost";
-import { applicantContext, VERDICT_LABEL, VERDICT_TONE } from "@/lib/format";
+import { applicantContext, verdictLabel, VERDICT_TONE } from "@/lib/format";
 import { evaluate } from "@/lib/jev";
 import { useI18n } from "@/lib/i18n-context";
 import { buildRequest } from "@/lib/request";
@@ -43,7 +43,8 @@ export function ApplicantMode({
   confidenceFloor,
   status,
 }: Props) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
+  const preset = presetFor(locale);
   const applicant = applicants.find((row) => row.id === selectedId) ?? applicants[0];
   const result = resultFor(results, applicant.id);
   const missingKey = status !== null && !status.ready;
@@ -53,7 +54,7 @@ export function ApplicantMode({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canRun) return;
-    const request = buildRequest(applicant, school);
+    const request = buildRequest(applicant, school, preset, t);
     setResults((prev) => ({ ...prev, [applicant.id]: { status: "running" } }));
     try {
       const response = await evaluate(request);
@@ -85,7 +86,7 @@ export function ApplicantMode({
     if (original) onChange(applicant.id, original);
   };
 
-  const outcomes = deriveOutcomes(applicant, school, result.answers, confidenceFloor);
+  const outcomes = deriveOutcomes(applicant, school, result.answers, confidenceFloor, preset, t);
   const fieldRows = outcomes.filter((o) => o.role === "field");
   const queueRows = outcomes.filter((o) => o.role === "queue");
 
@@ -98,7 +99,7 @@ export function ApplicantMode({
           <CardHeader>
             <div className="min-w-0">
               <CardTitle>Applicant</CardTitle>
-              <CardDescription>{applicantContext(applicant)}</CardDescription>
+              <CardDescription>{applicantContext(applicant, t)}</CardDescription>
             </div>
             <CardAction>
               <Select
@@ -298,7 +299,7 @@ export function ApplicantMode({
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 {queueRows.map((outcome) => {
-                  const judgment = QUEUE_JUDGMENTS.find((j) => j.id === outcome.id);
+                  const judgment = queueJudgments(locale).find((j) => j.id === outcome.id);
                   if (!judgment) return null;
                   return (
                     <JudgmentCard
@@ -316,7 +317,7 @@ export function ApplicantMode({
               {fieldRows.map((outcome) =>
                 outcome.verdict ? (
                   <Badge key={outcome.id} tone={VERDICT_TONE[outcome.verdict]}>
-                    {outcome.label}: {VERDICT_LABEL[outcome.verdict]}
+                    {outcome.label}: {verdictLabel(outcome.verdict, t)}
                   </Badge>
                 ) : null,
               )}
@@ -324,7 +325,7 @@ export function ApplicantMode({
 
             <div className="grid gap-4 md:grid-cols-2">
               {fieldRows.map((outcome) => {
-                const judgment = FIELD_JUDGMENTS.find((j) => j.id === outcome.id);
+                const judgment = fieldJudgments(locale).find((j) => j.id === outcome.id);
                 if (!judgment) return null;
                 return (
                   <JudgmentCard
@@ -342,7 +343,7 @@ export function ApplicantMode({
                 Request sent to Jev
               </summary>
               <pre className="overflow-x-auto border-t bg-muted/50 px-5 py-4 font-mono text-xs leading-relaxed">
-                {JSON.stringify(result.request ?? buildRequest(applicant, school), null, 2)}
+                {JSON.stringify(result.request ?? buildRequest(applicant, school, preset, t), null, 2)}
               </pre>
             </details>
           </>
@@ -351,11 +352,11 @@ export function ApplicantMode({
         {result.status !== "done" && result.status !== "running" && result.status !== "error" ? (
           <details className="rounded-xl border bg-card shadow-xs">
             <summary className="cursor-pointer px-5 py-3 text-sm font-medium text-muted-foreground select-none hover:text-foreground">
-              Request that would be sent ({Object.keys(buildRequest(applicant, school).questions).length} of{" "}
-              {ADMISSIONS_PRESET.length} questions)
+              Request that would be sent ({Object.keys(buildRequest(applicant, school, preset, t).questions).length} of{" "}
+              {preset.length} questions)
             </summary>
             <pre className="overflow-x-auto border-t bg-muted/50 px-5 py-4 font-mono text-xs leading-relaxed">
-              {JSON.stringify(buildRequest(applicant, school), null, 2)}
+              {JSON.stringify(buildRequest(applicant, school, preset, t), null, 2)}
             </pre>
           </details>
         ) : null}

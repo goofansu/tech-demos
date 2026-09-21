@@ -2,7 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { PRESETS, presetFor } from "./admissions-preset";
 import { APPLICANTS_BY_LOCALE, REQUIRED_TAGS, applicantsFor, applicantsWithTag } from "./applicants";
 import { SCHOOLS, gradeBand, schoolFor } from "./school";
-import { catalogs, interpolate, translate, type Locale } from "./i18n";
+import { verdictLabel } from "./format";
+import { catalogs, interpolate, translate, type Locale, type MessagePath, type Vars } from "./i18n";
+import { buildRequest } from "./request";
+import { deriveJudgment } from "./verdicts";
 
 function paths(node: unknown, prefix = ""): string[] {
   if (typeof node === "string") return [prefix];
@@ -164,5 +167,37 @@ describe("applicant parity across locales", () => {
   test("applicantsFor returns the locale's fixtures", () => {
     expect(applicantsFor("en")).toBe(APPLICANTS_BY_LOCALE.en);
     expect(applicantsFor("zh-CN")).toBe(APPLICANTS_BY_LOCALE["zh-CN"]);
+  });
+});
+
+const tEn = (path: MessagePath, vars?: Vars) => translate("en", path, vars);
+const tZh = (path: MessagePath, vars?: Vars) => translate("zh-CN", path, vars);
+
+describe("localized lib output", () => {
+  test("verdict labels follow the glossary", () => {
+    expect(verdictLabel("needs_review", tEn)).toBe("Needs Review");
+    expect(verdictLabel("needs_review", tZh)).toBe("待人工复核");
+    expect(verdictLabel("not_met", tZh)).toBe("不符合");
+    expect(verdictLabel("met", tZh)).toBe("符合");
+    expect(verdictLabel("missing", tZh)).toBe("缺失");
+  });
+
+  test("a missing field explains itself in the active locale", () => {
+    const blank = applicantsFor("zh-CN").find((a) => a.prior_school === null);
+    if (!blank) throw new Error("fixture");
+    const judgment = presetFor("zh-CN").find((j) => j.id === "prior_school")!;
+    const outcome = deriveJudgment(judgment, blank, schoolFor("zh-CN"), undefined, 0.6, tZh);
+    expect(outcome.verdict).toBe("missing");
+    expect(outcome.semantic).toContain("Jev");
+    expect(/[\u4e00-\u9fff]/.test(outcome.detail)).toBe(true);
+  });
+
+  test("the Chinese request carries Chinese questions and a Chinese missing label", () => {
+    const blank = applicantsFor("zh-CN").find((a) => a.prior_school === null)!;
+    const request = buildRequest(blank, schoolFor("zh-CN"), presetFor("zh-CN"), tZh);
+    expect(request.state.prior_school).toBe("（未提供）");
+    expect(request.questions.prior_school).toBeUndefined();
+    expect(request.questions.attention).toBeDefined();
+    expect(/[\u4e00-\u9fff]/.test(request.state.school_grade_bands)).toBe(true);
   });
 });

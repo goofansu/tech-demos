@@ -1,5 +1,5 @@
-import { ADMISSIONS_PRESET } from "./admissions-preset";
 import { omitReason } from "./fields";
+import type { Translate } from "./i18n";
 import type {
   Applicant,
   JevAnswer,
@@ -51,20 +51,20 @@ function noulVerdict(judgment: Extract<Judgment, { primitive: "noul" }>, noul: n
   return "needs_review";
 }
 
-function semanticFor(judgment: Judgment, answer: JevAnswer | undefined): string {
-  if (!answer) return "No model answer";
+function semanticFor(judgment: Judgment, answer: JevAnswer | undefined, t: Translate): string {
+  if (!answer) return t("outcome.noAnswer");
   if (answer.type === "noul" && judgment.primitive === "noul") {
-    return `P(yes) ${pct(answer.noul)}`;
+    return t("outcome.pYes", { pct: pct(answer.noul) });
   }
   if (answer.type === "score" && judgment.primitive === "score") {
     const band = scoreBand(answer.score, judgment.levels.length);
     const level = judgment.levels[band] ?? answer.legend[String(band)] ?? "";
-    return `${answer.score.toFixed(2)} · ${level}`;
+    return t("outcome.scoreSemantic", { score: answer.score.toFixed(2), level });
   }
   if (answer.type === "choice" && judgment.primitive === "choice") {
     return answer.choice;
   }
-  return "Unexpected answer type";
+  return t("outcome.unexpected");
 }
 
 function applyGuardrails(
@@ -90,6 +90,7 @@ export function deriveJudgment(
   school: SchoolConfig,
   answer: JevAnswer | undefined,
   confidenceFloor: number,
+  t: Translate,
 ): JudgmentOutcome {
   const omitted = omitReason(judgment, applicant, school);
   const floor = confidenceFloor;
@@ -101,13 +102,13 @@ export function deriveJudgment(
       primitive: judgment.primitive,
       role: judgment.role,
       verdict: judgment.role === "field" ? "missing" : null,
-      semantic: "Field empty — decided in code, not sent to Jev",
+      semantic: t("outcome.missingSemantic"),
       confidence: null,
       escalated: false,
       neverNotMetProtected: false,
       unconfigured: false,
       omitReason: "missing",
-      detail: "Missing prerequisite. This question was omitted from the request.",
+      detail: t("outcome.missingDetail"),
     };
   }
 
@@ -118,14 +119,13 @@ export function deriveJudgment(
       primitive: judgment.primitive,
       role: judgment.role,
       verdict: "needs_review",
-      semantic: "School prerequisite is not configured",
+      semantic: t("outcome.unconfiguredSemantic"),
       confidence: null,
       escalated: false,
       neverNotMetProtected: false,
       unconfigured: true,
       omitReason: "unconfigured",
-      detail:
-        "This applied grade is not in the school's configured bands, so the verdict is Needs Review rather than Not Met.",
+      detail: t("outcome.unconfiguredDetail"),
     };
   }
 
@@ -136,13 +136,13 @@ export function deriveJudgment(
       primitive: judgment.primitive,
       role: judgment.role,
       verdict: judgment.role === "field" ? null : null,
-      semantic: "Waiting for a Jev answer",
+      semantic: t("outcome.waitingSemantic"),
       confidence: null,
       escalated: false,
       neverNotMetProtected: false,
       unconfigured: false,
       omitReason: null,
-      detail: "No answer yet.",
+      detail: t("outcome.waitingDetail"),
     };
   }
 
@@ -158,15 +158,18 @@ export function deriveJudgment(
   }
 
   const guarded = applyGuardrails(judgment, raw, confidence, floor);
-  const semantic = semanticFor(judgment, answer);
+  const semantic = semanticFor(judgment, answer, t);
   const parts: string[] = [semantic];
   if (guarded.escalated) {
     parts.push(
-      `Routed to Needs Review because confidence ${confidence?.toFixed(2)} is below the floor ${floor.toFixed(2)}. Low confidence means the distribution is spread — not that the model is probably wrong.`,
+      t("outcome.escalatedDetail", {
+        confidence: confidence?.toFixed(2) ?? "",
+        floor: floor.toFixed(2),
+      }),
     );
   }
   if (guarded.neverNotMetProtected) {
-    parts.push("never_not_met blocked a Not Met verdict.");
+    parts.push(t("outcome.neverNotMetDetail"));
   }
 
   return {
@@ -190,9 +193,11 @@ export function deriveOutcomes(
   school: SchoolConfig,
   answers: Record<string, JevAnswer> | undefined,
   confidenceFloor: number,
+  preset: Judgment[],
+  t: Translate,
 ): JudgmentOutcome[] {
-  return ADMISSIONS_PRESET.map((judgment) =>
-    deriveJudgment(judgment, applicant, school, answers?.[judgment.id], confidenceFloor),
+  return preset.map((judgment) =>
+    deriveJudgment(judgment, applicant, school, answers?.[judgment.id], confidenceFloor, t),
   );
 }
 

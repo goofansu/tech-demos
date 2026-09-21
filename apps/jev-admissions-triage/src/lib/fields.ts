@@ -1,4 +1,3 @@
-import { ADMISSIONS_PRESET } from "./admissions-preset";
 import { gradeBand } from "./school";
 import type { Applicant, Judgment, OmitReason, SchoolConfig } from "./types";
 
@@ -47,8 +46,8 @@ export function omitReason(
   return null;
 }
 
-export function missingFieldCount(applicant: Applicant): number {
-  return ADMISSIONS_PRESET.filter((j) => j.role === "field" && isMissingInput(j, applicant)).length;
+export function missingFieldCount(applicant: Applicant, preset: Judgment[]): number {
+  return preset.filter((j) => j.role === "field" && isMissingInput(j, applicant)).length;
 }
 
 export function cloneApplicant(applicant: Applicant): Applicant {
