@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { PRESETS, presetFor } from "./admissions-preset";
+import { APPLICANTS_BY_LOCALE, REQUIRED_TAGS, applicantsFor, applicantsWithTag } from "./applicants";
+import { SCHOOLS, gradeBand, schoolFor } from "./school";
 import { catalogs, interpolate, translate, type Locale } from "./i18n";
 
 function paths(node: unknown, prefix = ""): string[] {
@@ -88,5 +90,79 @@ describe("preset parity across locales", () => {
     for (const locale of locales) {
       expect(presetFor(locale)).toBe(PRESETS[locale]);
     }
+  });
+});
+
+describe("school parity across locales", () => {
+  test("same number of grade bands with the same ages", () => {
+    const en = SCHOOLS.en;
+    const zh = SCHOOLS["zh-CN"];
+    expect(zh.country).toBe(en.country);
+    expect(zh.current_academic_year).toBe(en.current_academic_year);
+    expect(zh.grades.map((g) => [g.min_age, g.max_age])).toEqual(
+      en.grades.map((g) => [g.min_age, g.max_age]),
+    );
+    expect(zh.grades.map((g) => g.name)).not.toEqual(en.grades.map((g) => g.name));
+  });
+});
+
+describe("applicant parity across locales", () => {
+  const en = APPLICANTS_BY_LOCALE.en;
+  const zh = APPLICANTS_BY_LOCALE["zh-CN"];
+
+  test("both locales ship the same 100 ids in the same order", () => {
+    expect(zh).toHaveLength(100);
+    expect(zh.map((a) => a.id)).toEqual(en.map((a) => a.id));
+  });
+
+  test("language-independent fields are identical", () => {
+    for (const [i, source] of en.entries()) {
+      const target = zh[i];
+      expect(target.age, source.id).toBe(source.age);
+      expect(target.tags, source.id).toEqual(source.tags);
+      expect(target.prior_school_country, source.id).toBe(source.prior_school_country);
+      expect(target.application_status, source.id).toBe(source.application_status);
+    }
+  });
+
+  test("each Chinese grade resolves to the same configured band index", () => {
+    const enSchool = schoolFor("en");
+    const zhSchool = schoolFor("zh-CN");
+    for (const [i, source] of en.entries()) {
+      const target = zh[i];
+      const enIndex = enSchool.grades.indexOf(gradeBand(enSchool, source.grade)!);
+      const zhIndex = zhSchool.grades.indexOf(gradeBand(zhSchool, target.grade)!);
+      expect(zhIndex, `${source.id} ${source.grade} -> ${target.grade}`).toBe(enIndex);
+    }
+  });
+
+  test("the unconfigured-grade fixture is unconfigured in both locales", () => {
+    const enGhost = applicantsWithTag("unconfigured_grade", "en")[0];
+    const zhGhost = applicantsWithTag("unconfigured_grade", "zh-CN")[0];
+    expect(enGhost.id).toBe(zhGhost.id);
+    expect(gradeBand(schoolFor("en"), enGhost.grade)).toBeUndefined();
+    expect(gradeBand(schoolFor("zh-CN"), zhGhost.grade)).toBeUndefined();
+  });
+
+  test("every required planted tag is covered in Chinese too", () => {
+    for (const tag of REQUIRED_TAGS) {
+      expect(applicantsWithTag(tag, "zh-CN").length, tag).toBeGreaterThan(0);
+    }
+  });
+
+  test("prose fields are actually translated", () => {
+    const cjk = /[\u4e00-\u9fff]/;
+    for (const applicant of zh) {
+      for (const key of ["reason_for_applying", "extracurricular", "officer_notes"] as const) {
+        const value = applicant[key];
+        if (value === null || value.trim() === "") continue;
+        expect(cjk.test(value), `${applicant.id}.${key}`).toBe(true);
+      }
+    }
+  });
+
+  test("applicantsFor returns the locale's fixtures", () => {
+    expect(applicantsFor("en")).toBe(APPLICANTS_BY_LOCALE.en);
+    expect(applicantsFor("zh-CN")).toBe(APPLICANTS_BY_LOCALE["zh-CN"]);
   });
 });
