@@ -8,6 +8,7 @@ import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { fieldJudgments, presetFor, queueJudgments } from "@/lib/admissions-preset";
 import { applicantsFor } from "@/lib/applicants";
+import { gradeOptions } from "@/lib/grades";
 import { costUsdFromUsage } from "@/lib/cost";
 import { applicantContext, verdictLabel, VERDICT_TONE } from "@/lib/format";
 import { evaluate } from "@/lib/jev";
@@ -29,8 +30,6 @@ type Props = {
   confidenceFloor: number;
   status: ApiStatus | null;
 };
-
-const GRADES = ["Year 7", "Year 8", "Year 9", "Year 11", ""];
 
 export function ApplicantMode({
   applicants,
@@ -98,12 +97,12 @@ export function ApplicantMode({
         <Card>
           <CardHeader>
             <div className="min-w-0">
-              <CardTitle>Applicant</CardTitle>
+              <CardTitle>{t("applicant.title")}</CardTitle>
               <CardDescription>{applicantContext(applicant, t)}</CardDescription>
             </div>
             <CardAction>
               <Select
-                aria-label="Fabricated applicant"
+                aria-label={t("applicant.selectLabel")}
                 className="w-auto max-w-56"
                 value={applicant.id}
                 onChange={(e) => onSelect(e.target.value)}
@@ -117,27 +116,25 @@ export function ApplicantMode({
             </CardAction>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <p className="text-xs text-muted-foreground">
-              Fabricated record. Empty fields become Missing in code and never reach Jev.
-            </p>
-            <Field label="Name" htmlFor="name">
+<p className="text-xs text-muted-foreground">{t("applicant.fixtureHint")}</p>
+            <Field label={t("applicant.fields.name")} htmlFor="name">
               <Input id="name" value={applicant.name} onChange={(e) => set({ name: e.target.value })} />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Applied grade" htmlFor="grade">
+              <Field label={t("applicant.fields.grade")} htmlFor="grade">
                 <Select
                   id="grade"
                   value={applicant.grade ?? ""}
                   onChange={(e) => set({ grade: e.target.value || null })}
                 >
-                  {GRADES.map((g) => (
+                  {gradeOptions(locale).map((g) => (
                     <option key={g || "blank"} value={g}>
-                      {g || "(not provided)"}
+                      {g || t("state.notProvided")}
                     </option>
                   ))}
                 </Select>
               </Field>
-              <Field label="Age" htmlFor="age">
+              <Field label={t("applicant.fields.age")} htmlFor="age">
                 <Input
                   id="age"
                   type="number"
@@ -147,14 +144,14 @@ export function ApplicantMode({
               </Field>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="First language" htmlFor="language">
+              <Field label={t("applicant.fields.language")} htmlFor="language">
                 <Input
                   id="language"
                   value={applicant.language ?? ""}
                   onChange={(e) => set({ language: e.target.value || null })}
                 />
               </Field>
-              <Field label="Second language" htmlFor="second_language">
+              <Field label={t("applicant.fields.second_language")} htmlFor="second_language">
                 <Input
                   id="second_language"
                   value={applicant.second_language ?? ""}
@@ -162,21 +159,21 @@ export function ApplicantMode({
                 />
               </Field>
             </div>
-            <Field label="Prior school" htmlFor="prior_school">
+            <Field label={t("applicant.fields.prior_school")} htmlFor="prior_school">
               <Input
                 id="prior_school"
                 value={applicant.prior_school ?? ""}
                 onChange={(e) => set({ prior_school: e.target.value || null })}
               />
             </Field>
-            <Field label="Prior school country" htmlFor="prior_school_country">
+            <Field label={t("applicant.fields.prior_school_country")} htmlFor="prior_school_country">
               <Input
                 id="prior_school_country"
                 value={applicant.prior_school_country ?? ""}
                 onChange={(e) => set({ prior_school_country: e.target.value || null })}
               />
             </Field>
-            <Field label="Extracurricular" htmlFor="extracurricular">
+            <Field label={t("applicant.fields.extracurricular")} htmlFor="extracurricular">
               <Textarea
                 id="extracurricular"
                 className="min-h-20"
@@ -184,7 +181,7 @@ export function ApplicantMode({
                 onChange={(e) => set({ extracurricular: e.target.value || null })}
               />
             </Field>
-            <Field label="Reason for applying" htmlFor="reason_for_applying">
+            <Field label={t("applicant.fields.reason_for_applying")} htmlFor="reason_for_applying">
               <Textarea
                 id="reason_for_applying"
                 className="min-h-20"
@@ -192,35 +189,35 @@ export function ApplicantMode({
                 onChange={(e) => set({ reason_for_applying: e.target.value || null })}
               />
             </Field>
-            <Field label="Siblings" htmlFor="siblings_information">
+            <Field label={t("applicant.fields.siblings")} htmlFor="siblings_information">
               <Input
                 id="siblings_information"
                 value={applicant.siblings_information ?? ""}
                 onChange={(e) => set({ siblings_information: e.target.value || null })}
               />
             </Field>
-            <Field label="Deadline" htmlFor="deadline">
+            <Field label={t("applicant.fields.deadline")} htmlFor="deadline">
               <Input
                 id="deadline"
                 value={applicant.deadline ?? ""}
                 onChange={(e) => set({ deadline: e.target.value || null })}
               />
             </Field>
-            <Field label="Competing offer" htmlFor="competing_offer">
+            <Field label={t("applicant.fields.competing_offer")} htmlFor="competing_offer">
               <Input
                 id="competing_offer"
                 value={applicant.competing_offer ?? ""}
                 onChange={(e) => set({ competing_offer: e.target.value || null })}
               />
             </Field>
-            <Field label="Scholarship" htmlFor="scholarship">
+            <Field label={t("applicant.fields.scholarship")} htmlFor="scholarship">
               <Input
                 id="scholarship"
                 value={applicant.scholarship ?? ""}
                 onChange={(e) => set({ scholarship: e.target.value || null })}
               />
             </Field>
-            <Field label="Officer notes" htmlFor="officer_notes">
+            <Field label={t("applicant.fields.officer_notes")} htmlFor="officer_notes">
               <Textarea
                 id="officer_notes"
                 className="min-h-20"
@@ -231,10 +228,10 @@ export function ApplicantMode({
             <KeyWarning show={missingKey} />
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" size="lg" disabled={!canRun}>
-                {busy ? "Evaluating…" : "Evaluate applicant"}
+                {busy ? t("applicant.evaluating") : t("applicant.evaluate")}
               </Button>
               <Button type="button" variant="ghost" onClick={restore}>
-                Restore fixture
+                {t("applicant.restore")}
               </Button>
             </div>
             {applicant.tags.length > 0 ? (
@@ -254,10 +251,9 @@ export function ApplicantMode({
         {result.status === "idle" ? (
           <Card>
             <CardContent className="flex min-h-40 flex-col items-center justify-center gap-2 text-center">
-              <p className="text-sm font-medium">Ready to evaluate this file</p>
+              <p className="text-sm font-medium">{t("applicant.readyTitle")}</p>
               <p className="max-w-sm text-xs text-muted-foreground">
-                Six field judgments get a four-state verdict. Attention and attention reason stay queue metadata —
-                they are not rejection scores.
+                {t("applicant.readyBody", { count: fieldJudgments(locale).length })}
               </p>
             </CardContent>
           </Card>
@@ -266,14 +262,14 @@ export function ApplicantMode({
         {result.status === "running" ? (
           <Card>
             <CardContent className="flex min-h-40 items-center justify-center">
-              <p className="animate-pulse text-sm text-muted-foreground">Asking Jev…</p>
+              <p className="animate-pulse text-sm text-muted-foreground">{t("applicant.asking")}</p>
             </CardContent>
           </Card>
         ) : null}
 
         {result.status === "error" ? (
           <div role="alert" className="rounded-xl border border-danger/40 bg-danger-soft px-5 py-4 text-sm">
-            <p className="font-medium text-danger">Evaluation failed</p>
+            <p className="font-medium text-danger">{t("applicant.failed")}</p>
             <p className="mt-1 text-danger/90">{result.error}</p>
           </div>
         ) : null}
@@ -285,17 +281,15 @@ export function ApplicantMode({
               <span>{result.latencyMs} ms</span>
               {typeof result.inputTokens === "number" ? (
                 <span>
-                  {result.inputTokens} in / {result.outputTokens ?? 0} out
+                  {t("applicant.tokens", { in: result.inputTokens, out: result.outputTokens ?? 0 })}
                 </span>
               ) : null}
             </div>
 
             <Card>
               <CardHeader>
-                <CardTitle>Queue metadata</CardTitle>
-                <CardDescription>
-                  Attention orders the batch. The reason says why — other is kept, not remapped.
-                </CardDescription>
+                <CardTitle>{t("applicant.queueMetaTitle")}</CardTitle>
+<CardDescription>{t("applicant.queueMetaHint")}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 {queueRows.map((outcome) => {
@@ -340,7 +334,7 @@ export function ApplicantMode({
 
             <details className="rounded-xl border bg-card shadow-xs">
               <summary className="cursor-pointer px-5 py-3 text-sm font-medium text-muted-foreground select-none hover:text-foreground">
-                Request sent to Jev
+                {t("applicant.requestSent")}
               </summary>
               <pre className="overflow-x-auto border-t bg-muted/50 px-5 py-4 font-mono text-xs leading-relaxed">
                 {JSON.stringify(result.request ?? buildRequest(applicant, school, preset, t), null, 2)}
@@ -352,8 +346,10 @@ export function ApplicantMode({
         {result.status !== "done" && result.status !== "running" && result.status !== "error" ? (
           <details className="rounded-xl border bg-card shadow-xs">
             <summary className="cursor-pointer px-5 py-3 text-sm font-medium text-muted-foreground select-none hover:text-foreground">
-              Request that would be sent ({Object.keys(buildRequest(applicant, school, preset, t).questions).length} of{" "}
-              {preset.length} questions)
+              {t("applicant.requestWouldBe", {
+                asked: Object.keys(buildRequest(applicant, school, preset, t).questions).length,
+                total: preset.length,
+              })}
             </summary>
             <pre className="overflow-x-auto border-t bg-muted/50 px-5 py-4 font-mono text-xs leading-relaxed">
               {JSON.stringify(buildRequest(applicant, school, preset, t), null, 2)}

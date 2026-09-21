@@ -3,7 +3,8 @@ import { PRESETS, presetFor } from "./admissions-preset";
 import { APPLICANTS_BY_LOCALE, REQUIRED_TAGS, applicantsFor, applicantsWithTag } from "./applicants";
 import { SCHOOLS, gradeBand, schoolFor } from "./school";
 import { verdictLabel } from "./format";
-import { catalogs, interpolate, translate, type Locale, type MessagePath, type Vars } from "./i18n";
+import { gradeOptions } from "./grades";
+import { LOCALES, catalogs, interpolate, translate, type Locale, type MessagePath, type Vars } from "./i18n";
 import { buildRequest } from "./request";
 import { deriveJudgment } from "./verdicts";
 
@@ -213,6 +214,26 @@ describe("attention reason labels", () => {
       const path = `attentionReason.${key}` as MessagePath;
       expect(translate("en", path)).not.toBe(path);
       expect(/[\u4e00-\u9fff]/.test(translate("zh-CN", path)), key).toBe(true);
+    }
+  });
+});
+
+describe("applicant grade options", () => {
+  test("each locale offers one deliberately unconfigured grade", () => {
+    for (const locale of LOCALES) {
+      const school = schoolFor(locale);
+      const options = gradeOptions(locale).filter((g) => g !== "");
+      const unconfigured = options.filter((g) => gradeBand(school, g) === undefined);
+      expect(unconfigured, locale).toHaveLength(1);
+    }
+  });
+
+  test("every configured band is offered", () => {
+    for (const locale of LOCALES) {
+      const offered = gradeOptions(locale);
+      for (const band of schoolFor(locale).grades) {
+        expect(offered, `${locale} ${band.name}`).toContain(band.name);
+      }
     }
   });
 });
