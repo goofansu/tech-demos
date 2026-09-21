@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { DEFAULT_CONFIDENCE_FLOOR } from "@/lib/admissions-preset";
 import { APPLICANTS } from "@/lib/applicants";
 import { cloneApplicant } from "@/lib/fields";
+import { LOCALES, LOCALE_LABELS, type MessagePath } from "@/lib/i18n";
+import { RichText, useI18n } from "@/lib/i18n-context";
 import { fetchStatus } from "@/lib/jev";
 import { SCHOOL } from "@/lib/school";
 import { cn } from "@/lib/utils";
@@ -13,13 +15,14 @@ import type { ApiStatus, Applicant, ApplicantResult } from "@/lib/types";
 
 type Mode = "queue" | "applicant" | "preset";
 
-const MODES: { id: Mode; label: string }[] = [
-  { id: "queue", label: "Queue" },
-  { id: "applicant", label: "Applicant" },
-  { id: "preset", label: "Preset" },
+const MODES: { id: Mode; path: MessagePath }[] = [
+  { id: "queue", path: "app.queue" },
+  { id: "applicant", path: "app.applicant" },
+  { id: "preset", path: "app.preset" },
 ];
 
 export default function App() {
+  const { locale, setLocale, t } = useI18n();
   const [mode, setMode] = React.useState<Mode>("queue");
   const [confidenceFloor, setConfidenceFloor] = React.useState(DEFAULT_CONFIDENCE_FLOOR);
   const [applicants, setApplicants] = React.useState<Applicant[]>(() => APPLICANTS.map(cloneApplicant));
@@ -54,9 +57,9 @@ export default function App() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-3">
-          <h1 className="min-w-0 truncate text-sm font-semibold tracking-tight">Admissions Triage · Jev</h1>
+          <h1 className="min-w-0 truncate text-sm font-semibold tracking-tight">{t("app.title")}</h1>
           <div className="flex flex-wrap items-center gap-2">
-            <nav aria-label="Mode" className="flex rounded-lg bg-muted p-1">
+            <nav aria-label={t("app.mode")} className="flex rounded-lg bg-muted p-1">
               {MODES.map((item) => (
                 <button
                   key={item.id}
@@ -70,10 +73,30 @@ export default function App() {
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {item.label}
+                  {t(item.path)}
                 </button>
               ))}
             </nav>
+
+            <nav aria-label={t("app.language")} className="flex rounded-lg bg-muted p-1">
+              {LOCALES.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={locale === id}
+                  onClick={() => setLocale(id)}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    locale === id
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {id === "en" ? "EN" : LOCALE_LABELS[id]}
+                </button>
+              ))}
+            </nav>
+
             <StatusBadge status={status} />
           </div>
         </div>
@@ -111,15 +134,20 @@ export default function App() {
       </main>
 
       <footer className="mx-auto max-w-7xl px-5 pb-8 text-xs text-muted-foreground">
-        Fabricated applicants only. Each evaluate is one <code className="font-mono">systemone</code> call (
-        <code className="font-mono">POST /api/evaluate</code>) with Jev as the only model. The API key stays on the
-        server.
+        <RichText
+          path="app.footer"
+          tokens={{
+            systemone: <code className="font-mono">systemone</code>,
+            evaluate: <code className="font-mono">POST /api/evaluate</code>,
+          }}
+        />
       </footer>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: ApiStatus | null }) {
+  const { t } = useI18n();
   if (!status || status.ready) return null;
-  return <Badge tone="warning">No API key</Badge>;
+  return <Badge tone="warning">{t("status.noKey")}</Badge>;
 }
