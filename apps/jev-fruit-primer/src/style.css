@@ -27,14 +27,31 @@ body {
 
 .skip {
   position: absolute;
-  left: 1rem;
-  top: -3rem;
-  background: var(--ink);
-  color: white;
-  padding: 0.4rem 0.7rem;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.skip:focus { top: 0.5rem; }
+.skip:focus {
+  position: fixed;
+  left: 1rem;
+  top: 0.5rem;
+  z-index: 2;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.4rem 0.7rem;
+  overflow: visible;
+  clip: auto;
+  background: var(--ink);
+  color: white;
+  text-decoration: none;
+}
 
 .top {
   display: flex;
@@ -387,12 +404,16 @@ nav a[aria-current="page"] {
 .caption {
   position: sticky;
   bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: var(--paper);
   border-top: 1px solid var(--line);
   padding: 0.75rem 1.25rem 1rem;
+  text-align: center;
 }
 
-.caption > * { max-width: 76rem; margin-left: auto; margin-right: auto; }
+.caption > * { width: min(46rem, 100%); }
 
 code {
   font-family: var(--mono);
@@ -403,6 +424,7 @@ code {
 
 .ticks {
   display: flex;
+  justify-content: center;
   gap: 0.3rem;
   padding-bottom: 0.45rem;
 }
@@ -429,19 +451,20 @@ code {
 }
 
 .caption h2 {
-  margin-top: 0.15rem;
+  margin: 0.15rem 0 0;
   font-size: 1.45rem;
   letter-spacing: -0.02em;
 }
 
 #cap-body {
-  margin: 0.3rem 0 0;
+  margin: 0.3rem auto 0;
   max-width: 46rem;
   min-height: 3.2rem;
 }
 
 .transport {
   display: flex;
+  justify-content: center;
   gap: 0.45rem;
   margin-top: 0.7rem;
 }

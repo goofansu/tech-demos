@@ -1,5 +1,4 @@
 import { fetchStatus } from "./api.js";
-import "./style.css";
 import { lessonFromHash, lessons, planned } from "./lessons/index.js";
 import { mountPlayer } from "./player.js";
 
