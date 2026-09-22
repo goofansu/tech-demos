@@ -17,6 +17,7 @@ const dom = {
   reqNoteText: document.querySelector("#req-note-text"),
   resNoteText: document.querySelector("#res-note-text"),
   sendDot: document.querySelector("#send-dot"),
+  bars: document.querySelector("#bars"),
   meter: document.querySelector("#meter"),
   fill: document.querySelector("#meter-fill"),
   mark: document.querySelector("#meter-mark"),

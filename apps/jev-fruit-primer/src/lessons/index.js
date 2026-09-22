@@ -1,6 +1,7 @@
+import { choiceLesson } from "./choice.js";
 import { noulLesson } from "./noul.js";
 
-export const lessons = [noulLesson];
+export const lessons = [noulLesson, choiceLesson];
 
 export const planned = [
   { id: "noul", label: "Noul" },

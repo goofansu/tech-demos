@@ -44,6 +44,10 @@ export function linesFrom(value) {
   return lines;
 }
 
+function cssEscape(value) {
+  return window.CSS?.escape ? window.CSS.escape(value) : value.replace(/"/g, '\\"');
+}
+
 /** `focus` is a path (`state.fruit`) or a branch (`state.*`). */
 export function lineIsHot(line, focus) {
   if (!focus || !line) return false;
@@ -69,6 +73,7 @@ export function mountJson(host) {
       el.classList.remove("on");
       nodes.delete(id);
       const remove = () => {
+        if (nodes.get(id) === el) return;
         if (!el.classList.contains("on")) el.remove();
       };
       el.addEventListener("transitionend", (event) => {
@@ -81,6 +86,10 @@ export function mountJson(host) {
 
     lines.forEach((line, index) => {
       let el = nodes.get(line.id);
+      if (!el) {
+        el = list.querySelector(`[data-id="${cssEscape(line.id)}"]`);
+        if (el) nodes.set(line.id, el);
+      }
       if (!el) {
         el = document.createElement("li");
         el.className = "line";

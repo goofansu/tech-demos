@@ -14,29 +14,35 @@ export function mountPlayer(lesson, dom) {
   let token = 0;
   let meterValue = 0;
   let shownFruit = null;
+  let cancelled = false;
 
   for (const id of lesson.calls) {
     evaluate(lesson.payload(id))
       .then((data) => {
+        if (cancelled) return;
         bag.results[id] = data;
         if (lesson.scenes[index]?.needs === id) show(index);
       })
       .catch((err) => {
+        if (cancelled) return;
         bag.errors[id] = err instanceof Error ? err.message : String(err);
         if (lesson.scenes[index]?.needs === id) show(index);
       });
   }
 
-  dom.prev.addEventListener("click", () => step(-1));
-  dom.next.addEventListener("click", () => step(1));
-  dom.play.addEventListener("click", toggle);
-  dom.ticks.addEventListener("click", (event) => {
+  const onPrev = () => step(-1);
+  const onNext = () => step(1);
+  const onTick = (event) => {
     const button = event.target.closest("button[data-index]");
     if (!button) return;
     playing = false;
     syncPlayLabel();
     go(Number(button.dataset.index));
-  });
+  };
+  dom.prev.addEventListener("click", onPrev);
+  dom.next.addEventListener("click", onNext);
+  dom.play.addEventListener("click", toggle);
+  dom.ticks.addEventListener("click", onTick);
   window.addEventListener("keydown", onKey);
 
   renderTicks();
@@ -44,8 +50,13 @@ export function mountPlayer(lesson, dom) {
   syncPlayLabel();
 
   return () => {
+    cancelled = true;
     window.clearTimeout(timer);
     window.removeEventListener("keydown", onKey);
+    dom.prev.removeEventListener("click", onPrev);
+    dom.next.removeEventListener("click", onNext);
+    dom.play.removeEventListener("click", toggle);
+    dom.ticks.removeEventListener("click", onTick);
   };
 
   function onKey(event) {
@@ -123,6 +134,7 @@ export function mountPlayer(lesson, dom) {
     dom.next.disabled = index === lesson.scenes.length - 1;
     paintNotes(view);
     paintMeter(view);
+    paintBars(view);
     renderTicks();
     dom.stage.dataset.phase = view.phase;
     dom.stage.dataset.scene = scene.id;
@@ -155,7 +167,7 @@ export function mountPlayer(lesson, dom) {
     for (const [key, value] of Object.entries(fruit.state)) {
       const row = document.createElement("div");
       row.className = "fact";
-      if (factHot.has(key)) row.classList.add("hot");
+      if (factHot === "all" || factHot.has(key)) row.classList.add("hot");
       const term = document.createElement("dt");
       term.textContent = key;
       const def = document.createElement("dd");
@@ -212,6 +224,62 @@ export function mountPlayer(lesson, dom) {
     });
   }
 
+  function paintBars(view) {
+    if (!view.bars) {
+      dom.bars.hidden = true;
+      return;
+    }
+    dom.bars.hidden = false;
+    const signature = view.bars.rows.map((row) => row.key).join("|");
+    const fresh = dom.bars.dataset.keys !== signature;
+    if (fresh) {
+      dom.bars.dataset.keys = signature;
+      dom.bars.replaceChildren();
+      for (const row of view.bars.rows) {
+        const item = document.createElement("div");
+        item.className = "bar-row";
+        item.dataset.key = row.key;
+        const key = document.createElement("span");
+        key.className = "bar-key";
+        key.textContent = row.key;
+        const track = document.createElement("span");
+        track.className = "bar-track";
+        const fill = document.createElement("span");
+        fill.className = "bar-fill";
+        track.append(fill);
+        const prob = document.createElement("span");
+        prob.className = "bar-p";
+        item.append(key, track, prob);
+        dom.bars.append(item);
+      }
+      const sum = document.createElement("p");
+      sum.className = "bar-sum";
+      dom.bars.append(sum);
+    }
+    dom.bars.classList.toggle("notice", view.bars.mode === "all");
+    for (const row of view.bars.rows) {
+      const item = dom.bars.querySelector(`[data-key="${CSS.escape(row.key)}"]`);
+      if (!item) continue;
+      const winner = view.bars.mode === "winner" && row.picked;
+      item.classList.toggle("hot", winner);
+      item.querySelector(".bar-p").textContent = JSON.stringify(row.p);
+      const fill = item.querySelector(".bar-fill");
+      const next = `scaleX(${row.p})`;
+      if (reduceMotion || !fresh) {
+        fill.style.transform = next;
+      } else {
+        fill.style.transform = "scaleX(0)";
+        requestAnimationFrame(() => {
+          fill.style.transform = next;
+        });
+      }
+    }
+    const total = view.bars.rows.reduce((sum, row) => sum + row.p, 0);
+    const sum = dom.bars.querySelector(".bar-sum");
+    const shown = Math.abs(total - 1) < 0.001 ? "1" : String(Math.round(total * 1000) / 1000);
+    sum.textContent = `${view.bars.rows.map((row) => JSON.stringify(row.p)).join(" + ")} = ${shown}`;
+  }
+
   function renderTicks() {
     dom.ticks.replaceChildren();
     lesson.scenes.forEach((scene, sceneIndex) => {
@@ -249,7 +317,7 @@ function setRich(el, text) {
 
 function hotFacts(focus) {
   if (!focus || focus === "fruit") return new Set();
-  if (focus === "state.*") return new Set(["fruit", "skin", "shape", "taste"]);
+  if (focus === "state.*") return "all";
   if (focus.startsWith("state.")) return new Set([focus.slice("state.".length).replace(/\.\*$/, "")]);
   return new Set();
 }

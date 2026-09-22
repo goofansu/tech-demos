@@ -21,8 +21,9 @@ Other scripts: `bun test`, `bun run build`, `bun run preview`.
 ## Pages
 
 - **Noul** — is this fruit a citrus? A lemon, then the same question on a mango. The walk builds the request field by field, sends it, then reads `model`, `type`, `noul`, and `usage` on the live reply.
+- **Choice** — which fruit is this? A kiwi, then an orange that is not in the list. The reply adds `choice`, `probabilities`, and `confidence`.
 
-Choice and Score use the same walk once those pages are in place.
+Score uses the same walk once that page is in place.
 
 ## Server
 
