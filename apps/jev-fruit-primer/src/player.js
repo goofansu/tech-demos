@@ -13,6 +13,7 @@ export function mountPlayer(lesson, dom) {
   let timer = 0;
   let token = 0;
   let meterValue = 0;
+  let scaleRatio = 0;
   let shownFruit = null;
   let cancelled = false;
 
@@ -135,6 +136,8 @@ export function mountPlayer(lesson, dom) {
     paintNotes(view);
     paintMeter(view);
     paintBars(view);
+    paintScale(view);
+    paintWeights(view);
     renderTicks();
     dom.stage.dataset.phase = view.phase;
     dom.stage.dataset.scene = scene.id;
@@ -153,7 +156,7 @@ export function mountPlayer(lesson, dom) {
       if (!reduceMotion) body.classList.add("rise");
       const drawing = document.createElement("div");
       drawing.className = "drawing";
-      drawing.innerHTML = drawings[fruit.id] ?? "";
+      drawing.innerHTML = drawings[fruit.drawing || fruit.id] ?? "";
       const name = document.createElement("p");
       name.className = "fruit-name";
       name.textContent = fruit.name;
@@ -280,6 +283,94 @@ export function mountPlayer(lesson, dom) {
     sum.textContent = `${view.bars.rows.map((row) => JSON.stringify(row.p)).join(" + ")} = ${shown}`;
   }
 
+  function paintScale(view) {
+    if (!view.scale) {
+      dom.scale.hidden = true;
+      return;
+    }
+    dom.scale.hidden = false;
+    dom.scale.classList.toggle("hot", view.scale.hot);
+    const max = view.scale.max;
+    if (dom.scaleLabels.childElementCount !== max + 1) {
+      dom.scaleLabels.replaceChildren();
+      for (let level = 0; level <= max; level += 1) {
+        const tick = document.createElement("span");
+        tick.textContent = String(level);
+        dom.scaleLabels.append(tick);
+      }
+    }
+    const ratio = max === 0 ? 0 : view.scale.score / max;
+    const from = scaleRatio;
+    scaleRatio = ratio;
+    dom.scaleValue.textContent = JSON.stringify(view.scale.score);
+    if (reduceMotion) {
+      dom.scaleFill.style.transform = `scaleX(${ratio})`;
+      return;
+    }
+    dom.scaleFill.style.transform = `scaleX(${from})`;
+    requestAnimationFrame(() => {
+      dom.scaleFill.style.transform = `scaleX(${ratio})`;
+    });
+  }
+
+  function paintWeights(view) {
+    if (!view.weights) {
+      dom.weights.hidden = true;
+      return;
+    }
+    dom.weights.hidden = false;
+    dom.weights.classList.toggle("notice", view.weights.mode === "math");
+    const signature = view.weights.rows.map((row) => row.level).join("|");
+    const fresh = dom.weights.dataset.keys !== signature;
+    if (fresh) {
+      dom.weights.dataset.keys = signature;
+      dom.weights.replaceChildren();
+      for (const row of view.weights.rows) {
+        const item = document.createElement("div");
+        item.className = "weight-row";
+        item.dataset.level = String(row.level);
+        item.title = row.text;
+        const level = document.createElement("span");
+        level.className = "weight-level";
+        level.textContent = String(row.level);
+        const times = document.createElement("span");
+        times.className = "weight-op";
+        times.textContent = "×";
+        const prob = document.createElement("span");
+        prob.className = "weight-p";
+        const track = document.createElement("span");
+        track.className = "weight-track";
+        const fill = document.createElement("span");
+        fill.className = "weight-fill";
+        track.append(fill);
+        const product = document.createElement("span");
+        product.className = "weight-product";
+        item.append(level, times, prob, track, product);
+        dom.weights.append(item);
+      }
+      const total = document.createElement("p");
+      total.className = "weight-total";
+      dom.weights.append(total);
+    }
+    for (const row of view.weights.rows) {
+      const item = dom.weights.querySelector(`[data-level="${row.level}"]`);
+      if (!item) continue;
+      item.querySelector(".weight-p").textContent = JSON.stringify(row.p);
+      item.querySelector(".weight-product").textContent = showProduct(row.product);
+      const fill = item.querySelector(".weight-fill");
+      const next = `scaleX(${row.p})`;
+      if (reduceMotion || !fresh) fill.style.transform = next;
+      else {
+        fill.style.transform = "scaleX(0)";
+        requestAnimationFrame(() => {
+          fill.style.transform = next;
+        });
+      }
+    }
+    const total = view.weights.rows.reduce((sum, row) => sum + row.product, 0);
+    dom.weights.querySelector(".weight-total").textContent = `added up  ${showProduct(total)}`;
+  }
+
   function renderTicks() {
     dom.ticks.replaceChildren();
     lesson.scenes.forEach((scene, sceneIndex) => {
@@ -300,6 +391,11 @@ export function mountPlayer(lesson, dom) {
     dom.play.textContent = atEnd ? "Replay" : playing ? "Pause" : "Play";
     dom.play.setAttribute("aria-pressed", playing ? "true" : "false");
   }
+}
+
+function showProduct(n) {
+  if (Number.isInteger(n)) return String(n);
+  return String(Math.round(n * 1000) / 1000);
 }
 
 function setRich(el, text) {

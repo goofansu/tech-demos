@@ -221,6 +221,67 @@ nav a[aria-current="page"] {
 .line.hot .src { box-shadow: inset 2px 0 0 var(--hot); }
 .line.flash:not(.hot) { background: var(--wash); }
 
+.scale-track { margin-top: 0.9rem; }
+.scale-track .fill { background: var(--ink); }
+.scale-track.hot .fill { background: var(--hot); }
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+.scale-value {
+  margin: 0.3rem 0 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.35rem;
+}
+
+.weights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  margin-top: 0.75rem;
+}
+.weights.notice {
+  background: var(--wash);
+  border-radius: 0.4rem;
+  padding: 0.45rem;
+  box-shadow: inset 2px 0 0 var(--hot);
+}
+.weight-row {
+  display: grid;
+  grid-template-columns: 1.1rem 0.8rem 2.5rem minmax(0, 1fr) 3rem;
+  gap: 0.35rem;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+.weight-op, .weight-product { color: var(--muted); }
+.weight-product { text-align: right; }
+.weight-track {
+  height: 0.35rem;
+  background: #eceae4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.weight-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.weight-total {
+  margin: 0.15rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+
 .bars {
   display: flex;
   flex-direction: column;
@@ -434,11 +495,16 @@ button:hover:not(:disabled) { background: var(--ink); color: white; }
 @media (max-width: 900px) {
   .top { flex-direction: column; align-items: flex-start; }
   nav { justify-content: flex-start; }
-  .stage { grid-template-columns: 1fr; padding-bottom: 11rem; }
+  .stage { grid-template-columns: 1fr; padding-bottom: 1.5rem; }
   .card { min-height: 0; }
   h1 { font-size: 1.6rem; }
+  .caption { position: static; }
+  body { display: flex; flex-direction: column; }
+  .top, .status, .missing { order: 1; }
+  .caption { order: 2; }
+  .stage { order: 3; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .line, .fill, .bar-fill, .dot, .fruit-body { transition: none; animation: none; }
+  .line, .fill, .bar-fill, .weight-fill, .dot, .fruit-body { transition: none; animation: none; }
 }

@@ -22,8 +22,7 @@ Other scripts: `bun test`, `bun run build`, `bun run preview`.
 
 - **Noul** — is this fruit a citrus? A lemon, then the same question on a mango. The walk builds the request field by field, sends it, then reads `model`, `type`, `noul`, and `usage` on the live reply.
 - **Choice** — which fruit is this? A kiwi, then an orange that is not in the list. The reply adds `choice`, `probabilities`, and `confidence`.
-
-Score uses the same walk once that page is in place.
+- **Score** — how ripe is this banana? Four ordered levels, a fractional score, the weighted sum that produces it, `legend`, and `confidence`. A second, greener banana moves the score.
 
 ## Server
 

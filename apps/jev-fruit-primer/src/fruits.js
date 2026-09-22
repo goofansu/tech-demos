@@ -16,6 +16,10 @@ export const drawings = {
       <circle cx="36" cy="45" r="1.1"/><circle cx="43" cy="46" r="1.1"/>
     </g>
   </svg>`,
+  banana: `<svg viewBox="0 0 80 80" aria-hidden="true">
+    <path d="M24 26c10 1 22 8 26 20 4 14-2 24-12 26-8 1-12-6-10-14 2-10-8-20-4-32z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M30 24c2-4 6-6 10-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>`,
   orange: `<svg viewBox="0 0 80 80" aria-hidden="true">
     <circle cx="40" cy="44" r="18" fill="none" stroke="currentColor" stroke-width="1.6"/>
     <path d="M40 26c0 4-2 6-2 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>

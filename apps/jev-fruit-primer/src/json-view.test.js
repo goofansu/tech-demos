@@ -16,6 +16,13 @@ test("line ids follow the JSON path", () => {
   expect(lines.find((line) => line.id === "$.state")?.valuePath).toBe(null);
 });
 
+test("array levels keep their index", () => {
+  const lines = linesFrom({ criteria: ["green", "yellow"] });
+  expect(lines.find((line) => line.id === "$.criteria.0")?.text).toContain("green");
+  expect(lines.find((line) => line.id === "$.criteria.1")?.text).toContain("yellow");
+  expect(lineIsHot(lines.find((line) => line.id === "$.criteria.1"), "criteria.*")).toBe(true);
+});
+
 test("highlight matches a field or its branch", () => {
   const lines = linesFrom({ state: { fruit: "lemon" }, model: "jev-latest" });
   const fruit = lines.find((line) => line.id === "$.state.fruit");

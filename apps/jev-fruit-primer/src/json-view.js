@@ -6,35 +6,45 @@ export function linesFrom(value) {
   if (value == null) return [];
   const rows = JSON.stringify(value, null, 2).split("\n");
   const lines = [];
-  const stack = ["$"];
+  const stack = [{ path: "$" }];
 
   for (const text of rows) {
     const depth = Math.floor((text.length - text.trimStart().length) / 2);
     const trim = text.trim();
     const keyMatch = trim.match(/^"((?:\\.|[^"\\])*)"\s*:/);
+    const frame = stack.at(-1);
 
     if (trim === "{" || trim === "[") {
-      lines.push({ id: `${stack.at(-1)}.$open`, text, depth, valuePath: null });
+      lines.push({ id: `${frame.path}.$open`, text, depth, valuePath: null });
       continue;
     }
 
     if (trim === "}" || trim === "}," || trim === "]" || trim === "],") {
-      lines.push({ id: `${stack.at(-1)}.$close`, text, depth, valuePath: null });
+      lines.push({ id: `${frame.path}.$close`, text, depth, valuePath: null });
       stack.pop();
       continue;
     }
 
-    if (keyMatch) {
+    if (keyMatch && !frame.array) {
       const key = JSON.parse(`"${keyMatch[1]}"`);
-      const path = `${stack.at(-1)}.${key}`;
-      const opens = trim.endsWith("{") || trim.endsWith("[");
-      lines.push({ id: path, text, depth, valuePath: opens ? null : path });
-      if (opens) stack.push(path);
+      const path = `${frame.path}.${key}`;
+      const opensObject = trim.endsWith("{");
+      const opensArray = trim.endsWith("[");
+      lines.push({ id: path, text, depth, valuePath: opensObject || opensArray ? null : path });
+      if (opensObject) stack.push({ path });
+      if (opensArray) stack.push({ path, array: true, index: 0 });
+      continue;
+    }
+
+    if (frame.array) {
+      const path = `${frame.path}.${frame.index}`;
+      frame.index += 1;
+      lines.push({ id: path, text, depth, valuePath: path });
       continue;
     }
 
     lines.push({
-      id: `${stack.at(-1)}.$item${lines.length}`,
+      id: `${frame.path}.$item${lines.length}`,
       text,
       depth,
       valuePath: null,
