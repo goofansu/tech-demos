@@ -1,3 +1,4 @@
+import { detectLocale, translate } from "./i18n";
 import type { ApiStatus, EvaluateError, EvaluateRequest, EvaluateResponse } from "./types";
 
 export async function fetchStatus(): Promise<ApiStatus> {
@@ -16,12 +17,13 @@ export async function evaluate(
     body: JSON.stringify(request),
     signal: options?.signal,
   });
-  const data = (await res.json().catch(() => ({ error: "Jev returned a response we couldn't read." }))) as
+  const locale = detectLocale();
+  const data = (await res.json().catch(() => ({ error: translate(locale, "errors.malformed") }))) as
     | EvaluateResponse
     | EvaluateError;
   if (!res.ok || "error" in data) {
     const err = data as EvaluateError;
-    throw new Error(err.error || `Request failed (${res.status})`);
+    throw new Error(err.error || translate(locale, "errors.requestFailed", { status: res.status }));
   }
   return data;
 }

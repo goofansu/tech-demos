@@ -1,3 +1,4 @@
+import type { Locale, Translate } from "./i18n";
 import type { SchoolConfig } from "./types";
 
 export const SCHOOL: SchoolConfig = {
@@ -11,13 +12,33 @@ export const SCHOOL: SchoolConfig = {
   ],
 };
 
+export const SCHOOL_ZH: SchoolConfig = {
+  name: "法瑞亚国际学校",
+  country: "GB",
+  current_academic_year: 2026,
+  grades: [
+    { name: "七年级", min_age: 11, max_age: 12 },
+    { name: "九年级", min_age: 13, max_age: 14 },
+    { name: "十一年级", min_age: 15, max_age: 16 },
+  ],
+};
+
+export const SCHOOLS: Record<Locale, SchoolConfig> = {
+  en: SCHOOL,
+  "zh-CN": SCHOOL_ZH,
+};
+
+export function schoolFor(locale: Locale): SchoolConfig {
+  return SCHOOLS[locale];
+}
+
 export function gradeBand(school: SchoolConfig, grade: string | null) {
   if (!grade) return undefined;
   return school.grades.find((g) => g.name === grade);
 }
 
-export function formatGradeBands(school: SchoolConfig): string {
+export function formatGradeBands(school: SchoolConfig, t: Translate): string {
   return school.grades
-    .map((g) => `${g.name}: typical ages ${g.min_age}–${g.max_age}`)
+    .map((g) => t("state.gradeBand", { name: g.name, min: g.min_age, max: g.max_age }))
     .join("; ");
 }

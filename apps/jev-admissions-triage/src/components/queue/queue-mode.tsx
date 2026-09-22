@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Meter } from "@/components/ui/meter";
-import { ADMISSIONS_PRESET } from "@/lib/admissions-preset";
+import { presetFor } from "@/lib/admissions-preset";
 import { costUsdFromUsage, formatUsd } from "@/lib/cost";
 import { missingFieldCount } from "@/lib/fields";
-import { applicantContext, VERDICT_LABEL } from "@/lib/format";
+import { applicantContext, verdictLabel } from "@/lib/format";
+import type { MessagePath } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-context";
 import { evaluate } from "@/lib/jev";
 import { isAbortError, runPool } from "@/lib/pool";
 import { buildRequest } from "@/lib/request";
@@ -38,6 +40,14 @@ const STATUS_TONE = {
   error: "danger",
 } as const;
 
+const STATUS_PATH: Record<string, MessagePath> = {
+  idle: "queue.statusIdle",
+  queued: "queue.statusQueued",
+  running: "queue.statusRunning",
+  done: "queue.statusDone",
+  error: "queue.statusError",
+};
+
 const ROW_BG = {
   idle: "even:bg-muted/40",
   queued: "even:bg-muted/40",
@@ -56,6 +66,8 @@ export function QueueMode({
   status,
   onOpenApplicant,
 }: Props) {
+  const { locale, t } = useI18n();
+  const preset = presetFor(locale);
   const [running, setRunning] = React.useState(false);
   const [clock, setClock] = React.useState(0);
   const [timing, setTiming] = React.useState<{ start: number; end: number | null } | null>(null);
@@ -101,7 +113,7 @@ export function QueueMode({
           patch(record.id, { status: "running" }, runId);
           const started = performance.now();
           try {
-            const request = buildRequest(record, school);
+            const request = buildRequest(record, school, preset, t);
             const response = await evaluate(request, { signal: controller.signal });
             patch(
               record.id,
@@ -188,22 +200,19 @@ export function QueueMode({
       <Card>
         <CardHeader>
           <div className="min-w-0">
-            <CardTitle>Queue</CardTitle>
-            <CardDescription>
-              100 fabricated applicants. One Jev call per file, all applicable questions in that call. Sorted by
-              attention once a row finishes.
-            </CardDescription>
+            <CardTitle>{t("queue.title")}</CardTitle>
+<CardDescription>{t("queue.description")}</CardDescription>
           </div>
           <CardAction>
             <div className="flex flex-wrap items-center gap-2">
               <Button size="lg" disabled={!canRun} onClick={() => void evaluateAll()}>
-                {running ? "Evaluating…" : "Evaluate all"}
+                {running ? t("queue.evaluating") : t("queue.evaluateAll")}
               </Button>
               <Button variant="outline" disabled={!running} onClick={stop}>
-                Stop
+                {t("queue.stop")}
               </Button>
               <Button variant="ghost" disabled={!hasAnyResult} onClick={resetResults}>
-                Reset
+                {t("queue.reset")}
               </Button>
             </div>
           </CardAction>
@@ -212,42 +221,38 @@ export function QueueMode({
           <KeyWarning show={missingKey} />
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline gap-2">
-              <p className="text-sm font-medium">Admissions preset</p>
-              <span className="text-xs text-muted-foreground">{ADMISSIONS_PRESET.length} judgments</span>
-              <span className="text-xs text-muted-foreground">concurrency {QUEUE_CONCURRENCY}</span>
+              <p className="text-sm font-medium">{t("queue.presetName")}</p>
+              <span className="text-xs text-muted-foreground">{t("queue.judgmentCount", { count: preset.length })}</span>
+              <span className="text-xs text-muted-foreground">{t("queue.concurrency", { n: QUEUE_CONCURRENCY })}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {ADMISSIONS_PRESET.map((field) => (
+              {preset.map((field) => (
                 <Badge key={field.id} tone={field.primitive} title={field.question}>
                   {field.label}
                 </Badge>
               ))}
             </div>
             <FloorControl value={confidenceFloor} onChange={onFloorChange} />
-            <p className="text-xs text-muted-foreground">
-              Changing the floor re-derives Needs Review from stored answers — it does not call Jev again. Low
-              confidence means the distribution is spread, not that the model is probably wrong.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Input tokens are $0.042 / MTok; output is free. Results stay in memory for this session and survive
-              switching to Applicant. We do not promise a finish time.
-            </p>
+<p className="text-xs text-muted-foreground">{t("queue.floorHint")}</p>
+<p className="text-xs text-muted-foreground">{t("queue.costHint")}</p>
           </div>
           <div className="flex flex-col gap-2" aria-live="polite">
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="font-mono tabular-nums text-foreground">
                 {doneCount} / {applicants.length}
               </span>
-              {elapsedSec !== null ? <span>{elapsedSec}s elapsed</span> : null}
-              {avgMs !== null ? <span>avg {avgMs} ms</span> : null}
+              {elapsedSec !== null ? <span>{t("queue.elapsed", { seconds: elapsedSec })}</span> : null}
+              {avgMs !== null ? <span>{t("queue.avgMs", { ms: avgMs })}</span> : null}
               {totalCost !== null ? (
-                <span className="font-mono tabular-nums">{formatUsd(totalCost)} est.</span>
+                <span className="font-mono tabular-nums">
+                  {t("queue.estCost", { cost: formatUsd(totalCost) })}
+                </span>
               ) : null}
             </div>
             <Meter
               value={doneCount / applicants.length}
               tone="choice"
-              label={`${doneCount} of ${applicants.length}`}
+              label={t("queue.meterLabel", { done: doneCount, total: applicants.length })}
             />
           </div>
         </CardContent>
@@ -255,35 +260,35 @@ export function QueueMode({
 
       <div className="max-h-batch overflow-auto rounded-xl border bg-card shadow-xs">
         <table className="w-full table-fixed text-left text-sm">
-          <caption className="sr-only">Admissions queue sorted by attention</caption>
+          <caption className="sr-only">{t("queue.tableCaption")}</caption>
           <thead className="sticky top-0 z-10 border-b bg-card">
             <tr className="text-xs text-muted-foreground">
               <th className="w-16 px-3 py-2 font-medium font-mono" scope="col">
-                ID
+                {t("queue.colId")}
               </th>
               <th className="px-3 py-2 font-medium" scope="col">
-                Applicant
+                {t("queue.colApplicant")}
               </th>
               <th className="w-20 px-3 py-2 font-medium" scope="col">
-                Grade
+                {t("queue.colGrade")}
               </th>
               <th className="w-16 px-3 py-2 text-right font-medium" scope="col">
-                Miss
+                {t("queue.colMiss")}
               </th>
               <th className="w-36 px-3 py-2 font-medium" scope="col">
-                Attention
+                {t("queue.colAttention")}
               </th>
               <th className="w-28 px-3 py-2 font-medium" scope="col">
-                Why
+                {t("queue.colWhy")}
               </th>
               <th className="w-16 px-3 py-2 text-right font-medium" scope="col">
-                Conf
+                {t("queue.colConf")}
               </th>
               <th className="w-24 px-3 py-2 font-medium" scope="col">
-                Status
+                {t("queue.colStatus")}
               </th>
               <th className="w-16 px-3 py-2 text-right font-medium font-mono" scope="col">
-                ms
+                {t("queue.colMs")}
               </th>
             </tr>
           </thead>
@@ -293,7 +298,7 @@ export function QueueMode({
               const reason = attentionReasonLabel(result);
               const outcomes =
                 result.status === "done"
-                  ? deriveOutcomes(applicant, school, result.answers, confidenceFloor)
+                  ? deriveOutcomes(applicant, school, result.answers, confidenceFloor, preset, t)
                   : [];
               const reviewCount = outcomes.filter((o) => o.verdict === "needs_review").length;
               return (
@@ -306,15 +311,15 @@ export function QueueMode({
                       type="button"
                       onClick={() => onOpenApplicant(applicant.id)}
                       className="block max-w-full truncate text-left text-xs font-medium hover:underline"
-                      title={applicantContext(applicant)}
+                      title={applicantContext(applicant, t)}
                     >
                       {applicant.name}
                     </button>
-                    <p className="truncate text-xs text-muted-foreground">{applicantContext(applicant)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{applicantContext(applicant, t)}</p>
                   </td>
                   <td className="truncate px-3 py-1.5 text-xs">{applicant.grade ?? "—"}</td>
                   <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">
-                    {missingFieldCount(applicant)}
+                    {missingFieldCount(applicant, preset)}
                   </td>
                   <td className="px-3 py-1.5 text-xs">
                     {attention ? (
@@ -328,7 +333,9 @@ export function QueueMode({
                   </td>
                   <td className="px-3 py-1.5">
                     {reason ? (
-                      <Badge tone={reason === "other" ? "outline" : "choice"}>{reason}</Badge>
+                      <Badge tone={reason === "other" ? "outline" : "choice"}>
+                        {t(`attentionReason.${reason}` as MessagePath)}
+                      </Badge>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
@@ -338,17 +345,17 @@ export function QueueMode({
                   </td>
                   <td className="px-3 py-1.5">
                     {result.status === "idle" ? (
-                      <span className="text-xs text-muted-foreground">idle</span>
+                      <span className="text-xs text-muted-foreground">{t("queue.statusIdle")}</span>
                     ) : result.status === "error" ? (
                       <Badge tone="danger" title={result.error}>
-                        error
+                        {t("queue.statusError")}
                       </Badge>
                     ) : result.status === "done" && reviewCount > 0 ? (
-                      <Badge tone="warning" title={`${reviewCount} ${VERDICT_LABEL.needs_review}`}>
-                        done
+                      <Badge tone="warning" title={`${reviewCount} ${verdictLabel("needs_review", t)}`}>
+                        {t("queue.statusDone")}
                       </Badge>
                     ) : (
-                      <Badge tone={STATUS_TONE[result.status]}>{result.status}</Badge>
+                      <Badge tone={STATUS_TONE[result.status]}>{t(STATUS_PATH[result.status])}</Badge>
                     )}
                   </td>
                   <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs">

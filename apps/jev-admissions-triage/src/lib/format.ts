@@ -1,11 +1,9 @@
+import type { MessagePath, Translate } from "./i18n";
 import type { Applicant, VerdictState } from "./types";
 
-export const VERDICT_LABEL: Record<VerdictState, string> = {
-  met: "Met",
-  not_met: "Not Met",
-  needs_review: "Needs Review",
-  missing: "Missing",
-};
+export function verdictLabel(verdict: VerdictState, t: Translate): string {
+  return t(`verdict.${verdict}` as MessagePath);
+}
 
 export const VERDICT_TONE: Record<VerdictState, "success" | "danger" | "warning" | "outline"> = {
   met: "success",
@@ -14,10 +12,10 @@ export const VERDICT_TONE: Record<VerdictState, "success" | "danger" | "warning"
   missing: "outline",
 };
 
-export function applicantContext(applicant: Applicant): string {
+export function applicantContext(applicant: Applicant, t: Translate): string {
   const bits = [
-    applicant.grade ?? "No grade",
-    applicant.age !== null ? `age ${applicant.age}` : null,
+    applicant.grade ?? t("outcome.noGrade"),
+    applicant.age !== null ? t("outcome.age", { age: applicant.age }) : null,
     applicant.prior_school,
   ].filter(Boolean);
   return bits.join(" · ");

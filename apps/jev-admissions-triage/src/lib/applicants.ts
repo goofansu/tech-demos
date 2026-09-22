@@ -1,3 +1,5 @@
+import { APPLICANTS_ZH } from "./applicants.zh-CN";
+import type { Locale } from "./i18n";
 import type { Applicant } from "./types";
 
 const BATCH_SIZE = 100;
@@ -678,12 +680,21 @@ export const APPLICANTS: Applicant[] = buildApplicants();
 
 export const APPLICANT_COUNT = APPLICANTS.length;
 
-export function applicantById(id: string): Applicant | undefined {
-  return APPLICANTS.find((row) => row.id === id);
+export const APPLICANTS_BY_LOCALE: Record<Locale, Applicant[]> = {
+  en: APPLICANTS,
+  "zh-CN": APPLICANTS_ZH,
+};
+
+export function applicantsFor(locale: Locale): Applicant[] {
+  return APPLICANTS_BY_LOCALE[locale];
 }
 
-export function applicantsWithTag(tag: string): Applicant[] {
-  return APPLICANTS.filter((row) => row.tags.includes(tag));
+export function applicantById(id: string, locale: Locale = "en"): Applicant | undefined {
+  return applicantsFor(locale).find((row) => row.id === id);
+}
+
+export function applicantsWithTag(tag: string, locale: Locale = "en"): Applicant[] {
+  return applicantsFor(locale).filter((row) => row.tags.includes(tag));
 }
 
 export const REQUIRED_TAGS = [

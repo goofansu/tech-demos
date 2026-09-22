@@ -57,13 +57,12 @@ export type EvaluateError = { error: string; status?: number; detail?: unknown }
 
 export type ApiStatus = { ready: boolean; model: string };
 
+/** Server-side 503 body. The server has no locale, so this one stays English. */
 export const NO_API_KEY_MESSAGE =
   "No API key is set, so we can't ask Jev yet. Add a TypeSafe API key on the server and reload this page.";
 
 export const SCORE_LEVEL_MIN = 2;
 export const SCORE_LEVEL_MAX = 10;
-
-export const MISSING_STATE_LABEL = "(not provided)";
 
 // ---- Admissions domain ------------------------------------------------------
 

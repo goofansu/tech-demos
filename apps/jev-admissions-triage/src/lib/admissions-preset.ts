@@ -1,7 +1,9 @@
+import { ADMISSIONS_PRESET_ZH } from "./admissions-preset.zh-CN";
+import { CONFIDENCE_FLOOR_PRESETS, DEFAULT_CONFIDENCE_FLOOR } from "./floor";
+import type { Locale } from "./i18n";
 import type { ChoiceJudgment, Judgment, NoulJudgment, ScoreJudgment } from "./types";
 
-export const DEFAULT_CONFIDENCE_FLOOR = 0.6;
-export const CONFIDENCE_FLOOR_PRESETS = [0.5, 0.6, 0.7] as const;
+export { CONFIDENCE_FLOOR_PRESETS, DEFAULT_CONFIDENCE_FLOOR };
 
 const PRIOR_SCHOOL: NoulJudgment = {
   id: "prior_school",
@@ -186,8 +188,25 @@ export const QUEUE_JUDGMENTS = ADMISSIONS_PRESET.filter((j) => j.role === "queue
 export const ATTENTION_ID = ATTENTION.id;
 export const ATTENTION_REASON_ID = ATTENTION_REASON.id;
 
-export function judgmentById(id: string): Judgment | undefined {
-  return ADMISSIONS_PRESET.find((j) => j.id === id);
+export const PRESETS: Record<Locale, Judgment[]> = {
+  en: ADMISSIONS_PRESET,
+  "zh-CN": ADMISSIONS_PRESET_ZH,
+};
+
+export function presetFor(locale: Locale): Judgment[] {
+  return PRESETS[locale];
+}
+
+export function fieldJudgments(locale: Locale): Judgment[] {
+  return presetFor(locale).filter((j) => j.role === "field");
+}
+
+export function queueJudgments(locale: Locale): Judgment[] {
+  return presetFor(locale).filter((j) => j.role === "queue");
+}
+
+export function judgmentById(locale: Locale, id: string): Judgment | undefined {
+  return presetFor(locale).find((j) => j.id === id);
 }
 
 export const APPLICANT_STATE_KEYS = [
