@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A step-by-step primer on a Jev request and reply. Noul, Choice, and Score, asked about fruit, with live answers."
+    />
+    <title>Fruit primer · How a Jev request works</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip" href="#caption">Skip to the lesson</a>
+    <header class="top">
+      <div class="titles">
+        <p class="brand">Fruit primer</p>
+        <h1>How a Jev request works</h1>
+        <p class="lede" id="lede"></p>
+      </div>
+      <nav id="nav" aria-label="Question types"></nav>
+    </header>
+    <p id="status" class="status" role="status" hidden></p>
+    <p id="missing" class="missing" hidden></p>
+    <main class="stage" id="stage">
+      <section class="card" id="fruit-card" aria-labelledby="fruit-label">
+        <h2 id="fruit-label">The fruit</h2>
+        <div id="fruit"></div>
+      </section>
+      <section class="card" aria-labelledby="req-label">
+        <header class="card-head">
+          <h2 id="req-label">The request</h2>
+          <p class="card-note">
+            <span class="dot" id="send-dot" hidden></span>
+            <span id="req-note-text"></span>
+          </p>
+        </header>
+        <div id="request" class="doc"></div>
+      </section>
+      <section class="card" aria-labelledby="res-label">
+        <header class="card-head">
+          <h2 id="res-label">The reply</h2>
+          <p class="card-note" id="res-note-text"></p>
+        </header>
+        <div id="response" class="doc"></div>
+        <div id="meter" class="meter" hidden>
+          <div class="meter-bar">
+            <div class="track" aria-hidden="true">
+              <div class="fill" id="meter-fill"></div>
+            </div>
+            <div class="mark" id="meter-mark" hidden></div>
+          </div>
+          <div class="scale" aria-hidden="true">
+            <span>0 no</span>
+            <span>0.5 cannot tell</span>
+            <span>1 yes</span>
+          </div>
+          <p class="meter-value" id="meter-value"></p>
+        </div>
+      </section>
+    </main>
+    <section class="caption" id="caption" aria-live="polite">
+      <div class="ticks" id="ticks" role="group" aria-label="Lesson steps"></div>
+      <p class="eyebrow" id="step-label"></p>
+      <h2 id="cap-title"></h2>
+      <p id="cap-body"></p>
+      <div class="transport">
+        <button type="button" id="prev">Back</button>
+        <button type="button" id="play" aria-pressed="true">Pause</button>
+        <button type="button" id="next">Next</button>
+      </div>
+    </section>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

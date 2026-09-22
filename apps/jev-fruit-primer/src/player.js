@@ -1,0 +1,255 @@
+import { evaluate } from "./api.js";
+import { drawings } from "./fruits.js";
+import { mountJson } from "./json-view.js";
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+export function mountPlayer(lesson, dom) {
+  const updateRequest = mountJson(dom.request);
+  const updateResponse = mountJson(dom.response);
+  const bag = { results: {}, errors: {} };
+  let index = 0;
+  let playing = !reduceMotion;
+  let timer = 0;
+  let token = 0;
+  let meterValue = 0;
+  let shownFruit = null;
+
+  for (const id of lesson.calls) {
+    evaluate(lesson.payload(id))
+      .then((data) => {
+        bag.results[id] = data;
+        if (lesson.scenes[index]?.needs === id) show(index);
+      })
+      .catch((err) => {
+        bag.errors[id] = err instanceof Error ? err.message : String(err);
+        if (lesson.scenes[index]?.needs === id) show(index);
+      });
+  }
+
+  dom.prev.addEventListener("click", () => step(-1));
+  dom.next.addEventListener("click", () => step(1));
+  dom.play.addEventListener("click", toggle);
+  dom.ticks.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-index]");
+    if (!button) return;
+    playing = false;
+    syncPlayLabel();
+    go(Number(button.dataset.index));
+  });
+  window.addEventListener("keydown", onKey);
+
+  renderTicks();
+  show(0);
+  syncPlayLabel();
+
+  return () => {
+    window.clearTimeout(timer);
+    window.removeEventListener("keydown", onKey);
+  };
+
+  function onKey(event) {
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      step(1);
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      step(-1);
+    } else if (event.key === " ") {
+      event.preventDefault();
+      toggle();
+    }
+  }
+
+  function step(delta) {
+    playing = false;
+    syncPlayLabel();
+    go(index + delta);
+  }
+
+  function toggle() {
+    if (index >= lesson.scenes.length - 1 && !playing) {
+      playing = true;
+      syncPlayLabel();
+      go(0);
+      return;
+    }
+    playing = !playing;
+    syncPlayLabel();
+    if (playing) arm();
+    else window.clearTimeout(timer);
+  }
+
+  function go(next) {
+    index = Math.max(0, Math.min(lesson.scenes.length - 1, next));
+    show(index);
+  }
+
+  function show(next) {
+    index = next;
+    token += 1;
+    const mine = token;
+    const scene = lesson.scenes[index];
+    const view = lesson.present(scene, bag);
+    paint(view, scene);
+    window.clearTimeout(timer);
+    if (!playing) return;
+    if (view.pending) return;
+    arm(mine);
+  }
+
+  function arm(mine = token) {
+    const scene = lesson.scenes[index];
+    const wait = reduceMotion ? 0 : scene.dwell ?? 4000;
+    timer = window.setTimeout(() => {
+      if (mine !== token || !playing) return;
+      if (index < lesson.scenes.length - 1) show(index + 1);
+      else {
+        playing = false;
+        syncPlayLabel();
+      }
+    }, wait);
+  }
+
+  function paint(view, scene) {
+    paintFruit(view);
+    updateRequest(view.request, view.requestFocus === "fruit" ? null : view.requestFocus);
+    updateResponse(view.response, view.responseFocus);
+    dom.step.textContent = `Step ${index + 1} of ${lesson.scenes.length}`;
+    dom.title.textContent = view.title;
+    setRich(dom.body, view.error ? `${view.body} ${view.error}` : view.body);
+    dom.prev.disabled = index === 0;
+    dom.next.disabled = index === lesson.scenes.length - 1;
+    paintNotes(view);
+    paintMeter(view);
+    renderTicks();
+    dom.stage.dataset.phase = view.phase;
+    dom.stage.dataset.scene = scene.id;
+  }
+
+  function paintFruit(view) {
+    const fruit = lesson.fruit(view.fruitId);
+    const hot = view.requestFocus === "fruit";
+    const factHot = hotFacts(view.requestFocus);
+    dom.fruitCard.classList.toggle("hot", hot);
+    if (shownFruit !== fruit.id) {
+      shownFruit = fruit.id;
+      dom.fruit.replaceChildren();
+      const body = document.createElement("div");
+      body.className = "fruit-body";
+      if (!reduceMotion) body.classList.add("rise");
+      const drawing = document.createElement("div");
+      drawing.className = "drawing";
+      drawing.innerHTML = drawings[fruit.id] ?? "";
+      const name = document.createElement("p");
+      name.className = "fruit-name";
+      name.textContent = fruit.name;
+      const list = document.createElement("dl");
+      list.className = "facts";
+      body.append(drawing, name, list);
+      dom.fruit.append(body);
+    }
+    const list = dom.fruit.querySelector(".facts");
+    list.replaceChildren();
+    for (const [key, value] of Object.entries(fruit.state)) {
+      const row = document.createElement("div");
+      row.className = "fact";
+      if (factHot.has(key)) row.classList.add("hot");
+      const term = document.createElement("dt");
+      term.textContent = key;
+      const def = document.createElement("dd");
+      def.textContent = value;
+      row.append(term, def);
+      list.append(row);
+    }
+  }
+
+  function paintNotes(view) {
+    dom.sendDot.hidden = view.phase !== "send";
+    if (view.phase === "send") {
+      dom.reqNoteText.textContent = view.pending ? "Asking Jev…" : "POST /v1/systemone";
+    } else if (!view.request) {
+      dom.reqNoteText.textContent = "The request is built one field at a time.";
+    } else {
+      dom.reqNoteText.textContent = "";
+    }
+
+    if (view.error) {
+      dom.resNoteText.textContent = "The call did not return an answer.";
+      return;
+    }
+    if (view.pending) {
+      dom.resNoteText.textContent = "Asking Jev…";
+      return;
+    }
+    if (view.response?.model) {
+      dom.resNoteText.textContent = `Live reply · ${view.response.model}`;
+      return;
+    }
+    dom.resNoteText.textContent = "The reply will land here.";
+  }
+
+  function paintMeter(view) {
+    if (!view.meter) {
+      dom.meter.hidden = true;
+      return;
+    }
+    dom.meter.hidden = false;
+    dom.meter.classList.toggle("hot", view.meter.hot);
+    dom.mark.hidden = !view.meter.mark;
+    const from = meterValue;
+    const to = view.meter.value;
+    meterValue = to;
+    dom.meterValue.textContent = JSON.stringify(to);
+    if (reduceMotion) {
+      dom.fill.style.transform = `scaleX(${to})`;
+      return;
+    }
+    dom.fill.style.transform = `scaleX(${from})`;
+    requestAnimationFrame(() => {
+      dom.fill.style.transform = `scaleX(${to})`;
+    });
+  }
+
+  function renderTicks() {
+    dom.ticks.replaceChildren();
+    lesson.scenes.forEach((scene, sceneIndex) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.index = String(sceneIndex);
+      button.className = "tick";
+      if (sceneIndex === index) button.classList.add("now");
+      else if (sceneIndex < index) button.classList.add("done");
+      button.setAttribute("aria-label", `Step ${sceneIndex + 1}: ${scene.title}`);
+      if (sceneIndex === index) button.setAttribute("aria-current", "step");
+      dom.ticks.append(button);
+    });
+  }
+
+  function syncPlayLabel() {
+    const atEnd = index >= lesson.scenes.length - 1 && !playing;
+    dom.play.textContent = atEnd ? "Replay" : playing ? "Pause" : "Play";
+    dom.play.setAttribute("aria-pressed", playing ? "true" : "false");
+  }
+}
+
+function setRich(el, text) {
+  el.replaceChildren();
+  for (const part of text.split(/(`[^`]+`)/g)) {
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+      const code = document.createElement("code");
+      code.textContent = part.slice(1, -1);
+      el.append(code);
+    } else if (part) {
+      el.append(part);
+    }
+  }
+}
+
+function hotFacts(focus) {
+  if (!focus || focus === "fruit") return new Set();
+  if (focus === "state.*") return new Set(["fruit", "skin", "shape", "taste"]);
+  if (focus.startsWith("state.")) return new Set([focus.slice("state.".length).replace(/\.\*$/, "")]);
+  return new Set();
+}
