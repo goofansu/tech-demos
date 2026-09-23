@@ -207,7 +207,8 @@ nav a[aria-current="page"] {
 
 .fact.hot {
   background: var(--wash);
-  box-shadow: inset 2px 0 0 var(--hot);
+  border-left: 2px solid var(--hot);
+  padding-left: calc(0.35rem - 2px);
 }
 
 .fact.hot dt { color: var(--hot); }
@@ -224,6 +225,7 @@ nav a[aria-current="page"] {
 }
 
 .line {
+  position: relative;
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
@@ -245,8 +247,30 @@ nav a[aria-current="page"] {
 }
 
 .line.hot { background: var(--wash); }
-.line.hot .src { box-shadow: inset 2px 0 0 var(--hot); }
 .line.flash:not(.hot) { background: var(--wash); }
+
+/* The accent used to be an inset shadow on .src. That node sits inside
+   overflow: hidden, and iOS paints the shadow as a full-width hairline
+   on every row edge, so a run of highlighted lines looks split. */
+.line.hot::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--hot);
+  pointer-events: none;
+}
+
+/* Overlap the next highlighted row by one pixel so the wash and the bar
+   meet as a single block instead of a stack of separate edges. */
+.line.on.hot + .line.on.hot {
+  margin-top: -1px;
+  padding-top: 1px;
+}
+.line.on.hot:has(+ .line.on.hot)::after { bottom: -1px; }
 
 .scale-track { margin-top: 0.9rem; }
 .scale-track .fill { background: var(--ink); }
