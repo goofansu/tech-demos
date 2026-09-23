@@ -141,6 +141,35 @@ export function mountPlayer(lesson, dom) {
     renderTicks();
     dom.stage.dataset.phase = view.phase;
     dom.stage.dataset.scene = scene.id;
+    revealFocus();
+  }
+
+  function revealFocus() {
+    if (!window.matchMedia("(max-width: 900px)").matches) return;
+    const target = [...dom.stage.querySelectorAll(
+      ".line.hot, .fact.hot, .bar-row.hot, .meter.hot, .scale-track.hot, .weights.notice, .card.hot",
+    )].find((el) => !el.hidden && el.getClientRects().length > 0);
+    if (!target) return;
+    const stage = dom.stage;
+    const behavior = reduceMotion ? "auto" : "smooth";
+    if (stage.scrollHeight > stage.clientHeight + 2) {
+      const stageRect = stage.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const visible = targetRect.top >= stageRect.top - 1 && targetRect.bottom <= stageRect.bottom + 1;
+      if (visible) return;
+      const delta = targetRect.top - stageRect.top;
+      stage.scrollTo({ top: Math.max(0, stage.scrollTop + delta - 12), behavior });
+      return;
+    }
+    const caption = document.querySelector(".caption");
+    const captionH = caption ? caption.getBoundingClientRect().height : 0;
+    const targetRect = target.getBoundingClientRect();
+    const visibleBottom = window.innerHeight - captionH - 8;
+    if (targetRect.top >= 8 && targetRect.bottom <= visibleBottom) return;
+    window.scrollTo({
+      top: Math.max(0, window.scrollY + targetRect.top - 12),
+      behavior,
+    });
   }
 
   function paintFruit(view) {
