@@ -3,6 +3,8 @@
 A step-by-step look at how a Jev request is built and how to read the reply.
 The examples are fruit, so the question itself is not the hard part. Every
 number on the page comes from a live `systemone` call. Jev is the only model.
+Playback stays paused until you press Play, Previous, Next, or a step tick;
+Jev is only called after that first click so idle page loads do not spend tokens.
 
 ## Run
 

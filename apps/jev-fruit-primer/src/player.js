@@ -9,40 +9,38 @@ export function mountPlayer(lesson, dom) {
   const updateResponse = mountJson(dom.response);
   const bag = { results: {}, errors: {} };
   let index = 0;
-  let playing = !reduceMotion;
+  let playing = false;
   let timer = 0;
   let token = 0;
   let meterValue = 0;
   let scaleRatio = 0;
   let shownFruit = null;
   let cancelled = false;
+  let callsStarted = false;
 
-  for (const id of lesson.calls) {
-    evaluate(lesson.payload(id))
-      .then((data) => {
-        if (cancelled) return;
-        bag.results[id] = data;
-        if (lesson.scenes[index]?.needs === id) show(index);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        bag.errors[id] = err instanceof Error ? err.message : String(err);
-        if (lesson.scenes[index]?.needs === id) show(index);
-      });
-  }
-
-  const onPrev = () => step(-1);
-  const onNext = () => step(1);
+  const onPrev = () => {
+    ensureCalls();
+    step(-1);
+  };
+  const onNext = () => {
+    ensureCalls();
+    step(1);
+  };
+  const onPlay = () => {
+    ensureCalls();
+    toggle();
+  };
   const onTick = (event) => {
     const button = event.target.closest("button[data-index]");
     if (!button) return;
+    ensureCalls();
     playing = false;
     syncPlayLabel();
     go(Number(button.dataset.index));
   };
   dom.prev.addEventListener("click", onPrev);
   dom.next.addEventListener("click", onNext);
-  dom.play.addEventListener("click", toggle);
+  dom.play.addEventListener("click", onPlay);
   dom.ticks.addEventListener("click", onTick);
   window.addEventListener("keydown", onKey);
 
@@ -56,20 +54,41 @@ export function mountPlayer(lesson, dom) {
     window.removeEventListener("keydown", onKey);
     dom.prev.removeEventListener("click", onPrev);
     dom.next.removeEventListener("click", onNext);
-    dom.play.removeEventListener("click", toggle);
+    dom.play.removeEventListener("click", onPlay);
     dom.ticks.removeEventListener("click", onTick);
   };
+
+  function ensureCalls() {
+    if (callsStarted || cancelled) return;
+    callsStarted = true;
+    for (const id of lesson.calls) {
+      evaluate(lesson.payload(id))
+        .then((data) => {
+          if (cancelled) return;
+          bag.results[id] = data;
+          if (lesson.scenes[index]?.needs === id) show(index);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          bag.errors[id] = err instanceof Error ? err.message : String(err);
+          if (lesson.scenes[index]?.needs === id) show(index);
+        });
+    }
+  }
 
   function onKey(event) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
     if (event.key === "ArrowRight") {
       event.preventDefault();
+      ensureCalls();
       step(1);
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
+      ensureCalls();
       step(-1);
     } else if (event.key === " ") {
       event.preventDefault();
+      ensureCalls();
       toggle();
     }
   }
@@ -84,21 +103,21 @@ export function mountPlayer(lesson, dom) {
     if (index >= lesson.scenes.length - 1 && !playing) {
       playing = true;
       syncPlayLabel();
-      go(0);
+      go(0, { firstWait: 1000 });
       return;
     }
     playing = !playing;
     syncPlayLabel();
-    if (playing) arm();
+    if (playing) arm(token, { maxWait: 1000 });
     else window.clearTimeout(timer);
   }
 
-  function go(next) {
+  function go(next, opts) {
     index = Math.max(0, Math.min(lesson.scenes.length - 1, next));
-    show(index);
+    show(index, opts);
   }
 
-  function show(next) {
+  function show(next, opts) {
     index = next;
     token += 1;
     const mine = token;
@@ -108,12 +127,14 @@ export function mountPlayer(lesson, dom) {
     window.clearTimeout(timer);
     if (!playing) return;
     if (view.pending) return;
-    arm(mine);
+    arm(mine, opts);
   }
 
-  function arm(mine = token) {
+  function arm(mine = token, opts = {}) {
     const scene = lesson.scenes[index];
-    const wait = reduceMotion ? 0 : scene.dwell ?? 4000;
+    let wait = reduceMotion ? 0 : scene.dwell ?? 4000;
+    if (typeof opts.firstWait === "number") wait = reduceMotion ? 0 : opts.firstWait;
+    else if (typeof opts.maxWait === "number") wait = Math.min(wait, opts.maxWait);
     timer = window.setTimeout(() => {
       if (mine !== token || !playing) return;
       if (index < lesson.scenes.length - 1) show(index + 1);
