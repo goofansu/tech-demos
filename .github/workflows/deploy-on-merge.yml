@@ -15,4 +15,4 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Deploy current app
-        run: sudo -n systemctl start tech-demos-autodeploy.service
+        run: /home/exedev/.local/bin/tech-demos-autodeploy
