@@ -103,21 +103,21 @@ export function mountPlayer(lesson, dom) {
     if (index >= lesson.scenes.length - 1 && !playing) {
       playing = true;
       syncPlayLabel();
-      go(0);
+      go(0, { firstWait: 1000 });
       return;
     }
     playing = !playing;
     syncPlayLabel();
-    if (playing) arm();
+    if (playing) arm(token, { maxWait: 1000 });
     else window.clearTimeout(timer);
   }
 
-  function go(next) {
+  function go(next, opts) {
     index = Math.max(0, Math.min(lesson.scenes.length - 1, next));
-    show(index);
+    show(index, opts);
   }
 
-  function show(next) {
+  function show(next, opts) {
     index = next;
     token += 1;
     const mine = token;
@@ -127,12 +127,14 @@ export function mountPlayer(lesson, dom) {
     window.clearTimeout(timer);
     if (!playing) return;
     if (view.pending) return;
-    arm(mine);
+    arm(mine, opts);
   }
 
-  function arm(mine = token) {
+  function arm(mine = token, opts = {}) {
     const scene = lesson.scenes[index];
-    const wait = reduceMotion ? 0 : scene.dwell ?? 4000;
+    let wait = reduceMotion ? 0 : scene.dwell ?? 4000;
+    if (typeof opts.firstWait === "number") wait = reduceMotion ? 0 : opts.firstWait;
+    else if (typeof opts.maxWait === "number") wait = Math.min(wait, opts.maxWait);
     timer = window.setTimeout(() => {
       if (mine !== token || !playing) return;
       if (index < lesson.scenes.length - 1) show(index + 1);
