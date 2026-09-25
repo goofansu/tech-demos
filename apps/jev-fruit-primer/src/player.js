@@ -9,40 +9,38 @@ export function mountPlayer(lesson, dom) {
   const updateResponse = mountJson(dom.response);
   const bag = { results: {}, errors: {} };
   let index = 0;
-  let playing = !reduceMotion;
+  let playing = false;
   let timer = 0;
   let token = 0;
   let meterValue = 0;
   let scaleRatio = 0;
   let shownFruit = null;
   let cancelled = false;
+  let callsStarted = false;
 
-  for (const id of lesson.calls) {
-    evaluate(lesson.payload(id))
-      .then((data) => {
-        if (cancelled) return;
-        bag.results[id] = data;
-        if (lesson.scenes[index]?.needs === id) show(index);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        bag.errors[id] = err instanceof Error ? err.message : String(err);
-        if (lesson.scenes[index]?.needs === id) show(index);
-      });
-  }
-
-  const onPrev = () => step(-1);
-  const onNext = () => step(1);
+  const onPrev = () => {
+    ensureCalls();
+    step(-1);
+  };
+  const onNext = () => {
+    ensureCalls();
+    step(1);
+  };
+  const onPlay = () => {
+    ensureCalls();
+    toggle();
+  };
   const onTick = (event) => {
     const button = event.target.closest("button[data-index]");
     if (!button) return;
+    ensureCalls();
     playing = false;
     syncPlayLabel();
     go(Number(button.dataset.index));
   };
   dom.prev.addEventListener("click", onPrev);
   dom.next.addEventListener("click", onNext);
-  dom.play.addEventListener("click", toggle);
+  dom.play.addEventListener("click", onPlay);
   dom.ticks.addEventListener("click", onTick);
   window.addEventListener("keydown", onKey);
 
@@ -56,20 +54,41 @@ export function mountPlayer(lesson, dom) {
     window.removeEventListener("keydown", onKey);
     dom.prev.removeEventListener("click", onPrev);
     dom.next.removeEventListener("click", onNext);
-    dom.play.removeEventListener("click", toggle);
+    dom.play.removeEventListener("click", onPlay);
     dom.ticks.removeEventListener("click", onTick);
   };
+
+  function ensureCalls() {
+    if (callsStarted || cancelled) return;
+    callsStarted = true;
+    for (const id of lesson.calls) {
+      evaluate(lesson.payload(id))
+        .then((data) => {
+          if (cancelled) return;
+          bag.results[id] = data;
+          if (lesson.scenes[index]?.needs === id) show(index);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          bag.errors[id] = err instanceof Error ? err.message : String(err);
+          if (lesson.scenes[index]?.needs === id) show(index);
+        });
+    }
+  }
 
   function onKey(event) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
     if (event.key === "ArrowRight") {
       event.preventDefault();
+      ensureCalls();
       step(1);
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
+      ensureCalls();
       step(-1);
     } else if (event.key === " ") {
       event.preventDefault();
+      ensureCalls();
       toggle();
     }
   }
