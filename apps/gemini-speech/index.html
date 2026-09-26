@@ -62,53 +62,65 @@
               <h2>Script</h2>
               <p class="hint">Tags are sounds. Style is not read aloud.</p>
             </div>
-            <div id="speak-presets" class="chips"></div>
-            <label class="sr" for="speak-text">Transcript</label>
-            <textarea id="speak-text" dir="auto" rows="8"></textarea>
+            <div class="group">
+              <div id="speak-presets" class="chips"></div>
+              <label class="sr" for="speak-text">Transcript</label>
+              <textarea id="speak-text" dir="auto" rows="8"></textarea>
+            </div>
             <div id="speak-tags" class="chips tags"></div>
-            <p class="hint">Same voice, another language. Tags stay in English.</p>
-            <div id="speak-langs" class="chips"></div>
-            <p id="speak-count" class="count"></p>
+            <div class="group">
+              <p class="hint">Same voice, another language. Tags stay in English.</p>
+              <div id="speak-langs" class="chips"></div>
+              <p id="speak-count" class="count"></p>
+            </div>
           </div>
           <aside class="controls">
             <fieldset>
               <legend>Model</legend>
               <div id="speak-models" class="models"></div>
             </fieldset>
-            <label class="stack" for="speak-style">
-              Style
-              <input id="speak-style" placeholder="cheerful and friendly" />
-            </label>
-            <div id="speak-styles" class="chips"></div>
-            <div class="voice-head">
-              <h2>Voice</h2>
-              <label class="sr" for="voice-filter">Filter voices</label>
-              <input id="voice-filter" placeholder="Filter" />
+            <div class="group">
+              <label class="stack" for="speak-style">
+                Style
+                <input id="speak-style" placeholder="cheerful and friendly" />
+              </label>
+              <div id="speak-styles" class="chips"></div>
             </div>
-            <p id="custom-voice" class="custom-voice" hidden></p>
-            <div id="voice-grid" class="voice-grid"></div>
-            <label class="stack" for="speak-format">
-              Format
-              <select id="speak-format"></select>
-            </label>
-            <p id="format-hint" class="hint"></p>
-            <label class="check">
-              <input id="speak-stream" type="checkbox" />
-              Stream as it is spoken
-            </label>
-            <p id="stream-hint" class="hint" hidden>
-              Audio starts before the take is finished. Chunks are raw PCM, played as they arrive.
-            </p>
-            <div class="actions">
-              <button id="speak-go" class="go" type="button">Speak</button>
-              <button id="speak-compare" class="ghost" type="button">Compare models</button>
-              <button id="speak-stop" class="ghost" type="button" hidden>Stop</button>
+            <div class="group">
+              <div class="voice-head">
+                <h2>Voice</h2>
+                <label class="sr" for="voice-filter">Filter voices</label>
+                <input id="voice-filter" placeholder="Filter" />
+              </div>
+              <p id="custom-voice" class="custom-voice" hidden></p>
+              <div id="voice-grid" class="voice-grid"></div>
             </div>
-            <p id="speak-error" class="error" role="alert"></p>
-            <details class="request">
-              <summary>Request</summary>
-              <pre id="speak-request"></pre>
-            </details>
+            <div class="group">
+              <label class="stack" for="speak-format">
+                Format
+                <select id="speak-format"></select>
+              </label>
+              <p id="format-hint" class="hint"></p>
+              <label class="check">
+                <input id="speak-stream" type="checkbox" />
+                Stream as it is spoken
+              </label>
+              <p id="stream-hint" class="hint" hidden>
+                Audio starts before the take is finished. Chunks are raw PCM, played as they arrive.
+              </p>
+            </div>
+            <div class="group">
+              <div class="actions">
+                <button id="speak-go" class="go" type="button">Speak</button>
+                <button id="speak-compare" class="ghost" type="button">Compare models</button>
+                <button id="speak-stop" class="ghost" type="button" hidden>Stop</button>
+              </div>
+              <p id="speak-error" class="error" role="alert"></p>
+              <details class="request">
+                <summary>Request</summary>
+                <pre id="speak-request"></pre>
+              </details>
+            </div>
           </aside>
         </div>
         <div id="speak-player"></div>
@@ -130,27 +142,35 @@
               <p id="scene-note" class="hint"></p>
             </div>
             <div id="scene-presets" class="chips"></div>
-            <div id="scene-speakers" class="speakers"></div>
-            <button id="scene-add-speaker" class="ghost" type="button">Add a second voice</button>
-            <div id="scene-turns" class="turns"></div>
-            <button id="scene-add-turn" class="ghost" type="button">Add a turn</button>
+            <div class="group">
+              <div id="scene-speakers" class="speakers"></div>
+              <button id="scene-add-speaker" class="ghost" type="button">Add a second voice</button>
+            </div>
+            <div class="group">
+              <div id="scene-turns" class="turns"></div>
+              <button id="scene-add-turn" class="ghost" type="button">Add a turn</button>
+            </div>
           </div>
           <aside class="controls">
             <label class="stack" for="scene-model">
               Model
               <select id="scene-model"></select>
             </label>
-            <p class="hint">Drop a sound into the line you are editing.</p>
-            <div id="scene-tags" class="chips tags"></div>
-            <div class="actions">
-              <button id="scene-go" class="go" type="button">Play scene</button>
-              <button id="scene-stop" class="ghost" type="button" hidden>Stop</button>
+            <div class="group">
+              <p class="hint">Drop a sound into the line you are editing.</p>
+              <div id="scene-tags" class="chips tags"></div>
             </div>
-            <p id="scene-error" class="error" role="alert"></p>
-            <details class="request">
-              <summary>Request</summary>
-              <pre id="scene-request"></pre>
-            </details>
+            <div class="group">
+              <div class="actions">
+                <button id="scene-go" class="go" type="button">Play scene</button>
+                <button id="scene-stop" class="ghost" type="button" hidden>Stop</button>
+              </div>
+              <p id="scene-error" class="error" role="alert"></p>
+              <details class="request">
+                <summary>Request</summary>
+                <pre id="scene-request"></pre>
+              </details>
+            </div>
           </aside>
         </div>
         <div id="scene-player"></div>
@@ -168,33 +188,37 @@
               <p class="hint">Stored on this API key, up to a year.</p>
             </div>
             <div id="design-presets" class="chips"></div>
-            <label class="stack" for="design-name">
-              Name
-              <input id="design-name" maxlength="60" />
-            </label>
-            <div class="split">
-              <label class="stack" for="design-gender">
-                Gender
-                <select id="design-gender">
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="neutral">Neutral</option>
-                </select>
+            <div class="group">
+              <label class="stack" for="design-name">
+                Name
+                <input id="design-name" maxlength="60" />
               </label>
-              <label class="stack" for="design-language">
-                Language
-                <select id="design-language"></select>
+              <div class="split">
+                <label class="stack" for="design-gender">
+                  Gender
+                  <select id="design-gender">
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="neutral">Neutral</option>
+                  </select>
+                </label>
+                <label class="stack" for="design-language">
+                  Language
+                  <select id="design-language"></select>
+                </label>
+              </div>
+            </div>
+            <div class="group">
+              <p class="hint">The persona is designed with Flash. Either model can speak it afterwards.</p>
+              <label class="stack" for="design-prompt">
+                Description
+                <textarea id="design-prompt" rows="5"></textarea>
               </label>
+              <div class="actions">
+                <button id="design-go" class="go" type="button">Design voice</button>
+              </div>
+              <p id="design-error" class="error" role="alert"></p>
             </div>
-            <p class="hint">The persona is designed with Flash. Either model can speak it afterwards.</p>
-            <label class="stack" for="design-prompt">
-              Description
-              <textarea id="design-prompt" rows="5"></textarea>
-            </label>
-            <div class="actions">
-              <button id="design-go" class="go" type="button">Design voice</button>
-            </div>
-            <p id="design-error" class="error" role="alert"></p>
           </div>
           <aside class="controls">
             <div id="design-current" class="current" hidden>
@@ -205,20 +229,22 @@
               <button id="design-use" class="ghost" type="button">Use in Speak</button>
             </div>
             <div id="design-sample"></div>
-            <label class="stack" for="design-line">
-              A line in this voice
-              <textarea id="design-line" dir="auto" rows="4"></textarea>
-            </label>
-            <label class="stack" for="design-style">
-              Style
-              <input id="design-style" />
-            </label>
-            <label class="stack" for="design-model">
-              Say the line with
-              <select id="design-model"></select>
-            </label>
-            <button id="design-say" class="go" type="button">Say this line</button>
-            <p id="design-say-error" class="error" role="alert"></p>
+            <div class="group">
+              <label class="stack" for="design-line">
+                A line in this voice
+                <textarea id="design-line" dir="auto" rows="4"></textarea>
+              </label>
+              <label class="stack" for="design-style">
+                Style
+                <input id="design-style" />
+              </label>
+              <label class="stack" for="design-model">
+                Say the line with
+                <select id="design-model"></select>
+              </label>
+              <button id="design-say" class="go" type="button">Say this line</button>
+              <p id="design-say-error" class="error" role="alert"></p>
+            </div>
             <div id="design-line-player"></div>
           </aside>
         </div>

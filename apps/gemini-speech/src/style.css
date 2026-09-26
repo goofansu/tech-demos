@@ -189,30 +189,40 @@ h3 {
   color: var(--danger);
 }
 
-.lede {
-  padding: 1rem 0 0.4rem;
+main p {
+  margin: 0;
+}
+
+main > [role="tabpanel"] {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-top: 1.15rem;
 }
 
 .lede p:last-child {
-  margin: 0.25rem 0 0;
-  max-width: 42rem;
+  margin: 0.45rem 0 0;
+  max-width: 46rem;
   color: var(--muted);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .desk {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(270px, 0.85fr);
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: start;
 }
 
 .sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
   background: var(--paper);
   color: var(--paper-ink);
   color-scheme: light;
   border-radius: 18px;
-  padding: 1rem 1rem 1rem 1.4rem;
+  padding: 1.35rem 1.3rem 1.45rem 1.7rem;
   box-shadow: var(--shadow);
   position: relative;
 }
@@ -220,12 +230,18 @@ h3 {
 .sheet::before {
   content: "";
   position: absolute;
-  left: 0.7rem;
-  top: 0.8rem;
-  bottom: 0.8rem;
+  left: 0.85rem;
+  top: 1.2rem;
+  bottom: 1.2rem;
   width: 2px;
   border-radius: 2px;
   background: #e07a6a;
+}
+
+.sheet-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .sheet-top h2 {
@@ -238,10 +254,24 @@ h3 {
 }
 
 .controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 0.95rem;
+  padding: 1.25rem 1.15rem 1.35rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.group > .go,
+.group > .ghost {
+  align-self: flex-start;
 }
 
 .sheet textarea,
@@ -257,7 +287,7 @@ h3 {
   border: 1px solid transparent;
   background: rgba(42, 33, 24, 0.06);
   color: inherit;
-  padding: 0.55rem 0.7rem;
+  padding: 0.65rem 0.75rem;
 }
 
 .controls input,
@@ -290,8 +320,8 @@ button:focus-visible {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0.55rem 0;
+  gap: 0.55rem;
+  margin: 0;
 }
 
 .chip,
@@ -309,7 +339,7 @@ button:focus-visible {
   background: transparent;
   border-color: rgba(42, 33, 24, 0.16);
   color: inherit;
-  padding: 0.28rem 0.65rem;
+  padding: 0.4rem 0.8rem;
 }
 
 .controls .chip,
@@ -336,16 +366,21 @@ button:focus-visible {
 
 .models {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.6rem;
 }
 
 .choice {
   display: flex;
-  gap: 0.55rem;
+  gap: 0.7rem;
   align-items: flex-start;
-  padding: 0.45rem 0.55rem;
+  padding: 0.7rem 0.8rem;
   border-radius: 12px;
   border: 1px solid var(--line);
+}
+
+.choice input {
+  width: auto;
+  margin-top: 0.2rem;
 }
 
 .choice strong,
@@ -354,14 +389,16 @@ button:focus-visible {
 }
 
 .choice small {
+  margin-top: 0.15rem;
   color: var(--muted);
   font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .stack {
   display: grid;
-  gap: 0.3rem;
-  margin: 0.7rem 0;
+  gap: 0.45rem;
+  margin: 0;
   font-size: 0.86rem;
   color: var(--muted);
 }
@@ -387,21 +424,22 @@ button:focus-visible {
 
 .voice-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr));
-  gap: 0.35rem;
-  max-height: 280px;
+  grid-template-columns: repeat(auto-fill, minmax(6.8rem, 1fr));
+  gap: 0.65rem;
+  max-height: 22rem;
   overflow: auto;
-  padding-right: 0.15rem;
+  padding-right: 0.2rem;
 }
 
 .voice {
   display: grid;
+  gap: 0.15rem;
   justify-items: start;
   text-align: left;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 0.4rem 0.5rem;
+  padding: 0.7rem 0.75rem;
   color: var(--ink);
 }
 
@@ -417,10 +455,10 @@ button:focus-visible {
 .custom-voice {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 0.6rem;
+  gap: 0.45rem 0.65rem;
   align-items: center;
-  margin: 0.4rem 0;
-  padding: 0.45rem 0.6rem;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
   border-radius: 12px;
   background: rgba(125, 206, 196, 0.1);
 }
@@ -433,9 +471,9 @@ code {
 
 .check {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.55rem;
   align-items: center;
-  margin: 0.4rem 0 0.2rem;
+  margin: 0;
 }
 
 .check input {
@@ -450,14 +488,14 @@ code {
 }
 
 .count {
-  margin: 0.2rem 0 0;
+  margin: 0;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.8rem;
+  gap: 0.55rem;
+  margin: 0;
 }
 
 .go,
@@ -481,13 +519,17 @@ code {
 }
 
 .error {
-  min-height: 1.2em;
   color: var(--danger);
   font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.error:empty {
+  display: none;
 }
 
 .request {
-  margin-top: 0.6rem;
+  margin: 0;
 }
 
 .request summary {
@@ -509,8 +551,8 @@ pre {
 }
 
 .player {
-  margin-top: 1rem;
-  padding: 0.8rem;
+  margin: 0;
+  padding: 0.95rem 1rem;
   border-radius: 18px;
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.22);
@@ -530,9 +572,9 @@ pre {
 .player-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem 0.8rem;
+  gap: 0.6rem 0.85rem;
   align-items: center;
-  margin-top: 0.45rem;
+  margin-top: 0.55rem;
 }
 
 .time,
@@ -549,7 +591,7 @@ pre {
 .compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .speakers,
@@ -557,7 +599,7 @@ pre {
 .stored-list,
 .results {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.85rem;
 }
 
 .speaker,
@@ -566,14 +608,14 @@ pre {
 .voice-card {
   border: 1px solid rgba(42, 33, 24, 0.12);
   border-radius: 14px;
-  padding: 0.6rem;
+  padding: 0.85rem;
   background: rgba(255, 255, 255, 0.35);
 }
 
 .speaker {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
+  gap: 0.85rem;
 }
 
 .speaker .ghost {
@@ -584,8 +626,12 @@ pre {
 .turn-head {
   display: grid;
   grid-template-columns: minmax(6rem, 0.6fr) 1fr auto;
-  gap: 0.4rem;
-  margin-bottom: 0.4rem;
+  gap: 0.7rem;
+  margin-bottom: 0.75rem;
+}
+
+.turn-head .ghost {
+  justify-self: start;
 }
 
 .turn textarea {
@@ -596,13 +642,13 @@ pre {
 .split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
+  gap: 0.85rem;
 }
 
 .current {
   display: grid;
-  gap: 0.3rem;
-  margin-bottom: 0.6rem;
+  gap: 0.45rem;
+  margin: 0;
 }
 
 .current-name {
@@ -610,8 +656,16 @@ pre {
   font-size: 1.4rem;
 }
 
+.current .ghost,
+.current .go {
+  justify-self: start;
+}
+
 .stored-wrap {
-  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
 }
 
 .stored-wrap h2,
@@ -626,27 +680,34 @@ pre {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 0.8rem;
+  padding: 1rem 1.05rem;
+}
+
+.voice-card,
+.stored {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
 .voice-card p,
 .stored p {
-  margin: 0.25rem 0;
+  margin: 0;
 }
 
 .row-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.45rem;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 1rem 1.1rem;
   align-items: end;
-  margin: 0.4rem 0 0.8rem;
+  margin: 0;
 }
 
 .filters .stack {
@@ -663,10 +724,14 @@ pre {
 }
 
 .more {
-  margin-top: 0.8rem;
+  align-self: flex-start;
+  margin: 0;
 }
 
 fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
   border: 0;
   margin: 0;
   padding: 0;
@@ -674,13 +739,12 @@ fieldset {
 
 legend {
   padding: 0;
-  margin-bottom: 0.35rem;
   color: var(--muted);
   font-size: 0.86rem;
 }
 
 footer {
-  padding: 1.4rem 0 2rem;
+  padding: 1.75rem 0 2.25rem;
   color: var(--muted);
   font-size: 0.88rem;
 }
