@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A booth for Gemini 3.8 text-to-speech: style, vocal tags, two-speaker scenes, streaming, and designed voices."
+    />
+    <title>Speech studio · Gemini 3.8</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;0,9..144,680;1,9..144,560&family=Outfit:wght@400;500;640&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#panel-speak">Skip to the booth</a>
+    <header class="top">
+      <div class="brand">
+        <span class="lamp" aria-hidden="true"></span>
+        <div>
+          <p class="eyebrow">Gemini 3.8</p>
+          <h1>Speech studio</h1>
+        </div>
+      </div>
+      <div class="top-tools">
+        <p id="key-status" class="key">Checking key…</p>
+        <div class="tabs" role="tablist" aria-label="Desks">
+          <button type="button" role="tab" id="tab-speak" data-tab="speak" aria-controls="panel-speak" aria-selected="true">
+            Speak
+          </button>
+          <button type="button" role="tab" id="tab-scene" data-tab="scene" aria-controls="panel-scene" aria-selected="false" tabindex="-1">
+            Scene
+          </button>
+          <button type="button" role="tab" id="tab-design" data-tab="design" aria-controls="panel-design" aria-selected="false" tabindex="-1">
+            Design
+          </button>
+          <button type="button" role="tab" id="tab-library" data-tab="library" aria-controls="panel-library" aria-selected="false" tabindex="-1">
+            Library
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <p id="key-banner" class="banner" hidden>
+      No API key is set. You can still draft a script. Add GEMINI_API_KEY on the server and reload to hear it.
+    </p>
+
+    <main>
+      <section id="panel-speak" role="tabpanel" aria-labelledby="tab-speak">
+        <div class="lede">
+          <p class="kicker">One voice</p>
+          <p>The words are spoken exactly as written. Mood lives in the style, and a laugh or a pause is a tag in the line.</p>
+        </div>
+        <div class="desk">
+          <div class="sheet">
+            <div class="sheet-top">
+              <h2>Script</h2>
+              <p class="hint">Tags are sounds. Style is not read aloud.</p>
+            </div>
+            <div class="group">
+              <div id="speak-presets" class="chips"></div>
+              <label class="sr" for="speak-text">Transcript</label>
+              <textarea id="speak-text" dir="auto" rows="8"></textarea>
+            </div>
+            <div id="speak-tags" class="chips tags"></div>
+            <div class="group">
+              <p class="hint">Same voice, another language. Tags stay in English.</p>
+              <div id="speak-langs" class="chips"></div>
+              <p id="speak-count" class="count"></p>
+            </div>
+          </div>
+          <aside class="controls">
+            <fieldset>
+              <legend>Model</legend>
+              <div id="speak-models" class="models"></div>
+            </fieldset>
+            <div class="group">
+              <label class="stack" for="speak-style">
+                Style
+                <input id="speak-style" placeholder="cheerful and friendly" />
+              </label>
+              <div id="speak-styles" class="chips"></div>
+            </div>
+            <div class="group">
+              <div class="voice-head">
+                <h2>Voice</h2>
+                <label class="sr" for="voice-filter">Filter voices</label>
+                <input id="voice-filter" placeholder="Filter" />
+              </div>
+              <p id="custom-voice" class="custom-voice" hidden></p>
+              <div id="voice-grid" class="voice-grid"></div>
+            </div>
+            <div class="group">
+              <label class="stack" for="speak-format">
+                Format
+                <select id="speak-format"></select>
+              </label>
+              <p id="format-hint" class="hint"></p>
+              <label class="check">
+                <input id="speak-stream" type="checkbox" />
+                Stream as it is spoken
+              </label>
+              <p id="stream-hint" class="hint" hidden>
+                Audio starts before the take is finished. Chunks are raw PCM, played as they arrive.
+              </p>
+            </div>
+            <div class="group">
+              <div class="actions">
+                <button id="speak-go" class="go" type="button">Speak</button>
+                <button id="speak-compare" class="ghost" type="button">Compare models</button>
+                <button id="speak-stop" class="ghost" type="button" hidden>Stop</button>
+              </div>
+              <p id="speak-error" class="error" role="alert"></p>
+              <details class="request">
+                <summary>Request</summary>
+                <pre id="speak-request"></pre>
+              </details>
+            </div>
+          </aside>
+        </div>
+        <div id="speak-player"></div>
+        <div id="compare-row" class="compare" hidden>
+          <div id="compare-flash"></div>
+          <div id="compare-lite"></div>
+        </div>
+      </section>
+
+      <section id="panel-scene" role="tabpanel" aria-labelledby="tab-scene" hidden>
+        <div class="lede">
+          <p class="kicker">Two voices</p>
+          <p>Each turn names its speaker and its own style. Pipes, like |oh hmm|, are the other person slipping in.</p>
+        </div>
+        <div class="desk">
+          <div class="sheet">
+            <div class="sheet-top">
+              <h2>Scene</h2>
+              <p id="scene-note" class="hint"></p>
+            </div>
+            <div id="scene-presets" class="chips"></div>
+            <div class="group">
+              <div id="scene-speakers" class="speakers"></div>
+              <button id="scene-add-speaker" class="ghost" type="button">Add a second voice</button>
+            </div>
+            <div class="group">
+              <div id="scene-turns" class="turns"></div>
+              <button id="scene-add-turn" class="ghost" type="button">Add a turn</button>
+            </div>
+          </div>
+          <aside class="controls">
+            <label class="stack" for="scene-model">
+              Model
+              <select id="scene-model"></select>
+            </label>
+            <div class="group">
+              <p class="hint">Drop a sound into the line you are editing.</p>
+              <div id="scene-tags" class="chips tags"></div>
+            </div>
+            <div class="group">
+              <div class="actions">
+                <button id="scene-go" class="go" type="button">Play scene</button>
+                <button id="scene-stop" class="ghost" type="button" hidden>Stop</button>
+              </div>
+              <p id="scene-error" class="error" role="alert"></p>
+              <details class="request">
+                <summary>Request</summary>
+                <pre id="scene-request"></pre>
+              </details>
+            </div>
+          </aside>
+        </div>
+        <div id="scene-player"></div>
+      </section>
+
+      <section id="panel-design" role="tabpanel" aria-labelledby="tab-design" hidden>
+        <div class="lede">
+          <p class="kicker">A persona you keep</p>
+          <p>Age, accent, and timbre belong in the description. After that, style only changes the mood of a line.</p>
+        </div>
+        <div class="desk">
+          <div class="sheet">
+            <div class="sheet-top">
+              <h2>Voice design</h2>
+              <p class="hint">Stored on this API key, up to a year.</p>
+            </div>
+            <div id="design-presets" class="chips"></div>
+            <div class="group">
+              <label class="stack" for="design-name">
+                Name
+                <input id="design-name" maxlength="60" />
+              </label>
+              <div class="split">
+                <label class="stack" for="design-gender">
+                  Gender
+                  <select id="design-gender">
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="neutral">Neutral</option>
+                  </select>
+                </label>
+                <label class="stack" for="design-language">
+                  Language
+                  <select id="design-language"></select>
+                </label>
+              </div>
+            </div>
+            <div class="group">
+              <p class="hint">The persona is designed with Flash. Either model can speak it afterwards.</p>
+              <label class="stack" for="design-prompt">
+                Description
+                <textarea id="design-prompt" rows="5"></textarea>
+              </label>
+              <div class="actions">
+                <button id="design-go" class="go" type="button">Design voice</button>
+              </div>
+              <p id="design-error" class="error" role="alert"></p>
+            </div>
+          </div>
+          <aside class="controls">
+            <div id="design-current" class="current" hidden>
+              <p class="kicker">Current persona</p>
+              <p id="design-current-name" class="current-name"></p>
+              <code id="design-current-id"></code>
+              <input id="design-id" type="hidden" />
+              <button id="design-use" class="ghost" type="button">Use in Speak</button>
+            </div>
+            <div id="design-sample"></div>
+            <div class="group">
+              <label class="stack" for="design-line">
+                A line in this voice
+                <textarea id="design-line" dir="auto" rows="4"></textarea>
+              </label>
+              <label class="stack" for="design-style">
+                Style
+                <input id="design-style" />
+              </label>
+              <label class="stack" for="design-model">
+                Say the line with
+                <select id="design-model"></select>
+              </label>
+              <button id="design-say" class="go" type="button">Say this line</button>
+              <p id="design-say-error" class="error" role="alert"></p>
+            </div>
+            <div id="design-line-player"></div>
+          </aside>
+        </div>
+        <section class="stored-wrap">
+          <h2>Stored voices</h2>
+          <p id="design-stored-note" class="hint"></p>
+          <div id="design-stored" class="stored-list"></div>
+        </section>
+      </section>
+
+      <section id="panel-library" role="tabpanel" aria-labelledby="tab-library" hidden>
+        <div class="lede">
+          <p class="kicker">Extended catalog</p>
+          <p>Beyond the thirty studio voices. Search, audition a sentence, then carry the voice back to Speak.</p>
+        </div>
+        <form id="lib-form" class="filters">
+          <label class="stack grow" for="lib-search">
+            Search
+            <input id="lib-search" placeholder="warm, narrator, gravel" />
+          </label>
+          <label class="stack" for="lib-language">
+            Language
+            <select id="lib-language"></select>
+          </label>
+          <label class="stack" for="lib-gender">
+            Gender
+            <select id="lib-gender">
+              <option value="">Any</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </label>
+          <label class="stack" for="lib-pitch">
+            Pitch
+            <select id="lib-pitch">
+              <option value="">Any</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <label class="stack" for="lib-context">
+            Context
+            <select id="lib-context"></select>
+          </label>
+          <label class="stack" for="lib-type">
+            Source
+            <select id="lib-type">
+              <option value="prebuilt">Catalog</option>
+              <option value="prompted">Designed</option>
+            </select>
+          </label>
+          <button class="go" type="submit">Search</button>
+        </form>
+        <p id="lib-error" class="error" role="alert"></p>
+        <div id="lib-results" class="results"></div>
+        <button id="lib-more" class="ghost more" type="button" hidden>More voices</button>
+        <div id="lib-player"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Flash for acting and long scenes. Flash-Lite for quicker everyday lines. Both speak the transcript verbatim.</p>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
