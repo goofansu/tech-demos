@@ -2,7 +2,7 @@ import { AUDITION_LINE, LIBRARY_CONTEXTS, LIBRARY_LANGUAGES } from "../lib/catal
 import { MODELS } from "../lib/request.js";
 import { listVoices, speak } from "./api.js";
 import { unlockAudio } from "./audio.js";
-import { button, describeTake } from "./format.js";
+import { button, describeTake, setActionPending } from "./format.js";
 import { mountPlayer } from "./player.js";
 
 let player;
@@ -122,7 +122,7 @@ async function onResultClick(event) {
     onUse({ id, name });
     return;
   }
-  control.disabled = true;
+  setActionPending(control, true);
   player.setStatus(`Auditioning ${name}…`);
   try {
     await unlockAudio();
@@ -142,6 +142,6 @@ async function onResultClick(event) {
   } catch (err) {
     player.fail(err.message);
   } finally {
-    control.disabled = false;
+    setActionPending(control, false);
   }
 }

@@ -2,7 +2,7 @@ import { DESIGN_LANGUAGES, PERSONAS } from "../lib/catalog.js";
 import { MODELS } from "../lib/request.js";
 import { createVoice, elapsed, fetchVoice, listVoices, removeVoice, speak } from "./api.js";
 import { unlockAudio } from "./audio.js";
-import { button, describeTake } from "./format.js";
+import { button, describeTake, setActionPending } from "./format.js";
 import { mountPlayer } from "./player.js";
 
 let samplePlayer;
@@ -81,7 +81,7 @@ async function design() {
   const go = document.getElementById("design-go");
   abort?.abort();
   abort = new AbortController();
-  go.disabled = true;
+  setActionPending(go, true);
   stopClock();
   const started = performance.now();
   stopClock = elapsed(() => {
@@ -114,7 +114,7 @@ async function design() {
     }
   } finally {
     stopClock();
-    go.disabled = false;
+    setActionPending(go, false);
     go.textContent = "Design voice";
   }
 }
@@ -128,7 +128,7 @@ async function sayLine() {
     return;
   }
   const say = document.getElementById("design-say");
-  say.disabled = true;
+  setActionPending(say, true);
   linePlayer.setStatus("Speaking with the designed voice…");
   try {
     await unlockAudio();
@@ -155,7 +155,7 @@ async function sayLine() {
     errorEl.textContent = err.message;
     linePlayer.fail(err.message);
   } finally {
-    say.disabled = false;
+    setActionPending(say, false);
   }
 }
 
@@ -225,7 +225,7 @@ async function onStoredClick(event, onUseVoice) {
       }, 4000);
       return;
     }
-    control.disabled = true;
+    setActionPending(control, true);
     try {
       await removeVoice(id);
       if (document.getElementById("design-id").value === id) {
@@ -235,12 +235,12 @@ async function onStoredClick(event, onUseVoice) {
       await refreshStored();
     } catch (err) {
       document.getElementById("design-stored-note").textContent = err.message;
-      control.disabled = false;
+      setActionPending(control, false);
     }
     return;
   }
   if (action === "sample") {
-    control.disabled = true;
+    setActionPending(control, true);
     try {
       await unlockAudio();
       const voice = await fetchVoice(id);
@@ -257,7 +257,7 @@ async function onStoredClick(event, onUseVoice) {
     } catch (err) {
       samplePlayer.fail(err.message);
     } finally {
-      control.disabled = false;
+      setActionPending(control, false);
     }
   }
 }

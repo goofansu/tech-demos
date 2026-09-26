@@ -144,7 +144,7 @@ async function run(compare) {
   }
   abort?.abort();
   abort = new AbortController();
-  setBusy(true, compare ? "Comparing…" : "Speaking…");
+  setBusy(true, compare ? "Comparing…" : "Speaking…", compare ? "compare" : "go");
   compareRow.hidden = !compare;
   try {
     await unlockAudio();
@@ -202,10 +202,12 @@ async function runCompare(signal) {
   litePlayer.setStatus("Same words, Flash-Lite voice. Press play on either take.");
 }
 
-function setBusy(busy, label) {
+function setBusy(busy, label, actor = "go") {
   stopClock();
   goEl.disabled = busy;
+  goEl.setAttribute("aria-busy", busy && actor === "go" ? "true" : "false");
   compareEl.disabled = busy || compareEl.disabled;
+  compareEl.setAttribute("aria-busy", busy && actor === "compare" ? "true" : "false");
   stopEl.hidden = !busy;
   if (!busy) {
     goEl.textContent = "Speak";

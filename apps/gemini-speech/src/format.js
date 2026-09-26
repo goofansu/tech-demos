@@ -59,6 +59,11 @@ export function button(className, label) {
   return el;
 }
 
+export function setActionPending(control, pending) {
+  control.disabled = pending;
+  control.setAttribute("aria-busy", pending ? "true" : "false");
+}
+
 export function field(tag, className) {
   const el = document.createElement(tag);
   if (className) el.className = className;
