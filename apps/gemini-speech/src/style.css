@@ -48,6 +48,14 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+}
+
+button[aria-busy="true"]:disabled {
+  cursor: progress;
+}
+
 .skip {
   position: absolute;
   left: 1rem;
@@ -515,7 +523,6 @@ code {
 .play:disabled,
 .ghost:disabled {
   opacity: 0.55;
-  cursor: progress;
 }
 
 .error {

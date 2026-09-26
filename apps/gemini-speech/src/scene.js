@@ -2,7 +2,7 @@ import { PREBUILT, SCENES, VOCAL_TAGS } from "../lib/catalog.js";
 import { MODELS, buildSpeechRequest } from "../lib/request.js";
 import { elapsed, speak } from "./api.js";
 import { unlockAudio } from "./audio.js";
-import { button, describeTake, insertTag, previewRequest } from "./format.js";
+import { button, describeTake, insertTag, previewRequest, setActionPending } from "./format.js";
 import { mountPlayer } from "./player.js";
 
 let scene = structuredClone(SCENES[0]);
@@ -311,7 +311,7 @@ async function run() {
 
 function setBusy(busy) {
   stopClock();
-  goEl.disabled = busy;
+  setActionPending(goEl, busy);
   stopEl.hidden = !busy;
   if (!busy) {
     goEl.textContent = "Play scene";
