@@ -1,6 +1,6 @@
 # Live stage
 
-A booth for [Gemini 3.8 Live](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live) and [Gemini 3.8 Live Extended Thinking](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking). The home page lists one demonstration per capability. Open a page to read what it shows, pick a model, then ask that question. The activity list is the connection log: audio, turn boundaries, interaction status, and tool calls.
+A booth for [Gemini 3.8 Live](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live) and [Gemini 3.8 Live Extended Thinking](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking). Talk freely (`/talk`) is an open conversation: voice, camera, photos, lookups, and search, with no prepared question. The other pages each demonstrate one capability. The activity list is the connection log: audio, turn boundaries, interaction status, and tool calls.
 
 ## Run
 
@@ -16,7 +16,7 @@ Other scripts: `bun test`, `bun run build`, `bun run preview`.
 
 ## What to try
 
-Each item is a page under `/try/<id>`. The page says what to listen for before you ask.
+Talk freely is `/talk`. Each demonstration is a page under `/try/<id>` and says what to listen for before you ask.
 
 - **Three hellos** (`/try/hello`) — a short spoken turn. Live answers as soon as the turn is ready.
 - **Studio clock** (`/try/clock`) — `stage_clock`, which returns immediately.

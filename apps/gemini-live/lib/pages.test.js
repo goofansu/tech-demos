@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { SCENES } from "./catalog.js";
-import { demoPath, pageFromPath } from "./pages.js";
+import { demoPath, pageFromPath, talkPath } from "./pages.js";
 
 describe("demonstration pages", () => {
   test("the home path is the list", () => {
@@ -33,6 +33,12 @@ describe("demonstration pages", () => {
 
   test("a trailing slash still opens the demonstration", () => {
     expect(pageFromPath("/try/hello/").scene.id).toBe("hello");
+  });
+
+  test("talk freely is an open page with no preset question", () => {
+    expect(talkPath()).toBe("/talk");
+    expect(pageFromPath("/talk")).toEqual({ kind: "talk" });
+    expect(pageFromPath("/talk/").kind).toBe("talk");
   });
 
   test("unknown addresses are not demonstrations", () => {

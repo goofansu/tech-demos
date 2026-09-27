@@ -51,6 +51,7 @@ const state = {
   wire: [],
   usage: null,
   resumeHandle: "",
+  pageKind: "home",
   sceneId: "",
   resumable: false,
   banner: "",
@@ -377,6 +378,7 @@ async function beginMic() {
       if (client.connected) client.sendAudio(data);
     });
     state.mic = true;
+    if (state.pageKind === "talk") sendCurrentFrame();
     renderChrome();
   } catch (err) {
     setBanner(err instanceof Error ? err.message : "The microphone is unavailable.");
@@ -436,6 +438,7 @@ async function attachStream(stream) {
     for (const track of previous.getTracks()) track.stop();
   }
   syncFrames();
+  if (state.pageKind === "talk") sendCurrentFrame();
   renderChrome();
 }
 
@@ -465,6 +468,10 @@ async function chooseStill(file) {
     still.src = stillUrl;
     still.hidden = false;
     state.withFrame = true;
+    if (state.pageKind === "talk" && client.connected) {
+      client.sendFrame(image.data);
+      log({ type: "note", detail: "Photo sent" });
+    }
     clearBanner();
     renderChrome();
   } catch (err) {
@@ -477,6 +484,13 @@ function capturePreview() {
   if (!cameraStream) return;
   const data = jpegFromVideo($("camera"));
   if (data) latestFrame = data;
+}
+
+function sendCurrentFrame() {
+  capturePreview();
+  if (!latestFrame || !client.connected) return;
+  client.sendFrame(latestFrame);
+  log({ type: "note", detail: "Photo sent" });
 }
 
 function syncFrames() {
@@ -677,20 +691,30 @@ function renderChrome() {
   for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked;
   $("thinking-note").hidden = !thinking;
   const scene = currentScene();
+  const talk = state.pageKind === "talk";
   $("thinking-note").textContent = locked
     ? "Tap New conversation, under the reply, to change this."
     : scene?.thinkingNote || "Low is quicker. High spends longer on harder questions.";
   $("voice").disabled = false;
-  const schedule = Boolean(scene?.schedule);
+  const schedule = talk || Boolean(scene?.schedule);
   $("behavior-field").hidden = thinking || !schedule;
   $("behavior").disabled = locked || !schedule;
-  $("more-summary").textContent = schedule ? "Voice and when to speak" : "Voice";
-  $("more-intro").hidden = !schedule;
-  $("toggles").hidden = true;
-  const frame = Boolean(scene?.frame);
-  $("photo-step").hidden = !frame;
+  $("more-summary").textContent = talk ? "Voice and lookups" : schedule ? "Voice and when to speak" : "Voice";
+  $("more-intro").hidden = !talk && !schedule;
+  $("more-intro").textContent = talk
+    ? "A new voice keeps what you already said. On Live, this also chooses when a lookup is spoken."
+    : "On Live, this chooses when a lookup is spoken. A new voice keeps what you already said.";
+  $("toggles").hidden = !talk;
+  const frame = talk || Boolean(scene?.frame);
+  $("photo-step").hidden = talk || !frame;
   $("photo").hidden = !frame;
-  $("ask-step").textContent = frame ? "3. Ask this" : "2. Ask this";
+  $("photo-hint").textContent = talk
+    ? "A picture goes out when you start talking. Add one during a conversation and it goes out then. Keep sending the camera sends one frame a second."
+    : "The picture goes with the question below. Keep sending the camera sends one frame a second while you are connected.";
+  $("ask-step").hidden = talk;
+  $("question").hidden = talk;
+  $("ask").hidden = talk;
+  $("ask-step").textContent = frame && !talk ? "3. Ask this" : "2. Ask this";
   const scheduleUseful = schedule && !thinking && state.behavior === "NON_BLOCKING";
   $("schedule-field").hidden = !scheduleUseful;
   $("scheduling").disabled = locked || !scheduleUseful;
@@ -855,6 +879,7 @@ function emptyTranscript() {
   const scene = currentScene();
   if (state.connecting) return "Starting. The reply will show up here.";
   if (state.connected) return "You're connected. The reply will show up here, or tap Start talking and speak.";
+  if (state.pageKind === "talk") return "Tap Start talking and speak. Add a camera or a photo if you want the model to see something.";
   if (scene) return `Tap ${scene.ask}. That starts the session and asks the question.`;
   return "Open a demonstration.";
 }
@@ -886,11 +911,15 @@ function renderCatalog() {
 }
 
 function showPage(page) {
+  state.pageKind = page.kind;
+  const open = page.kind === "demo" || page.kind === "talk";
   $("home").hidden = page.kind !== "home";
   $("missing").hidden = page.kind !== "missing";
+  $("talk-brief").hidden = page.kind !== "talk";
   $("brief").hidden = page.kind !== "demo";
-  $("stage").hidden = page.kind !== "demo";
-  $("bench").hidden = page.kind !== "demo";
+  $("stage").hidden = !open;
+  $("bench").hidden = !open;
+  placePhoto(page.kind === "talk");
   const skip = document.querySelector(".skip");
   if (page.kind === "demo") {
     skip.href = "#transcript";
@@ -899,9 +928,21 @@ function showPage(page) {
     document.title = `${page.scene.title} · Live stage`;
     return;
   }
+  if (page.kind === "talk") {
+    skip.href = "#transcript";
+    skip.textContent = "Skip to the transcript";
+    document.title = "Talk freely · Live stage";
+    return;
+  }
   skip.href = "#catalog";
   skip.textContent = "Skip to the demonstrations";
   document.title = page.kind === "missing" ? "Not found · Live stage" : "Live stage · Gemini 3.8";
+}
+
+function placePhoto(inComposer) {
+  const photo = $("photo");
+  if (inComposer) $("composer").prepend(photo);
+  else $("photo-step").insertAdjacentElement("afterend", photo);
 }
 
 function renderBrief(scene) {

@@ -32,14 +32,31 @@
 
     <main class="grid">
       <section class="howto" id="home" aria-labelledby="home-title">
-        <h2 id="home-title">Pick a demonstration</h2>
-        <p class="hint">Open a page, pick a model, then ask the question on that page. Each one starts a fresh conversation.</p>
+        <h2 id="home-title">Start here</h2>
+        <p class="hint">Talk freely has no prepared question. Each demonstration below asks one, and starts a fresh conversation.</p>
+        <a id="free-talk" class="scene" href="/talk">
+          <strong>Talk freely</strong>
+          <span class="scene-shows">Your own words, with the camera and a photo</span>
+          <small>No prepared question. Voice, lookups, and search are options.</small>
+          <span class="scene-open">Open</span>
+        </a>
+        <h3>Demonstrations</h3>
         <div id="catalog" class="scenes"></div>
       </section>
 
       <section class="howto" id="missing" hidden>
         <h2>That page is not a demonstration</h2>
         <p><a href="/">All demonstrations</a></p>
+      </section>
+
+      <section class="howto" id="talk-brief" hidden aria-labelledby="talk-title">
+        <p class="back"><a href="/">All demonstrations</a></p>
+        <h2 id="talk-title">Talk freely</h2>
+        <ol>
+          <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking can think longer.</li>
+          <li><strong>Tap Start talking</strong> and speak in your own words. Add a camera or a photo when you want the model to see something.</li>
+          <li><strong>Read the reply.</strong> Speak while a reply is playing if you want to interrupt it.</li>
+        </ol>
       </section>
 
       <section class="howto" id="brief" hidden aria-labelledby="demo-title">
@@ -76,7 +93,7 @@
             </label>
           </div>
           <label id="stream-field" hidden><input id="stream-frames" type="checkbox" /> Keep sending the camera</label>
-          <p class="hint">The picture goes with the question below. Keep sending the camera sends one frame a second while you are connected.</p>
+          <p id="photo-hint" class="hint">The picture goes with the question below. Keep sending the camera sends one frame a second while you are connected.</p>
         </div>
 
         <h2 class="step" id="ask-step">2. Ask this</h2>

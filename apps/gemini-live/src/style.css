@@ -200,8 +200,18 @@ button,
 }
 
 #home h2,
+#home h3,
 #home .hint {
   color: var(--ink);
+}
+
+#home h3 {
+  margin: 1.1rem 0 0.45rem;
+  font-size: 1.15rem;
+}
+
+#free-talk {
+  margin-top: 0.35rem;
 }
 
 .howto h2 {
