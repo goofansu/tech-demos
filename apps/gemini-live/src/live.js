@@ -80,7 +80,8 @@ export function createLiveClient({ onEvent, onSocket }) {
         result = { error: err instanceof Error ? err.message : "The tool failed." };
       }
       const latencyMs = Math.round(performance.now() - started);
-      if (gen !== generation || cancelled.has(id) || !session) {
+      if (gen !== generation) return;
+      if (cancelled.has(id) || !session) {
         onEvent?.({ type: "tool-end", id, name: call.name || "", cancelled: true, latencyMs });
         return;
       }

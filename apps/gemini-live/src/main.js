@@ -7,7 +7,6 @@ import {
   VOICES,
   modelById,
 } from "../lib/catalog.js";
-import { sessionFingerprint } from "../lib/config.js";
 import {
   appendTranscript,
   derivePhase,
@@ -48,6 +47,7 @@ const state = {
   wire: [],
   usage: null,
   resumeHandle: "",
+  sceneId: "",
   resumable: false,
   banner: "",
   bannerTone: "error",
@@ -278,12 +278,15 @@ async function endSession(detail) {
   renderConversation();
 }
 
-async function runScene(scene) {
-  const before = sessionFingerprint(settings());
-  if (scene.tools) state.tools = true;
-  if (scene.search) state.search = true;
-  $("tools").checked = state.tools;
-  $("search").checked = state.search;
+let sceneChain = Promise.resolve();
+
+function runScene(scene) {
+  const job = sceneChain.then(() => startScene(scene));
+  sceneChain = job.then(() => {}, () => {});
+  return job;
+}
+
+async function startScene(scene) {
   if (scene.frame) {
     capturePreview();
     if (!latestFrame) {
@@ -293,13 +296,37 @@ async function runScene(scene) {
       return;
     }
   }
-  const restart = state.connected && before !== sessionFingerprint(settings());
-  if (!state.connected || restart) {
-    if (state.connected) await endSession(restart ? "Restarting with the new settings" : "");
-    const opened = await openSession();
-    if (!opened) return;
-  }
+  if (scene.tools) state.tools = true;
+  if (scene.search) state.search = true;
+  $("tools").checked = state.tools;
+  $("search").checked = state.search;
+  if (state.connected || state.connecting) await client.end();
+  stopMic();
+  stopFrames();
+  playback?.stop();
+  state.connected = false;
+  state.connecting = false;
+  state.playing = false;
+  state.serverStatus = "";
+  state.toolsInFlight = 0;
+  state.sceneId = scene.id;
+  resetConversation();
+  const opened = await openSession();
+  if (!opened) return;
   await deliver(scene.text, { frame: Boolean(scene.frame || state.withFrame) });
+}
+
+function resetConversation() {
+  state.turns = [];
+  state.wire = [];
+  state.usage = null;
+  state.sessionLabel = "";
+  state.resumeHandle = "";
+  state.serverStatus = "";
+  state.toolsInFlight = 0;
+  state.playing = false;
+  renderConversation();
+  renderChrome();
 }
 
 async function deliver(text, { frame = false } = {}) {
@@ -647,6 +674,9 @@ function renderChrome() {
   $("behavior-note").textContent = behaviorNote(thinking);
   $("session-label").textContent = state.sessionLabel;
   $("session").hidden = !state.connected;
+  for (const button of document.querySelectorAll(".scene")) {
+    button.setAttribute("aria-pressed", button.dataset.scene === state.sceneId ? "true" : "false");
+  }
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
   $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
   $("talk-hint").textContent = state.mic

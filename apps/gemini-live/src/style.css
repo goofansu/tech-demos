@@ -430,6 +430,10 @@ select {
   line-height: 1.3;
 }
 
+.scene[aria-pressed="true"] {
+  box-shadow: inset 6px 0 0 var(--live), 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
 .banner {
   margin: 0 0 0.8rem;
   padding: 0.7rem 0.85rem;
