@@ -198,27 +198,26 @@ button,
   background: var(--paper);
   color: var(--paper-ink);
   border-radius: 22px;
-  padding: 1rem 1.15rem 1.15rem;
+  padding: 0.85rem 1rem 1rem;
   box-shadow: var(--shadow);
 }
 
 .howto h2 {
-  font-size: 2rem;
+  font-size: 1.7rem;
 }
 
-.howto p,
 .howto li {
-  margin: 0.35rem 0 0;
+  margin: 0;
   color: #3a342c;
-  line-height: 1.45;
-  font-size: 1.02rem;
+  line-height: 1.4;
+  font-size: 1rem;
 }
 
 .howto ol {
-  margin: 0.55rem 0 0;
+  margin: 0.45rem 0 0;
   padding-left: 1.25rem;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.35rem;
 }
 
 .step {
@@ -781,13 +780,33 @@ textarea {
 
 @media (max-width: 900px) {
   .grid,
-  .models,
   .controls {
     grid-template-columns: 1fr;
   }
 
   h1 {
-    font-size: 2.4rem;
+    font-size: 2.15rem;
+  }
+
+  .top {
+    padding: 0.85rem 0 0.55rem;
+    gap: 0.65rem;
+  }
+
+  .plate {
+    padding: 0.7rem 0.75rem 0.75rem;
+  }
+
+  .plate-name {
+    font-size: 1.25rem;
+  }
+
+  .plate-id {
+    display: none;
+  }
+
+  .step {
+    margin-bottom: 0.4rem;
   }
 
   .top {
