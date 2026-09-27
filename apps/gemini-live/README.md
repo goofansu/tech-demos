@@ -21,7 +21,7 @@ Other scripts: `bun test`, `bun run build`, `bun run preview`.
 - **Lisbon desk** and **Signal scan** — fixture tools with a few seconds of delay. On Live, speech waits for the result. On Extended Thinking, the model talks while the tool runs, `turnComplete` can arrive with `interactionStatus: IN_PROGRESS`, and the lamp returns to listening only at `IDLE`.
 - **Search the cup** — Google Search grounding.
 - **Ferry puzzle** — multi-step planning. On Extended Thinking, raise thinking to high. Live has no thinking control.
-- **Look over** — a camera frame or a still. Frames go out as JPEG, at most one a second while streaming.
+- **Look over** — a camera frame or a still. Frames go out as JPEG, at most one a second while streaming. On a phone with a front and a rear camera, Rear camera switches between them after the camera is on.
 
 Tool behavior and result scheduling (`when idle`, `interrupt`, `silent`) apply to Live. Extended Thinking always uses non-blocking tools and has no scheduling field. Do not send `thinkingConfig` to `gemini-3.8-live`.
 

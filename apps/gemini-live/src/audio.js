@@ -1,3 +1,4 @@
+import { facingPair } from "../lib/cameras.js";
 import { pcm16ToBase64, resamplePcm16, rms, takeFrame } from "../lib/pcm.js";
 
 const OUTPUT_RATE = 24000;
@@ -111,12 +112,47 @@ export async function startMicrophone(onChunk) {
   };
 }
 
-export async function openCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user", width: { ideal: 960 } },
+export async function readFacingPair() {
+  if (!navigator.mediaDevices?.enumerateDevices) return null;
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return facingPair(devices.map(describeCamera));
+}
+
+export async function openCamera(face = "user") {
+  const wanted = face === "environment" ? "environment" : "user";
+  const pair = await readFacingPair().catch(() => null);
+  const deviceId = pair?.[wanted];
+  if (deviceId) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: deviceId }, width: { ideal: 960 } },
+        audio: false,
+      });
+    } catch {
+      /* The chosen id can go stale. Fall through to facingMode. */
+    }
+  }
+  return navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: wanted }, width: { ideal: 960 } },
     audio: false,
   });
-  return stream;
+}
+
+function describeCamera(device) {
+  let facingModes = [];
+  if (typeof device.getCapabilities === "function") {
+    try {
+      facingModes = device.getCapabilities()?.facingMode || [];
+    } catch {
+      facingModes = [];
+    }
+  }
+  return {
+    kind: device.kind,
+    label: device.label,
+    deviceId: device.deviceId,
+    facingModes,
+  };
 }
 
 export function jpegFromVideo(video, maxWidth = 640) {

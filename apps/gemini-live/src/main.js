@@ -21,6 +21,7 @@ import {
   jpegFromFile,
   jpegFromVideo,
   openCamera,
+  readFacingPair,
   startMicrophone,
 } from "./audio.js";
 import { createLiveClient } from "./live.js";
@@ -54,6 +55,8 @@ const state = {
   sessionLabel: "",
   mic: false,
   camera: false,
+  cameraFace: "user",
+  canFlip: false,
 };
 
 let playback;
@@ -155,6 +158,7 @@ function mount() {
   $("mic").addEventListener("click", () => void toggleMic());
   $("quiet").addEventListener("click", () => quiet());
   $("camera-toggle").addEventListener("click", () => void toggleCamera());
+  $("camera-flip").addEventListener("click", () => void flipCamera());
   $("file").addEventListener("change", () => {
     const file = $("file").files?.[0];
     if (file) void chooseStill(file);
@@ -383,20 +387,45 @@ async function toggleCamera() {
     return;
   }
   try {
-    cameraStream = await openCamera();
-    const video = $("camera");
-    video.srcObject = cameraStream;
-    video.hidden = false;
-    $("still").hidden = true;
-    await video.play();
-    state.camera = true;
-    state.withFrame = true;
-    syncFrames();
-    renderChrome();
+    await attachStream(await openCamera(state.cameraFace));
+    clearBanner();
   } catch (err) {
     setBanner(err instanceof Error ? err.message : "The camera is unavailable.");
     renderChrome();
   }
+}
+
+async function flipCamera() {
+  if (!cameraStream) return;
+  const next = state.cameraFace === "environment" ? "user" : "environment";
+  try {
+    await attachStream(await openCamera(next));
+    clearBanner();
+  } catch (err) {
+    setBanner(err instanceof Error ? err.message : "That camera is unavailable.");
+    renderChrome();
+  }
+}
+
+async function attachStream(stream) {
+  const previous = cameraStream;
+  cameraStream = stream;
+  const video = $("camera");
+  video.srcObject = stream;
+  video.hidden = false;
+  $("still").hidden = true;
+  await video.play();
+  const facing = stream.getVideoTracks()[0]?.getSettings?.().facingMode;
+  state.cameraFace = facing === "environment" ? "environment" : "user";
+  video.dataset.face = state.cameraFace;
+  state.camera = true;
+  state.withFrame = true;
+  state.canFlip = Boolean(await readFacingPair());
+  if (previous && previous !== stream) {
+    for (const track of previous.getTracks()) track.stop();
+  }
+  syncFrames();
+  renderChrome();
 }
 
 function stopCamera() {
@@ -673,6 +702,9 @@ function renderChrome() {
     : "Tap Start talking and speak. Your voice goes out as you talk.";
   $("camera-toggle").textContent = state.camera ? "Camera off" : "Camera";
   $("camera-toggle").setAttribute("aria-pressed", state.camera ? "true" : "false");
+  const flip = $("camera-flip");
+  flip.hidden = !state.camera || !state.canFlip;
+  flip.textContent = state.cameraFace === "environment" ? "Front camera" : "Rear camera";
   const photoShowing = state.camera || !$("still").hidden;
   $("photo-preview").hidden = !photoShowing;
   $("stream-field").hidden = !state.camera;

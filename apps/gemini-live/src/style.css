@@ -735,6 +735,10 @@ select {
   background: #1c1914;
 }
 
+#camera[data-face="user"] {
+  transform: scaleX(-1);
+}
+
 .preview video,
 .preview img {
   display: block;
