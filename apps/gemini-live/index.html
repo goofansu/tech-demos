@@ -23,7 +23,7 @@
       <div class="brand">
         <p class="eyebrow">Gemini 3.8</p>
         <h1>Live stage</h1>
-        <p class="lede">Compare two Gemini voice models. Talk, type, or show a photo.</p>
+        <p class="lede">Compare two Gemini voice models. Talk, or show a photo.</p>
       </div>
       <div class="session-bar">
         <p id="key-status" class="key">Checking key…</p>
@@ -37,7 +37,7 @@
         <h2 id="howto-title">How to use this</h2>
         <ol>
           <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking is the one that can think longer.</li>
-          <li><strong>Tap a button</strong> under Try one, or ask in your own words at the bottom. Start talking sends your voice as you speak. Send is only for text you type.</li>
+          <li><strong>Tap a button</strong> under Try one, or tap Start talking and speak in your own words. Your voice goes out as you talk.</li>
           <li><strong>Read the reply.</strong> While the light says Speaking, Stop the reply cuts off the voice.</li>
         </ol>
       </section>
@@ -79,7 +79,7 @@
           <div class="toggles">
             <label><input id="tools" type="checkbox" checked /> Let the model look things up</label>
             <label><input id="search" type="checkbox" /> Use Google Search</label>
-            <label><input id="with-frame" type="checkbox" /> Send the current photo with each message</label>
+            <label><input id="with-frame" type="checkbox" /> Include the current photo with each question</label>
             <label><input id="stream-frames" type="checkbox" /> Send a photo every second</label>
           </div>
           <ul id="tool-list" class="tool-list"></ul>
@@ -118,17 +118,10 @@
             <p id="session-label" class="hint"></p>
           </div>
           <ol id="transcript" aria-live="polite"></ol>
-          <form id="composer">
-            <div class="talk">
-              <button type="button" id="mic" aria-pressed="false">Start talking</button>
-              <p id="talk-hint" class="hint">Tap Start talking and speak. Your voice goes out as you talk. Do not press Send.</p>
-            </div>
-            <div class="type-row">
-              <label class="sr" for="draft">Type a message</label>
-              <textarea id="draft" rows="2" placeholder="Or type a message, then press Send."></textarea>
-              <button type="submit" id="send">Send</button>
-            </div>
-          </form>
+          <div id="composer" class="talk">
+            <button type="button" id="mic" aria-pressed="false">Start talking</button>
+            <p id="talk-hint" class="hint">Tap Start talking and speak. Your voice goes out as you talk.</p>
+          </div>
           <p class="hint">Use headphones so the microphone does not hear the reply. Talking while it speaks interrupts it.</p>
         </div>
       </section>

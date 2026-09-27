@@ -43,8 +43,7 @@ body {
 
 button,
 input,
-select,
-textarea {
+select {
   font: inherit;
   color: inherit;
 }
@@ -162,8 +161,7 @@ h2 {
 
 button,
 .file,
-select,
-textarea {
+select {
   border: 2px solid #d7d0c2;
   border-radius: 999px;
 }
@@ -178,8 +176,7 @@ button,
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
-#session,
-#send {
+#session {
   background: var(--live);
   color: var(--live-ink);
   border-color: transparent;
@@ -366,8 +363,7 @@ legend,
   font-weight: 600;
 }
 
-select,
-textarea {
+select {
   width: 100%;
   border-radius: 12px;
   padding: 0.55rem 0.7rem;
@@ -469,7 +465,6 @@ textarea {
   box-shadow: none;
 }
 
-.paper #send,
 #mic[aria-pressed="true"] {
   background: var(--live);
   color: var(--live-ink);
@@ -584,27 +579,11 @@ textarea {
   margin: 0;
 }
 
-.type-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.45rem;
-  align-items: end;
-}
-
 #mic {
   background: var(--live);
   color: var(--live-ink);
   border-color: transparent;
   justify-self: start;
-}
-
-textarea {
-  background: white;
-  color: var(--paper-ink);
-  border-color: rgba(28, 25, 20, 0.15);
-  border-radius: 14px;
-  resize: vertical;
-  min-height: 3.2rem;
 }
 
 .paper .hint:last-child {

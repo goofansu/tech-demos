@@ -165,10 +165,6 @@ function mount() {
   $("mic").addEventListener("click", () => void toggleMic());
   $("quiet").addEventListener("click", () => quiet());
   $("camera-toggle").addEventListener("click", () => void toggleCamera());
-  $("composer").addEventListener("submit", (event) => {
-    event.preventDefault();
-    void sendDraft($("draft").value, { frame: state.withFrame });
-  });
   $("file").addEventListener("change", () => {
     const file = $("file").files?.[0];
     if (file) void chooseStill(file);
@@ -310,17 +306,13 @@ async function runScene(scene) {
   await deliver(scene.text, { frame: Boolean(scene.frame || state.withFrame) });
 }
 
-async function sendDraft(text, options) {
-  await deliver(text, options);
-}
-
 async function deliver(text, { frame = false } = {}) {
   const trimmed = text.trim();
   if (!trimmed) return;
   if (frame) capturePreview();
   if (frame && !latestFrame) {
     revealCamera();
-    setBanner("Turn the camera on or choose a photo, then send again.");
+    setBanner("Turn the camera on or choose a photo, then tap the button again.");
     renderChrome();
     return;
   }
@@ -335,7 +327,6 @@ async function deliver(text, { frame = false } = {}) {
   }
   client.sendText(trimmed);
   state.turns.push({ id: nextId(), role: "user", source: "text", text: trimmed, open: false });
-  $("draft").value = "";
   clearBanner();
   renderConversation();
 }
@@ -665,8 +656,8 @@ function renderChrome() {
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
   $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
   $("talk-hint").textContent = state.mic
-    ? "The microphone is on. Speak now, then tap Stop talking. Send is only for typed text."
-    : "Tap Start talking and speak. Your voice goes out as you talk. Do not press Send.";
+    ? "The microphone is on. Speak now, then tap Stop talking."
+    : "Tap Start talking and speak. Your voice goes out as you talk.";
   $("camera-toggle").textContent = state.camera ? "Camera off" : "Camera";
   $("camera-toggle").setAttribute("aria-pressed", state.camera ? "true" : "false");
   renderLamp();
@@ -812,7 +803,7 @@ function revealCamera() {
 
 function emptyTranscript() {
   if (state.connecting) return "Starting. The reply will show up here.";
-  if (state.connected) return "You're connected. Tap Start talking and speak, or type a message and press Send.";
+  if (state.connected) return "You're connected. Tap Start talking and speak, or tap a button above.";
   return "Tap a button above. That starts the session and asks the question for you.";
 }
 

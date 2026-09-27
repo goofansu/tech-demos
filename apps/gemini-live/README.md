@@ -1,6 +1,6 @@
 # Live stage
 
-A booth for [Gemini 3.8 Live](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live) and [Gemini 3.8 Live Extended Thinking](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking). The page opens with three steps: pick a model, tap a ready-made question, then read the reply. Talk, type, or show a photo. The activity list is the connection log: audio, turn boundaries, interaction status, and tool calls.
+A booth for [Gemini 3.8 Live](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live) and [Gemini 3.8 Live Extended Thinking](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking). The page opens with three steps: pick a model, tap a ready-made question or start talking, then read the reply. Talk, or show a photo. The activity list is the connection log: audio, turn boundaries, interaction status, and tool calls.
 
 ## Run
 
