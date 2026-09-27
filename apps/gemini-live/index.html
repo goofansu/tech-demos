@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Talk, show a frame, and compare Gemini 3.8 Live with Extended Thinking: voice, tools, search, and background reasoning."
+    />
+    <title>Live stage · Gemini 3.8</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#transcript">Skip to the transcript</a>
+    <header class="top">
+      <div class="brand">
+        <p class="eyebrow">Gemini 3.8</p>
+        <h1><a href="/">Live stage</a></h1>
+        <p class="lede">Each page shows one thing these two voice models can do.</p>
+      </div>
+      <div class="session-bar">
+        <p id="key-status" class="key">Checking key…</p>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="howto" id="home" aria-labelledby="home-title">
+        <h2 id="home-title">Start here</h2>
+        <p class="hint">Talk freely has no prepared question. Each demonstration below asks one, and starts a fresh conversation.</p>
+        <a id="free-talk" class="scene" href="/talk">
+          <strong>Talk freely</strong>
+          <span class="scene-shows">Your own words, with the camera and a photo</span>
+          <small>No prepared question. Voice, lookups, and search are options.</small>
+          <span class="scene-open">Open</span>
+        </a>
+        <h3>Demonstrations</h3>
+        <div id="catalog" class="scenes"></div>
+      </section>
+
+      <section class="howto" id="missing" hidden>
+        <h2>That page is not a demonstration</h2>
+        <p><a href="/">All demonstrations</a></p>
+      </section>
+
+      <section class="howto" id="talk-brief" hidden aria-labelledby="talk-title">
+        <p class="back"><a href="/">All demonstrations</a></p>
+        <h2 id="talk-title">Talk freely</h2>
+        <ol>
+          <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking can think longer.</li>
+          <li><strong>Tap Start talking</strong> and speak in your own words. Add a camera or a photo when you want the model to see something.</li>
+          <li><strong>Read the reply.</strong> Speak while a reply is playing if you want to interrupt it.</li>
+        </ol>
+      </section>
+
+      <section class="howto" id="brief" hidden aria-labelledby="demo-title">
+        <p class="back"><a href="/">All demonstrations</a></p>
+        <p class="eyebrow" id="demo-name"></p>
+        <h2 id="demo-title"></h2>
+        <p id="demo-detail"></p>
+        <h3>What to listen for</h3>
+        <ul id="demo-points"></ul>
+      </section>
+
+      <section class="stage" id="stage" hidden aria-label="Conversation">
+        <h2 class="step">1. Pick a model</h2>
+        <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
+        <p id="model-note" class="note"></p>
+        <fieldset id="thinking-field" hidden>
+          <legend>How deeply to think</legend>
+          <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
+          <p id="thinking-note" class="hint">Low is quicker. High spends longer on harder questions.</p>
+        </fieldset>
+
+        <h2 class="step" id="photo-step" hidden>2. Add a photo</h2>
+        <div id="photo" class="photo" hidden>
+          <div class="preview" id="photo-preview" hidden>
+            <video id="camera" playsinline autoplay muted hidden></video>
+            <img id="still" alt="" hidden />
+          </div>
+          <div class="photo-actions">
+            <button type="button" id="camera-toggle">Camera</button>
+            <button type="button" id="camera-flip" hidden>Rear camera</button>
+            <label class="file">
+              Choose a photo
+              <input id="file" type="file" accept="image/*" />
+            </label>
+          </div>
+          <label id="stream-field" hidden><input id="stream-frames" type="checkbox" /> Keep sending the camera</label>
+          <p id="photo-hint" class="hint">The picture goes with the question below. Keep sending the camera sends one frame a second while you are connected.</p>
+        </div>
+
+        <h2 class="step" id="ask-step">2. Ask this</h2>
+        <p id="question" class="question"></p>
+        <button type="button" id="ask">Ask</button>
+        <p id="banner" class="banner" role="status" hidden></p>
+
+        <details class="more" id="more">
+          <summary id="more-summary">Voice</summary>
+          <p id="more-intro" class="hint" hidden>On Live, this chooses when a lookup is spoken. A new voice keeps what you already said.</p>
+          <div class="controls">
+            <label class="field">
+              Voice
+              <select id="voice"></select>
+            </label>
+            <label class="field" id="behavior-field">
+              Tool behavior
+              <select id="behavior"></select>
+            </label>
+            <label class="field" id="schedule-field">
+              When to speak a result
+              <select id="scheduling"></select>
+            </label>
+          </div>
+          <p id="behavior-note" class="hint"></p>
+          <div class="toggles" id="toggles" hidden>
+            <label><input id="tools" type="checkbox" checked /> Let the model look things up</label>
+            <label><input id="search" type="checkbox" /> Use Google Search</label>
+          </div>
+        </details>
+
+        <div class="lamp-row">
+          <span id="lamp" data-phase="idle" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">Status</p>
+            <p id="phase">Not connected</p>
+          </div>
+        </div>
+        <div class="meters" aria-hidden="true">
+          <span>In</span>
+          <span class="meter"><i id="in-meter"></i></span>
+          <span>Out</span>
+          <span class="meter"><i id="out-meter"></i></span>
+        </div>
+
+        <div class="paper">
+          <div class="paper-head">
+            <h2>Read the reply</h2>
+            <p id="session-label" class="hint"></p>
+          </div>
+          <ol id="transcript" aria-live="polite"></ol>
+          <div id="composer" class="talk">
+            <div class="talk-actions">
+              <button type="button" id="mic" aria-pressed="false">Start talking</button>
+              <button type="button" id="session" disabled>New conversation</button>
+            </div>
+            <p id="talk-hint" class="hint">Tap Start talking and speak. Your voice goes out as you talk.</p>
+            <p class="hint">Stop talking turns the microphone off and keeps this chat. New conversation clears the page. Changing the voice keeps what was already said.</p>
+          </div>
+          <p class="hint">Use headphones so the microphone does not hear the reply. Talking while it speaks interrupts it.</p>
+        </div>
+      </section>
+
+      <aside class="bench" id="bench" hidden aria-label="Activity">
+        <div class="wire-head">
+          <h2>Activity</h2>
+          <p id="usage" class="hint">No usage yet</p>
+        </div>
+        <p class="hint">You can ignore this list. It shows what the connection did.</p>
+        <ol id="wire"></ol>
+      </aside>
+    </main>
+
+    <footer class="foot">
+      <p>
+        <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live">Gemini 3.8 Live</a>
+        and
+        <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking">Extended Thinking</a>
+      </p>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
