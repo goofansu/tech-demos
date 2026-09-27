@@ -6,7 +6,9 @@ import {
   THINKING_LEVELS,
   VOICES,
   modelById,
+  sceneById,
 } from "../lib/catalog.js";
+import { demoPath, pageFromPath } from "../lib/pages.js";
 import {
   appendTranscript,
   derivePhase,
@@ -135,16 +137,15 @@ function mount() {
     renderChrome();
   });
 
-  const scenes = $("scenes");
-  for (const scene of SCENES) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "scene";
-    button.dataset.scene = scene.id;
-    button.append(text("strong", "", scene.title), text("small", "", scene.detail));
-    button.addEventListener("click", () => void runScene(scene));
-    scenes.append(button);
-  }
+  renderCatalog();
+  const page = pageFromPath(window.location.pathname);
+  if (page.kind === "demo") applySceneDefaults(page.scene);
+  showPage(page);
+
+  $("ask").addEventListener("click", () => {
+    const scene = currentScene();
+    if (scene) void runScene(scene);
+  });
 
   $("tools").addEventListener("change", () => {
     state.tools = $("tools").checked;
@@ -292,13 +293,12 @@ async function startScene(scene) {
     capturePreview();
     if (!latestFrame) {
       revealCamera();
-      setBanner("Turn the camera on or choose a photo, then tap Look over again.");
+      setBanner(`Add a photo, then tap ${scene.ask}.`);
       renderChrome();
       return;
     }
   }
-  if (scene.tools) state.tools = true;
-  if (scene.search) state.search = true;
+  applySceneDefaults(scene);
   $("tools").checked = state.tools;
   $("search").checked = state.search;
   if (state.connected || state.connecting) await client.end();
@@ -676,13 +676,22 @@ function renderChrome() {
   thinkingField.disabled = locked;
   for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked;
   $("thinking-note").hidden = !thinking;
+  const scene = currentScene();
   $("thinking-note").textContent = locked
     ? "Tap New conversation, under the reply, to change this."
-    : "Low is quicker. High spends longer on harder questions.";
+    : scene?.thinkingNote || "Low is quicker. High spends longer on harder questions.";
   $("voice").disabled = false;
-  $("behavior-field").hidden = thinking;
-  $("behavior").disabled = locked;
-  const scheduleUseful = !thinking && state.behavior === "NON_BLOCKING";
+  const schedule = Boolean(scene?.schedule);
+  $("behavior-field").hidden = thinking || !schedule;
+  $("behavior").disabled = locked || !schedule;
+  $("more-summary").textContent = schedule ? "Voice and when to speak" : "Voice";
+  $("more-intro").hidden = !schedule;
+  $("toggles").hidden = true;
+  const frame = Boolean(scene?.frame);
+  $("photo-step").hidden = !frame;
+  $("photo").hidden = !frame;
+  $("ask-step").textContent = frame ? "3. Ask this" : "2. Ask this";
+  const scheduleUseful = schedule && !thinking && state.behavior === "NON_BLOCKING";
   $("schedule-field").hidden = !scheduleUseful;
   $("scheduling").disabled = locked || !scheduleUseful;
   $("tools").disabled = locked;
@@ -690,16 +699,13 @@ function renderChrome() {
   $("tools").checked = state.tools;
   $("search").checked = state.search;
   $("model-note").textContent = modelNote(thinking);
-  $("behavior-note").hidden = thinking;
+  $("behavior-note").hidden = thinking || !schedule;
   $("behavior-note").textContent = behaviorNote(thinking);
   $("session-label").textContent = state.sessionLabel;
   const fresh = $("session");
   fresh.hidden = false;
   fresh.disabled = !state.connected && !state.connecting && !state.turns.length;
   fresh.textContent = "New conversation";
-  for (const button of document.querySelectorAll(".scene")) {
-    button.setAttribute("aria-pressed", button.dataset.scene === state.sceneId ? "true" : "false");
-  }
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
   $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
   $("talk-hint").textContent = state.mic
@@ -846,9 +852,67 @@ function revealCamera() {
 }
 
 function emptyTranscript() {
+  const scene = currentScene();
   if (state.connecting) return "Starting. The reply will show up here.";
-  if (state.connected) return "You're connected. Tap Start talking and speak, or tap a button above.";
-  return "Tap a button above. That starts the session and asks the question for you.";
+  if (state.connected) return "You're connected. The reply will show up here, or tap Start talking and speak.";
+  if (scene) return `Tap ${scene.ask}. That starts the session and asks the question.`;
+  return "Open a demonstration.";
+}
+
+function currentScene() {
+  return sceneById(state.sceneId);
+}
+
+function applySceneDefaults(scene) {
+  state.sceneId = scene.id;
+  state.tools = Boolean(scene.tools);
+  state.search = Boolean(scene.search);
+}
+
+function renderCatalog() {
+  const catalog = $("catalog");
+  for (const scene of SCENES) {
+    const link = document.createElement("a");
+    link.className = "scene";
+    link.href = demoPath(scene.id);
+    link.append(
+      text("strong", "", scene.title),
+      text("span", "scene-shows", scene.shows),
+      text("small", "", scene.detail),
+      text("span", "scene-open", "Open"),
+    );
+    catalog.append(link);
+  }
+}
+
+function showPage(page) {
+  $("home").hidden = page.kind !== "home";
+  $("missing").hidden = page.kind !== "missing";
+  $("brief").hidden = page.kind !== "demo";
+  $("stage").hidden = page.kind !== "demo";
+  $("bench").hidden = page.kind !== "demo";
+  const skip = document.querySelector(".skip");
+  if (page.kind === "demo") {
+    skip.href = "#transcript";
+    skip.textContent = "Skip to the transcript";
+    renderBrief(page.scene);
+    document.title = `${page.scene.title} · Live stage`;
+    return;
+  }
+  skip.href = "#catalog";
+  skip.textContent = "Skip to the demonstrations";
+  document.title = page.kind === "missing" ? "Not found · Live stage" : "Live stage · Gemini 3.8";
+}
+
+function renderBrief(scene) {
+  $("demo-name").textContent = scene.title;
+  $("demo-title").textContent = scene.shows;
+  $("demo-detail").textContent = scene.detail;
+  const points = $("demo-points");
+  points.replaceChildren();
+  for (const point of scene.points) points.append(text("li", "", point));
+  $("question").textContent = scene.text;
+  $("ask").textContent = scene.ask;
 }
 
 function modelNote(thinking) {

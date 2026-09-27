@@ -1,6 +1,6 @@
 # Live stage
 
-A booth for [Gemini 3.8 Live](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live) and [Gemini 3.8 Live Extended Thinking](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking). The page opens with three steps: pick a model, tap a ready-made question or start talking, then read the reply. Talk, or show a photo. The activity list is the connection log: audio, turn boundaries, interaction status, and tool calls.
+A booth for [Gemini 3.8 Live](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live) and [Gemini 3.8 Live Extended Thinking](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking). The home page lists one demonstration per capability. Open a page to read what it shows, pick a model, then ask that question. The activity list is the connection log: audio, turn boundaries, interaction status, and tool calls.
 
 ## Run
 
@@ -16,12 +16,14 @@ Other scripts: `bun test`, `bun run build`, `bun run preview`.
 
 ## What to try
 
-- **Three hellos** — a short spoken turn. Live answers as soon as the turn is ready.
-- **Studio clock** — `stage_clock`, which returns immediately.
-- **Lisbon desk** and **Signal scan** — fixture tools with a few seconds of delay. On Live, speech waits for the result. On Extended Thinking, the model talks while the tool runs, `turnComplete` can arrive with `interactionStatus: IN_PROGRESS`, and the lamp returns to listening only at `IDLE`.
-- **Search the cup** — Google Search grounding.
-- **Ferry puzzle** — multi-step planning. On Extended Thinking, raise thinking to high. Live has no thinking control.
-- **Look over** — a camera frame or a still. Frames go out as JPEG, at most one a second while streaming. On a phone with a front and a rear camera, Rear camera switches between them after the camera is on.
+Each item is a page under `/try/<id>`. The page says what to listen for before you ask.
+
+- **Three hellos** (`/try/hello`) — a short spoken turn. Live answers as soon as the turn is ready.
+- **Studio clock** (`/try/clock`) — `stage_clock`, which returns immediately.
+- **Lisbon desk** (`/try/lisbon`) and **Signal scan** (`/try/scan`) — fixture tools with a few seconds of delay. On Live, speech waits for the result unless you change when it is spoken. On Extended Thinking, the model talks while the tool runs, `turnComplete` can arrive with `interactionStatus: IN_PROGRESS`, and the lamp returns to listening only at `IDLE`.
+- **Search the cup** (`/try/search`) — Google Search grounding.
+- **Ferry puzzle** (`/try/puzzle`) — multi-step planning. On Extended Thinking, raise thinking to high. Live has no thinking control.
+- **Look over** (`/try/see`) — a camera frame or a still. Frames go out as JPEG, at most one a second while streaming. On a phone with a front and a rear camera, Rear camera switches between them after the camera is on.
 
 Tool behavior and result scheduling (`when idle`, `interrupt`, `silent`) apply to Live. Extended Thinking always uses non-blocking tools and has no scheduling field. Do not send `thinkingConfig` to `gemini-3.8-live`.
 

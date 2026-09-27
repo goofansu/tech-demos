@@ -9,4 +9,4 @@ A collection of JavaScript demos.
 - [Admissions Triage](apps/jev-admissions-triage/) — Sort 100 fabricated applications by Jev attention, then inspect calibrated field verdicts (English and Simplified Chinese).
 - [Fruit Primer](apps/jev-fruit-primer/) — Step through a live Noul, Choice, and Score request about fruit, and read what each field in the reply means.
 - [Speech studio](apps/gemini-speech/) — Direct Gemini 3.8 text-to-speech: styles, vocal tags, two-speaker scenes, streaming, and designed voices.
-- [Live stage](apps/gemini-live/) — Talk, show a frame, and compare Gemini 3.8 Live with Extended Thinking: voice, tools, search, and background reasoning.
+- [Live stage](apps/gemini-live/) — Compare Gemini 3.8 Live with Extended Thinking, one demonstration per page: voice, tools, search, planning, and a photo.
