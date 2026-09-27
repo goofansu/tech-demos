@@ -637,23 +637,36 @@ function renderChrome() {
   const locked = state.connected || state.connecting;
   const thinking = Boolean(modelById(state.model)?.thinking);
   for (const input of $("models").querySelectorAll("input")) input.disabled = locked;
-  for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked || !thinking;
-  $("thinking-field").disabled = locked || !thinking;
+  const thinkingField = $("thinking-field");
+  thinkingField.hidden = !thinking;
+  thinkingField.disabled = locked;
+  for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked;
+  $("thinking-note").hidden = !thinking;
+  $("thinking-note").textContent = locked
+    ? "End the session to change how deeply it thinks."
+    : "Low is quicker. High spends longer on harder questions.";
   $("voice").disabled = locked;
-  $("behavior").disabled = locked || thinking;
-  $("scheduling").disabled = thinking || state.behavior !== "NON_BLOCKING";
+  $("behavior-field").hidden = thinking;
+  $("behavior").disabled = locked;
+  const scheduleUseful = !thinking && state.behavior === "NON_BLOCKING";
+  $("schedule-field").hidden = !scheduleUseful;
+  $("scheduling").disabled = locked || !scheduleUseful;
   $("tools").disabled = locked;
   $("search").disabled = locked;
   $("tools").checked = state.tools;
   $("search").checked = state.search;
   $("model-note").textContent = modelNote(thinking);
+  $("behavior-note").hidden = thinking;
   $("behavior-note").textContent = behaviorNote(thinking);
   $("session-label").textContent = state.sessionLabel;
   const session = $("session");
   session.disabled = state.connecting || (!state.connected && !state.ready);
   session.textContent = state.connecting ? "Starting…" : state.connected ? "End session" : "Open session";
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
-  $("mic").textContent = state.mic ? "Mic live" : "Microphone";
+  $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
+  $("talk-hint").textContent = state.mic
+    ? "The microphone is on. Speak now, then tap Stop talking. Send is only for typed text."
+    : "Tap Start talking and speak. Your voice goes out as you talk. Do not press Send.";
   $("camera-toggle").textContent = state.camera ? "Camera off" : "Camera";
   $("camera-toggle").setAttribute("aria-pressed", state.camera ? "true" : "false");
   renderLamp();
@@ -681,6 +694,7 @@ function renderLamp() {
   lamp.dataset.phase = view.phase;
   lamp.classList.toggle("working", view.working);
   $("phase").textContent = phaseLabel(view);
+  $("quiet").hidden = !state.playing;
 }
 
 function renderTranscript() {
@@ -798,7 +812,7 @@ function revealCamera() {
 
 function emptyTranscript() {
   if (state.connecting) return "Starting. The reply will show up here.";
-  if (state.connected) return "You're connected. Tap a button above, or type a message and press Send.";
+  if (state.connected) return "You're connected. Tap Start talking and speak, or type a message and press Send.";
   return "Tap a button above. That starts the session and asks the question for you.";
 }
 
@@ -810,7 +824,7 @@ function modelNote(thinking) {
 }
 
 function behaviorNote(thinking) {
-  if (thinking) return "Low, medium, or high changes how long this model thinks. The buttons work without changing it.";
+  if (thinking) return "";
   if (state.behavior === "BLOCKING") return "The model waits for a lookup to finish before it speaks.";
   if (state.scheduling === "INTERRUPT") return "A lookup result cuts in while the model is still talking.";
   if (state.scheduling === "SILENT") return "A lookup result is saved and does not start a new reply.";

@@ -36,9 +36,9 @@
       <section class="howto" aria-labelledby="howto-title">
         <h2 id="howto-title">How to use this</h2>
         <ol>
-          <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking keeps talking while it looks things up.</li>
-          <li><strong>Tap a button</strong> under Try one, or type a message and press Send. The first tap starts the session for you.</li>
-          <li><strong>Read the reply</strong> on the paper. The light says Listening, Speaking, or Still working.</li>
+          <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking is the one that can think longer.</li>
+          <li><strong>Tap a button</strong> under Try one, or ask in your own words at the bottom. Start talking sends your voice as you speak. Send is only for text you type.</li>
+          <li><strong>Read the reply.</strong> While the light says Speaking, Stop the reply cuts off the voice.</li>
         </ol>
       </section>
 
@@ -46,6 +46,11 @@
         <h2 class="step">1. Pick a model</h2>
         <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
         <p id="model-note" class="note"></p>
+        <fieldset id="thinking-field" hidden>
+          <legend>How deeply to think</legend>
+          <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
+          <p id="thinking-note" class="hint">Low is quicker. High spends longer on harder questions.</p>
+        </fieldset>
 
         <h2 class="step">2. Try one</h2>
         <p class="hint step-hint">Each button asks a ready-made question.</p>
@@ -55,17 +60,13 @@
 
         <details class="more" id="more">
           <summary>Voice, tools, and camera</summary>
-          <p class="hint">Optional. The buttons above already work. Open this to change the voice, show a photo, or see how a lookup is paced.</p>
+          <p class="hint">Optional. Change the voice or show a photo. On Live, you can also choose when a lookup is spoken.</p>
           <div class="controls">
-            <fieldset id="thinking-field">
-              <legend>How deeply to think</legend>
-              <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
-            </fieldset>
             <label class="field">
               Voice
               <select id="voice"></select>
             </label>
-            <label class="field">
+            <label class="field" id="behavior-field">
               Tool behavior
               <select id="behavior"></select>
             </label>
@@ -102,6 +103,7 @@
             <p class="eyebrow">Status</p>
             <p id="phase">Not connected</p>
           </div>
+          <button type="button" id="quiet" hidden>Stop the reply</button>
         </div>
         <div class="meters" aria-hidden="true">
           <span>In</span>
@@ -117,15 +119,17 @@
           </div>
           <ol id="transcript" aria-live="polite"></ol>
           <form id="composer">
-            <label class="sr" for="draft">Message</label>
-            <textarea id="draft" rows="2" placeholder="Ask for the time, a city, or what the camera sees."></textarea>
-            <div class="composer-actions">
-              <button type="button" id="mic" aria-pressed="false">Microphone</button>
-              <button type="button" id="quiet">Stop sound</button>
+            <div class="talk">
+              <button type="button" id="mic" aria-pressed="false">Start talking</button>
+              <p id="talk-hint" class="hint">Tap Start talking and speak. Your voice goes out as you talk. Do not press Send.</p>
+            </div>
+            <div class="type-row">
+              <label class="sr" for="draft">Type a message</label>
+              <textarea id="draft" rows="2" placeholder="Or type a message, then press Send."></textarea>
               <button type="submit" id="send">Send</button>
             </div>
           </form>
-          <p class="hint">Use headphones so the microphone does not hear the reply. Talking over a reply stops it.</p>
+          <p class="hint">Use headphones so the microphone does not hear the reply. Talking while it speaks interrupts it.</p>
         </div>
       </section>
 

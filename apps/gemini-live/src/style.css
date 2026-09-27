@@ -298,9 +298,21 @@ button,
 
 .controls {
   display: grid;
-  grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: 0.6rem;
   align-items: end;
+}
+
+#thinking-field {
+  margin: 0 0 0.9rem;
+}
+
+#thinking-field:disabled {
+  opacity: 0.62;
+}
+
+#thinking-field .hint {
+  margin: 0.45rem 0 0;
 }
 
 fieldset {
@@ -322,16 +334,25 @@ legend,
 
 .segment {
   display: flex;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 999px;
   overflow: hidden;
+  background: var(--paper);
+  color: var(--paper-ink);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .segment label {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
   text-align: center;
   padding: 0.5rem 0.3rem;
   position: relative;
+  color: var(--paper-ink);
+  font-weight: 600;
 }
 
 .segment input {
@@ -550,8 +571,31 @@ textarea {
 
 #composer {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.7rem;
   margin-top: 0.7rem;
+}
+
+.talk {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.talk .hint {
+  margin: 0;
+}
+
+.type-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: end;
+}
+
+#mic {
+  background: var(--live);
+  color: var(--live-ink);
+  border-color: transparent;
+  justify-self: start;
 }
 
 textarea {
@@ -563,14 +607,16 @@ textarea {
   min-height: 3.2rem;
 }
 
-.composer-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
 .paper .hint:last-child {
   margin: 0.55rem 0.2rem 0.15rem;
+}
+
+#quiet {
+  margin-left: auto;
+  background: var(--think);
+  color: var(--think-ink);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 #mic[aria-pressed="true"] {
@@ -591,6 +637,7 @@ textarea {
 
 .lamp-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
   margin: 0.2rem 0 0.75rem;
