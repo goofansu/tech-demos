@@ -57,8 +57,8 @@
         <p id="banner" class="banner" role="status" hidden></p>
 
         <details class="more" id="more">
-          <summary>Voice, tools, and camera</summary>
-          <p class="hint">Optional. Change the voice or show a photo. On Live, you can also choose when a lookup is spoken.</p>
+          <summary>Voice and lookups</summary>
+          <p class="hint">Optional. Change the voice. On Live, you can also choose when a lookup is spoken.</p>
           <button type="button" id="resume" hidden>Continue the last conversation</button>
           <div class="controls">
             <label class="field">
@@ -78,21 +78,6 @@
           <div class="toggles">
             <label><input id="tools" type="checkbox" checked /> Let the model look things up</label>
             <label><input id="search" type="checkbox" /> Use Google Search</label>
-            <label><input id="with-frame" type="checkbox" /> Include the current photo with each question</label>
-            <label><input id="stream-frames" type="checkbox" /> Send a photo every second</label>
-          </div>
-          <ul id="tool-list" class="tool-list"></ul>
-          <div class="preview">
-            <video id="camera" playsinline autoplay muted hidden></video>
-            <img id="still" alt="Chosen photo" hidden />
-            <p id="preview-empty">Photos show up here. Open the camera before Look over.</p>
-            <div class="preview-actions">
-              <button type="button" id="camera-toggle">Camera</button>
-              <label class="file">
-                Choose a photo
-                <input id="file" type="file" accept="image/*" />
-              </label>
-            </div>
           </div>
         </details>
 
@@ -121,6 +106,21 @@
           </div>
           <ol id="transcript" aria-live="polite"></ol>
           <div id="composer" class="talk">
+            <div id="photo" class="photo">
+              <div class="preview" id="photo-preview" hidden>
+                <video id="camera" playsinline autoplay muted hidden></video>
+                <img id="still" alt="" hidden />
+              </div>
+              <div class="photo-actions">
+                <button type="button" id="camera-toggle">Camera</button>
+                <label class="file">
+                  Choose a photo
+                  <input id="file" type="file" accept="image/*" />
+                </label>
+              </div>
+              <label id="stream-field" hidden><input id="stream-frames" type="checkbox" /> Keep sending the camera</label>
+              <p class="hint">Add a photo when you want the model to see something. It goes with the next question.</p>
+            </div>
             <button type="button" id="mic" aria-pressed="false">Start talking</button>
             <p id="talk-hint" class="hint">Tap Start talking and speak. Your voice goes out as you talk.</p>
           </div>

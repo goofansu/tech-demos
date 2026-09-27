@@ -140,21 +140,11 @@ function mount() {
     scenes.append(button);
   }
 
-  const tools = $("tool-list");
-  for (const tool of TOOLS) {
-    const item = document.createElement("li");
-    item.append(text("strong", "", tool.label), text("span", "", `${tool.detail} ${latencyLabel(tool.latencyMs)}`));
-    tools.append(item);
-  }
-
   $("tools").addEventListener("change", () => {
     state.tools = $("tools").checked;
   });
   $("search").addEventListener("change", () => {
     state.search = $("search").checked;
-  });
-  $("with-frame").addEventListener("change", () => {
-    state.withFrame = $("with-frame").checked;
   });
   $("stream-frames").addEventListener("change", () => {
     state.streamFrames = $("stream-frames").checked;
@@ -169,7 +159,7 @@ function mount() {
     const file = $("file").files?.[0];
     if (file) void chooseStill(file);
   });
-  const preview = document.querySelector(".preview");
+  const preview = $("photo");
   preview.addEventListener("dragover", (event) => {
     event.preventDefault();
     preview.classList.add("drag");
@@ -398,11 +388,9 @@ async function toggleCamera() {
     video.srcObject = cameraStream;
     video.hidden = false;
     $("still").hidden = true;
-    $("preview-empty").hidden = true;
     await video.play();
     state.camera = true;
     state.withFrame = true;
-    $("with-frame").checked = true;
     syncFrames();
     renderChrome();
   } catch (err) {
@@ -419,7 +407,10 @@ function stopCamera() {
   video.pause();
   video.srcObject = null;
   video.hidden = true;
-  $("preview-empty").hidden = Boolean(latestFrame);
+  if ($("still").hidden) {
+    latestFrame = null;
+    state.withFrame = false;
+  }
   stopFrames();
 }
 
@@ -433,9 +424,7 @@ async function chooseStill(file) {
     const still = $("still");
     still.src = stillUrl;
     still.hidden = false;
-    $("preview-empty").hidden = true;
     state.withFrame = true;
-    $("with-frame").checked = true;
     clearBanner();
     renderChrome();
   } catch (err) {
@@ -684,6 +673,10 @@ function renderChrome() {
     : "Tap Start talking and speak. Your voice goes out as you talk.";
   $("camera-toggle").textContent = state.camera ? "Camera off" : "Camera";
   $("camera-toggle").setAttribute("aria-pressed", state.camera ? "true" : "false");
+  const photoShowing = state.camera || !$("still").hidden;
+  $("photo-preview").hidden = !photoShowing;
+  $("stream-field").hidden = !state.camera;
+  state.withFrame = photoShowing;
   renderLamp();
   renderResume();
   renderBanner();
@@ -820,9 +813,7 @@ function clearBanner() {
 }
 
 function revealCamera() {
-  const more = $("more");
-  more.open = true;
-  more.scrollIntoView({ block: "nearest" });
+  $("photo").scrollIntoView({ block: "nearest" });
 }
 
 function emptyTranscript() {
@@ -893,11 +884,6 @@ function formatLatency(ms) {
   if (ms == null) return "";
   if (ms < 1000) return `${ms} ms`;
   return `${(ms / 1000).toFixed(1)} s`;
-}
-
-function latencyLabel(ms) {
-  if (!ms) return "";
-  return `About ${(ms / 1000).toFixed(1)} s.`;
 }
 
 function fillSelect(select, options) {

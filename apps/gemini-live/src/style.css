@@ -686,41 +686,53 @@ select {
 
 #out-meter { background: var(--think); }
 
+[hidden] {
+  display: none !important;
+}
+
 .toggles {
   display: grid;
   gap: 0.35rem;
 }
 
-.toggles label,
-.tool-list {
+.toggles label {
   font-size: 0.92rem;
 }
 
-.tool-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.photo {
   display: grid;
   gap: 0.45rem;
 }
 
-.tool-list li {
-  display: grid;
-  gap: 0.1rem;
+.photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
-.tool-list span {
-  color: var(--muted);
-  font-size: 0.82rem;
+.paper .file {
+  background: var(--paper-ink);
+  color: var(--paper);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+#stream-field {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.92rem;
+}
+
+.photo .hint {
+  margin: 0;
 }
 
 .preview {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
-  min-height: 150px;
-  background: #0d120c;
-  border: 1px dashed var(--line);
+  background: #1c1914;
 }
 
 .preview video,
@@ -732,19 +744,6 @@ select {
   background: #0d120c;
 }
 
-#preview-empty {
-  margin: 0;
-  padding: 2.2rem 1rem;
-  text-align: center;
-  color: var(--muted);
-}
-
-.preview-actions {
-  display: flex;
-  gap: 0.4rem;
-  padding: 0.55rem;
-}
-
 .file input {
   position: absolute;
   width: 1px;
@@ -753,8 +752,9 @@ select {
   clip: rect(0, 0, 0, 0);
 }
 
-.preview.drag {
-  border-color: var(--live);
+.photo.drag {
+  outline: 2px solid var(--live);
+  outline-offset: 3px;
 }
 
 .wire-head {

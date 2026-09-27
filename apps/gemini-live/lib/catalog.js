@@ -95,7 +95,7 @@ export const SCENES = [
   {
     id: "see",
     title: "Look over",
-    detail: "Describe a photo. Open the camera first.",
+    detail: "Describe a photo. Add one under the reply first.",
     text: "Look at the latest frame and describe what you see in two sentences.",
     frame: true,
   },
