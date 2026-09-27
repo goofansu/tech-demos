@@ -63,7 +63,7 @@ export function buildSessionRequest(input = {}) {
     speechConfig: {
       voiceConfig: { prebuiltVoiceConfig: { voiceName: voice.id } },
     },
-    systemInstruction: SYSTEM_INSTRUCTION,
+    systemInstruction: instructionWithPrior(input.priorTalk),
     inputAudioTranscription: {},
     outputAudioTranscription: {},
     sessionResumption: resumeHandle ? { handle: resumeHandle } : {},
@@ -101,4 +101,11 @@ export function sessionFingerprint(input = {}) {
     input.search ? "1" : "0",
     input.behavior === "BLOCKING" ? "BLOCKING" : "NON_BLOCKING",
   ].join("|");
+}
+
+function instructionWithPrior(priorTalk) {
+  const prior = String(priorTalk || "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim();
+  if (!prior) return SYSTEM_INSTRUCTION;
+  const clipped = prior.length > 6000 ? prior.slice(prior.length - 6000) : prior;
+  return `${SYSTEM_INSTRUCTION}\n\nContinue this same conversation. The voice changed, and you already heard this:\n${clipped}\nRespond to what the person says next. Do not greet them as if you just met.`;
 }

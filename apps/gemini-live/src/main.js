@@ -15,6 +15,7 @@ import {
   phaseLabel,
 } from "../lib/messages.js";
 import { TOOLS } from "../lib/tools.js";
+import { formatPriorTalk } from "../lib/talk.js";
 import {
   audioContext,
   createPlayback,
@@ -119,6 +120,8 @@ function mount() {
   $("scheduling").value = state.scheduling;
   $("voice").addEventListener("change", () => {
     state.voice = $("voice").value;
+    const job = voiceChain.then(() => applyVoice());
+    voiceChain = job.then(() => {}, () => {});
   });
   $("behavior").addEventListener("change", () => {
     state.behavior = $("behavior").value;
@@ -153,10 +156,8 @@ function mount() {
     state.streamFrames = $("stream-frames").checked;
     syncFrames();
   });
-  $("session").addEventListener("click", () => void toggleSession());
-  $("resume").addEventListener("click", () => void resumeSession());
+  $("session").addEventListener("click", () => void startOver());
   $("mic").addEventListener("click", () => void toggleMic());
-  $("quiet").addEventListener("click", () => quiet());
   $("camera-toggle").addEventListener("click", () => void toggleCamera());
   $("camera-flip").addEventListener("click", () => void flipCamera());
   $("file").addEventListener("change", () => {
@@ -204,17 +205,38 @@ function settings() {
   };
 }
 
-async function toggleSession() {
-  if (state.connected || state.connecting) await endSession("Ended");
+let voiceChain = Promise.resolve();
+
+async function applyVoice() {
+  const priorTalk = formatPriorTalk(state.turns);
+  const wasMic = Boolean(micHandle);
+  if (!priorTalk && !state.connected && !state.connecting) return;
+  if (state.connected || state.connecting) await disconnect();
+  if (!priorTalk) {
+    renderChrome();
+    return;
+  }
+  const opened = await openSession({ priorTalk });
+  if (opened && wasMic) await beginMic();
 }
 
-async function resumeSession() {
-  if (!state.resumeHandle) return;
-  if (state.connected) await endSession("");
-  await openSession({ resume: true });
+async function startOver() {
+  await disconnect();
+  resetConversation();
 }
 
-async function openSession({ resume = false } = {}) {
+async function disconnect() {
+  await client.end();
+  state.connected = false;
+  state.connecting = false;
+  state.serverStatus = "";
+  state.toolsInFlight = 0;
+  state.playing = false;
+  stopMic();
+  stopFrames();
+  playback?.stop();
+}
+async function openSession({ priorTalk = "" } = {}) {
   if (state.connecting) return false;
   if (!state.ready) {
     await statusPromise;
@@ -231,7 +253,7 @@ async function openSession({ resume = false } = {}) {
   try {
     const body = await client.connect({
       ...settings(),
-      resumeHandle: resume ? state.resumeHandle : undefined,
+      priorTalk,
     });
     if (!body) {
       state.connecting = false;
@@ -255,21 +277,6 @@ async function openSession({ resume = false } = {}) {
     renderChrome();
     return false;
   }
-}
-
-async function endSession(detail) {
-  await client.end();
-  state.connected = false;
-  state.connecting = false;
-  state.serverStatus = "";
-  state.toolsInFlight = 0;
-  state.playing = false;
-  stopMic();
-  stopFrames();
-  playback?.stop();
-  if (detail) log({ type: "note", detail });
-  renderChrome();
-  renderConversation();
 }
 
 let sceneChain = Promise.resolve();
@@ -355,6 +362,10 @@ async function toggleMic() {
     renderChrome();
     return;
   }
+  await beginMic();
+}
+
+async function beginMic() {
   ensurePlayback();
   if (!state.connected) {
     const opened = await openSession();
@@ -484,14 +495,6 @@ function stopFrames() {
   frameTimer = 0;
 }
 
-function quiet() {
-  ensurePlayback();
-  playback.stop();
-  state.playing = false;
-  setMeter("out-meter", 0);
-  renderLamp();
-}
-
 function ensurePlayback() {
   audioContext();
   if (playback) return playback;
@@ -538,7 +541,7 @@ function handleEvent(event) {
     state.resumable = event.resumable;
     log({ type: "resume", detail: event.resumable ? "resumable" : "hold" });
   } else if (event.type === "goaway") {
-    setBanner(`The server will close this socket in ${event.timeLeft || "a moment"}. Resume keeps the same conversation.`, "warn");
+    setBanner(`The server will close this connection in ${event.timeLeft || "a moment"}.`, "warn");
     log({ type: "goaway", detail: event.timeLeft || "" });
   } else if (event.type === "usage") {
     state.usage = event.total;
@@ -613,7 +616,6 @@ function handleEvent(event) {
   renderConversation();
   renderLamp();
   renderUsage();
-  renderResume();
 }
 
 function applyInput(text, final) {
@@ -675,9 +677,9 @@ function renderChrome() {
   for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked;
   $("thinking-note").hidden = !thinking;
   $("thinking-note").textContent = locked
-    ? "Tap End, next to the status light, to change this."
+    ? "Tap New conversation, under the reply, to change this."
     : "Low is quicker. High spends longer on harder questions.";
-  $("voice").disabled = locked;
+  $("voice").disabled = false;
   $("behavior-field").hidden = thinking;
   $("behavior").disabled = locked;
   const scheduleUseful = !thinking && state.behavior === "NON_BLOCKING";
@@ -691,14 +693,17 @@ function renderChrome() {
   $("behavior-note").hidden = thinking;
   $("behavior-note").textContent = behaviorNote(thinking);
   $("session-label").textContent = state.sessionLabel;
-  $("session").hidden = !state.connected;
+  const fresh = $("session");
+  fresh.hidden = false;
+  fresh.disabled = !state.connected && !state.connecting && !state.turns.length;
+  fresh.textContent = "New conversation";
   for (const button of document.querySelectorAll(".scene")) {
     button.setAttribute("aria-pressed", button.dataset.scene === state.sceneId ? "true" : "false");
   }
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
   $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
   $("talk-hint").textContent = state.mic
-    ? "The microphone is on. Speak now, then tap Stop talking."
+    ? "The microphone is on. Stop talking turns it off and leaves this chat on the page."
     : "Tap Start talking and speak. Your voice goes out as you talk.";
   $("camera-toggle").textContent = state.camera ? "Camera off" : "Camera";
   $("camera-toggle").setAttribute("aria-pressed", state.camera ? "true" : "false");
@@ -710,7 +715,6 @@ function renderChrome() {
   $("stream-field").hidden = !state.camera;
   state.withFrame = photoShowing;
   renderLamp();
-  renderResume();
   renderBanner();
   renderUsage();
   if (!state.turns.length) renderTranscript();
@@ -734,7 +738,6 @@ function renderLamp() {
   lamp.dataset.phase = view.phase;
   lamp.classList.toggle("working", view.working);
   $("phase").textContent = phaseLabel(view);
-  $("quiet").hidden = !state.playing;
 }
 
 function renderTranscript() {
@@ -823,12 +826,6 @@ function renderBanner() {
   banner.hidden = !state.banner;
   banner.textContent = state.banner;
   banner.classList.toggle("warn", state.bannerTone === "warn");
-}
-
-function renderResume() {
-  const button = $("resume");
-  const show = Boolean(state.resumeHandle) && !state.connected && !state.connecting;
-  button.hidden = !show;
 }
 
 function renderUsage() {

@@ -576,6 +576,12 @@ select {
   margin: 0;
 }
 
+.talk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
 #mic {
   background: var(--live);
   color: var(--live-ink);
@@ -585,24 +591,6 @@ select {
 
 .paper .hint:last-child {
   margin: 0.55rem 0.2rem 0.15rem;
-}
-
-.lamp-actions {
-  margin-left: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-#quiet {
-  background: var(--think);
-  color: var(--think-ink);
-  border-color: transparent;
-  box-shadow: none;
-}
-
-#more > #resume {
-  margin: 0.2rem 0 0.7rem;
 }
 
 #mic[aria-pressed="true"] {

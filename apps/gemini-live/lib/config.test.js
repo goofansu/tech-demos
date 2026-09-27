@@ -77,6 +77,15 @@ describe("buildSessionRequest", () => {
     expect(built.behavior).toBe("NON_BLOCKING");
     expect(built.scheduling).toBe("WHEN_IDLE");
     expect(built.thinkingLevel).toBeNull();
+    expect(built.config.systemInstruction).not.toMatch(/already heard/);
+  });
+});
+
+describe("prior conversation", () => {
+  test("tells a new voice what was already said", () => {
+    const built = buildSessionRequest({ priorTalk: "Person: Hello\nVoice: Hi." });
+    expect(built.config.systemInstruction).toMatch(/Person: Hello/);
+    expect(built.config.systemInstruction).toMatch(/Do not greet them as if you just met/);
   });
 });
 

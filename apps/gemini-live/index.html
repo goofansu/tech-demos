@@ -36,7 +36,7 @@
         <ol>
           <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking is the one that can think longer.</li>
           <li><strong>Tap a button</strong> under Try one, or tap Start talking and speak in your own words. Your voice goes out as you talk.</li>
-          <li><strong>Read the reply.</strong> While the light says Speaking, Stop the reply cuts off the voice.</li>
+          <li><strong>Read the reply.</strong> Speak while a reply is playing if you want to interrupt it.</li>
         </ol>
       </section>
 
@@ -58,8 +58,7 @@
 
         <details class="more" id="more">
           <summary>Voice and lookups</summary>
-          <p class="hint">Optional. Change the voice. On Live, you can also choose when a lookup is spoken.</p>
-          <button type="button" id="resume" hidden>Continue the last conversation</button>
+          <p class="hint">Optional. A new voice keeps what you already said. On Live, you can also choose when a lookup is spoken.</p>
           <div class="controls">
             <label class="field">
               Voice
@@ -86,10 +85,6 @@
           <div>
             <p class="eyebrow">Status</p>
             <p id="phase">Not connected</p>
-          </div>
-          <div class="lamp-actions">
-            <button type="button" id="quiet" hidden>Stop the reply</button>
-            <button type="button" id="session" hidden>End</button>
           </div>
         </div>
         <div class="meters" aria-hidden="true">
@@ -122,8 +117,12 @@
               <label id="stream-field" hidden><input id="stream-frames" type="checkbox" /> Keep sending the camera</label>
               <p class="hint">Add a photo when you want the model to see something. It goes with the next question.</p>
             </div>
-            <button type="button" id="mic" aria-pressed="false">Start talking</button>
+            <div class="talk-actions">
+              <button type="button" id="mic" aria-pressed="false">Start talking</button>
+              <button type="button" id="session" disabled>New conversation</button>
+            </div>
             <p id="talk-hint" class="hint">Tap Start talking and speak. Your voice goes out as you talk.</p>
+            <p class="hint">Stop talking turns the microphone off and keeps this chat. New conversation clears the page. Changing the voice keeps what was already said.</p>
           </div>
           <p class="hint">Use headphones so the microphone does not hear the reply. Talking while it speaks interrupts it.</p>
         </div>
