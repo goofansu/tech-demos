@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Talk, show a frame, and compare Gemini 3.8 Live with Extended Thinking: voice, tools, search, and background reasoning."
+    />
+    <title>Live stage · Gemini 3.8</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#transcript">Skip to the transcript</a>
+    <header class="top">
+      <div class="brand">
+        <p class="eyebrow">Gemini 3.8</p>
+        <h1>Live stage</h1>
+        <p class="lede">Two live models, one microphone. Speak, type, or show a frame.</p>
+      </div>
+      <div class="session-bar">
+        <p id="key-status" class="key">Checking key…</p>
+        <button type="button" id="resume" hidden>Resume</button>
+        <button type="button" id="session">Open session</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="stage" aria-label="Conversation">
+        <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
+        <p id="model-note" class="note"></p>
+
+        <div class="controls">
+          <fieldset id="thinking-field">
+            <legend>Thinking level</legend>
+            <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
+          </fieldset>
+          <label class="field">
+            Voice
+            <select id="voice"></select>
+          </label>
+          <label class="field">
+            Tool behavior
+            <select id="behavior"></select>
+          </label>
+          <label class="field" id="schedule-field">
+            Result schedule
+            <select id="scheduling"></select>
+          </label>
+        </div>
+        <p id="behavior-note" class="hint"></p>
+
+        <div id="scenes" class="scenes" aria-label="Scenes"></div>
+
+        <p id="banner" class="banner" role="status" hidden></p>
+
+        <div class="paper">
+          <div class="paper-head">
+            <h2>Transcript</h2>
+            <p id="session-label" class="hint"></p>
+          </div>
+          <ol id="transcript" aria-live="polite"></ol>
+          <form id="composer">
+            <label class="sr" for="draft">Message</label>
+            <textarea id="draft" rows="2" placeholder="Ask for the time, a city, or what the camera sees."></textarea>
+            <div class="composer-actions">
+              <button type="button" id="mic" aria-pressed="false">Microphone</button>
+              <button type="button" id="quiet">Quiet</button>
+              <button type="submit" id="send">Send</button>
+            </div>
+          </form>
+          <p class="hint">Headphones keep the microphone from hearing the model. Speaking over a reply interrupts it.</p>
+        </div>
+      </section>
+
+      <aside class="bench" aria-label="Session wire">
+        <div class="lamp-row">
+          <span id="lamp" data-phase="idle" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">Socket</p>
+            <p id="phase">Session closed</p>
+          </div>
+        </div>
+        <div class="meters" aria-hidden="true">
+          <span>In</span>
+          <span class="meter"><i id="in-meter"></i></span>
+          <span>Out</span>
+          <span class="meter"><i id="out-meter"></i></span>
+        </div>
+
+        <div class="toggles">
+          <label><input id="tools" type="checkbox" checked /> Studio tools</label>
+          <label><input id="search" type="checkbox" /> Google Search</label>
+          <label><input id="with-frame" type="checkbox" /> Send the current frame with each turn</label>
+          <label><input id="stream-frames" type="checkbox" /> Stream one frame a second</label>
+        </div>
+        <ul id="tool-list" class="tool-list"></ul>
+
+        <div class="preview">
+          <video id="camera" playsinline autoplay muted hidden></video>
+          <img id="still" alt="Chosen still" hidden />
+          <p id="preview-empty">Camera frames and stills land here.</p>
+          <div class="preview-actions">
+            <button type="button" id="camera-toggle">Camera</button>
+            <label class="file">
+              Choose still
+              <input id="file" type="file" accept="image/*" />
+            </label>
+          </div>
+        </div>
+
+        <div class="wire-head">
+          <h2>Wire</h2>
+          <p id="usage" class="hint">No usage yet</p>
+        </div>
+        <ol id="wire"></ol>
+        <p class="hint">Audio is 16 kHz in and 24 kHz out. Context compression and session resumption are on. The API key stays on the server.</p>
+      </aside>
+    </main>
+
+    <footer class="foot">
+      <p>
+        <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live">Gemini 3.8 Live</a>
+        and
+        <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking">Extended Thinking</a>
+      </p>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
