@@ -103,7 +103,7 @@ export function createLiveClient({ onEvent, onSocket }) {
   }
 
   function requireSession() {
-    if (!session) throw new Error("Open a session first.");
+    if (!session) throw new Error("Tap a question or Start talking first.");
     return session;
   }
 

@@ -27,8 +27,6 @@
       </div>
       <div class="session-bar">
         <p id="key-status" class="key">Checking key…</p>
-        <button type="button" id="resume" hidden>Resume</button>
-        <button type="button" id="session">Open session</button>
       </div>
     </header>
 
@@ -61,6 +59,7 @@
         <details class="more" id="more">
           <summary>Voice, tools, and camera</summary>
           <p class="hint">Optional. Change the voice or show a photo. On Live, you can also choose when a lookup is spoken.</p>
+          <button type="button" id="resume" hidden>Continue the last conversation</button>
           <div class="controls">
             <label class="field">
               Voice
@@ -103,7 +102,10 @@
             <p class="eyebrow">Status</p>
             <p id="phase">Not connected</p>
           </div>
-          <button type="button" id="quiet" hidden>Stop the reply</button>
+          <div class="lamp-actions">
+            <button type="button" id="quiet" hidden>Stop the reply</button>
+            <button type="button" id="session" hidden>End</button>
+          </div>
         </div>
         <div class="meters" aria-hidden="true">
           <span>In</span>

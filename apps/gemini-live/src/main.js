@@ -211,11 +211,7 @@ function settings() {
 }
 
 async function toggleSession() {
-  if (state.connected || state.connecting) {
-    await endSession("Session ended");
-    return;
-  }
-  await openSession();
+  if (state.connected || state.connecting) await endSession("Ended");
 }
 
 async function resumeSession() {
@@ -634,7 +630,7 @@ function renderChrome() {
   for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked;
   $("thinking-note").hidden = !thinking;
   $("thinking-note").textContent = locked
-    ? "End the session to change how deeply it thinks."
+    ? "Tap End, next to the status light, to change this."
     : "Low is quicker. High spends longer on harder questions.";
   $("voice").disabled = locked;
   $("behavior-field").hidden = thinking;
@@ -650,9 +646,7 @@ function renderChrome() {
   $("behavior-note").hidden = thinking;
   $("behavior-note").textContent = behaviorNote(thinking);
   $("session-label").textContent = state.sessionLabel;
-  const session = $("session");
-  session.disabled = state.connecting || (!state.connected && !state.ready);
-  session.textContent = state.connecting ? "Starting…" : state.connected ? "End session" : "Open session";
+  $("session").hidden = !state.connected;
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
   $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
   $("talk-hint").textContent = state.mic
