@@ -23,7 +23,7 @@
       <div class="brand">
         <p class="eyebrow">Gemini 3.8</p>
         <h1>Live stage</h1>
-        <p class="lede">Two live models, one microphone. Speak, type, or show a frame.</p>
+        <p class="lede">Compare two Gemini voice models. Talk, type, or show a photo.</p>
       </div>
       <div class="session-bar">
         <p id="key-status" class="key">Checking key…</p>
@@ -33,59 +33,75 @@
     </header>
 
     <main class="grid">
+      <section class="howto" aria-labelledby="howto-title">
+        <h2 id="howto-title">How to use this</h2>
+        <p>This page lets you talk to Gemini and hear two models side by side.</p>
+        <ol>
+          <li><strong>Pick a model.</strong> Live answers as soon as it can. Extended Thinking keeps talking while it looks things up.</li>
+          <li><strong>Tap a button</strong> under Try one, or type a message and press Send. The first tap starts the session for you.</li>
+          <li><strong>Read the reply</strong> on the paper. The light says Listening, Speaking, or Still working.</li>
+        </ol>
+      </section>
+
       <section class="stage" aria-label="Conversation">
+        <h2 class="step">1. Pick a model</h2>
         <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
         <p id="model-note" class="note"></p>
 
-        <div class="controls">
-          <fieldset id="thinking-field">
-            <legend>Thinking level</legend>
-            <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
-          </fieldset>
-          <label class="field">
-            Voice
-            <select id="voice"></select>
-          </label>
-          <label class="field">
-            Tool behavior
-            <select id="behavior"></select>
-          </label>
-          <label class="field" id="schedule-field">
-            Result schedule
-            <select id="scheduling"></select>
-          </label>
-        </div>
-        <p id="behavior-note" class="hint"></p>
-
-        <div id="scenes" class="scenes" aria-label="Scenes"></div>
+        <h2 class="step">2. Try one</h2>
+        <p class="hint step-hint">Each button asks a ready-made question.</p>
+        <div id="scenes" class="scenes" aria-label="Ready-made questions"></div>
 
         <p id="banner" class="banner" role="status" hidden></p>
 
-        <div class="paper">
-          <div class="paper-head">
-            <h2>Transcript</h2>
-            <p id="session-label" class="hint"></p>
+        <details class="more" id="more">
+          <summary>Voice, tools, and camera</summary>
+          <p class="hint">Optional. The buttons above already work. Open this to change the voice, show a photo, or see how a lookup is paced.</p>
+          <div class="controls">
+            <fieldset id="thinking-field">
+              <legend>How deeply to think</legend>
+              <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
+            </fieldset>
+            <label class="field">
+              Voice
+              <select id="voice"></select>
+            </label>
+            <label class="field">
+              Tool behavior
+              <select id="behavior"></select>
+            </label>
+            <label class="field" id="schedule-field">
+              When to speak a result
+              <select id="scheduling"></select>
+            </label>
           </div>
-          <ol id="transcript" aria-live="polite"></ol>
-          <form id="composer">
-            <label class="sr" for="draft">Message</label>
-            <textarea id="draft" rows="2" placeholder="Ask for the time, a city, or what the camera sees."></textarea>
-            <div class="composer-actions">
-              <button type="button" id="mic" aria-pressed="false">Microphone</button>
-              <button type="button" id="quiet">Quiet</button>
-              <button type="submit" id="send">Send</button>
+          <p id="behavior-note" class="hint"></p>
+          <div class="toggles">
+            <label><input id="tools" type="checkbox" checked /> Let the model look things up</label>
+            <label><input id="search" type="checkbox" /> Use Google Search</label>
+            <label><input id="with-frame" type="checkbox" /> Send the current photo with each message</label>
+            <label><input id="stream-frames" type="checkbox" /> Send a photo every second</label>
+          </div>
+          <ul id="tool-list" class="tool-list"></ul>
+          <div class="preview">
+            <video id="camera" playsinline autoplay muted hidden></video>
+            <img id="still" alt="Chosen photo" hidden />
+            <p id="preview-empty">Photos show up here. Open the camera before Look over.</p>
+            <div class="preview-actions">
+              <button type="button" id="camera-toggle">Camera</button>
+              <label class="file">
+                Choose a photo
+                <input id="file" type="file" accept="image/*" />
+              </label>
             </div>
-          </form>
-          <p class="hint">Headphones keep the microphone from hearing the model. Speaking over a reply interrupts it.</p>
-        </div>
-      </section>
+          </div>
+        </details>
 
-      <aside class="bench" aria-label="Session wire">
         <div class="lamp-row">
           <span id="lamp" data-phase="idle" aria-hidden="true"></span>
           <div>
-            <p class="eyebrow">Socket</p>
-            <p id="phase">Session closed</p>
+            <p class="eyebrow">Status</p>
+            <p id="phase">Not connected</p>
           </div>
         </div>
         <div class="meters" aria-hidden="true">
@@ -95,33 +111,32 @@
           <span class="meter"><i id="out-meter"></i></span>
         </div>
 
-        <div class="toggles">
-          <label><input id="tools" type="checkbox" checked /> Studio tools</label>
-          <label><input id="search" type="checkbox" /> Google Search</label>
-          <label><input id="with-frame" type="checkbox" /> Send the current frame with each turn</label>
-          <label><input id="stream-frames" type="checkbox" /> Stream one frame a second</label>
-        </div>
-        <ul id="tool-list" class="tool-list"></ul>
-
-        <div class="preview">
-          <video id="camera" playsinline autoplay muted hidden></video>
-          <img id="still" alt="Chosen still" hidden />
-          <p id="preview-empty">Camera frames and stills land here.</p>
-          <div class="preview-actions">
-            <button type="button" id="camera-toggle">Camera</button>
-            <label class="file">
-              Choose still
-              <input id="file" type="file" accept="image/*" />
-            </label>
+        <div class="paper">
+          <div class="paper-head">
+            <h2>3. Read the reply</h2>
+            <p id="session-label" class="hint"></p>
           </div>
+          <ol id="transcript" aria-live="polite"></ol>
+          <form id="composer">
+            <label class="sr" for="draft">Message</label>
+            <textarea id="draft" rows="2" placeholder="Ask for the time, a city, or what the camera sees."></textarea>
+            <div class="composer-actions">
+              <button type="button" id="mic" aria-pressed="false">Microphone</button>
+              <button type="button" id="quiet">Stop sound</button>
+              <button type="submit" id="send">Send</button>
+            </div>
+          </form>
+          <p class="hint">Use headphones so the microphone does not hear the reply. Talking over a reply stops it.</p>
         </div>
+      </section>
 
+      <aside class="bench" aria-label="Activity">
         <div class="wire-head">
-          <h2>Wire</h2>
+          <h2>Activity</h2>
           <p id="usage" class="hint">No usage yet</p>
         </div>
+        <p class="hint">You can ignore this list. It shows what the connection did.</p>
         <ol id="wire"></ol>
-        <p class="hint">Audio is 16 kHz in and 24 kHz out. Context compression and session resumption are on. The API key stays on the server.</p>
       </aside>
     </main>
 

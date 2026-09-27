@@ -122,8 +122,8 @@ h2,
 
 h1 {
   margin: 0.1rem 0;
-  font-size: clamp(3rem, 7vw, 5.2rem);
-  line-height: 0.85;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  line-height: 0.9;
   letter-spacing: -0.03em;
 }
 
@@ -164,14 +164,18 @@ button,
 .file,
 select,
 textarea {
-  background: #1c2419;
-  border: 1px solid var(--line);
+  border: 2px solid #d7d0c2;
   border-radius: 999px;
 }
 
 button,
 .file {
-  padding: 0.55rem 0.9rem;
+  background: var(--paper);
+  color: var(--paper-ink);
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  min-height: 2.75rem;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 #session,
@@ -187,6 +191,43 @@ button,
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
   gap: 1rem;
   padding-bottom: 1.5rem;
+}
+
+.howto {
+  grid-column: 1 / -1;
+  background: var(--paper);
+  color: var(--paper-ink);
+  border-radius: 22px;
+  padding: 1rem 1.15rem 1.15rem;
+  box-shadow: var(--shadow);
+}
+
+.howto h2 {
+  font-size: 2rem;
+}
+
+.howto p,
+.howto li {
+  margin: 0.35rem 0 0;
+  color: #3a342c;
+  line-height: 1.45;
+  font-size: 1.02rem;
+}
+
+.howto ol {
+  margin: 0.55rem 0 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.step {
+  margin: 0.15rem 0 0.55rem;
+  font-size: 1.55rem;
+}
+
+.step-hint {
+  margin-top: 0;
 }
 
 .stage,
@@ -205,10 +246,13 @@ button,
   display: grid;
   gap: 0.25rem;
   padding: 0.9rem 0.95rem 1rem;
-  border: 1px solid var(--line);
+  border: 2px solid transparent;
   border-radius: 18px;
-  background: var(--panel);
+  background: var(--paper);
+  color: var(--paper-ink);
   min-height: 100%;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
 }
 
 .plate input {
@@ -221,7 +265,7 @@ button,
 .plate-kicker,
 .plate-id {
   font-size: 0.75rem;
-  color: var(--muted);
+  color: #5e584e;
 }
 
 .plate-name {
@@ -230,8 +274,8 @@ button,
 }
 
 .plate-copy {
-  color: var(--ink);
-  font-size: 0.92rem;
+  color: #3a342c;
+  font-size: 0.95rem;
   line-height: 1.4;
 }
 
@@ -240,7 +284,7 @@ button,
 
 .plate:has(input:checked) {
   border-color: var(--accent);
-  box-shadow: inset 4px 0 0 var(--accent);
+  box-shadow: inset 6px 0 0 var(--accent), 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .plate:has(input:focus-visible) {
@@ -299,6 +343,7 @@ legend,
 .segment label:has(input:checked) {
   background: var(--think);
   color: var(--think-ink);
+  font-weight: 600;
 }
 
 select,
@@ -306,25 +351,57 @@ textarea {
   width: 100%;
   border-radius: 12px;
   padding: 0.55rem 0.7rem;
+  background: var(--paper);
+  color: var(--paper-ink);
+  font-weight: 600;
 }
 
 .hint {
   margin: 0.45rem 0 0.8rem;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   line-height: 1.4;
 }
 
+.more {
+  margin: 0.2rem 0 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(18, 24, 16, 0.72);
+  padding: 0.15rem 0.9rem 0.85rem;
+}
+
+.more summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin: 0.65rem 0 0.2rem;
+  padding: 0.7rem 1rem;
+  min-height: 2.75rem;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--paper-ink);
+  list-style-position: inside;
+}
+
+.more[open] summary {
+  margin-bottom: 0.35rem;
+}
+
+.more .hint {
+  margin-top: 0;
+}
+
 .scenes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 0.8rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
 }
 
 .scene {
-  border-radius: 14px;
+  border-radius: 16px;
   text-align: left;
-  background: #1a2218;
+  min-height: 4.6rem;
+  padding: 0.75rem 0.85rem;
 }
 
 .scene strong,
@@ -332,9 +409,16 @@ textarea {
   display: block;
 }
 
+.scene strong {
+  font-size: 1rem;
+}
+
 .scene small {
-  color: var(--muted);
-  font-size: 0.78rem;
+  margin-top: 0.2rem;
+  color: #4a453c;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
 .banner {
@@ -356,6 +440,20 @@ textarea {
   border-radius: 22px;
   padding: 0.9rem;
   box-shadow: var(--shadow);
+}
+
+.paper button {
+  background: var(--paper-ink);
+  color: var(--paper);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.paper #send,
+#mic[aria-pressed="true"] {
+  background: var(--live);
+  color: var(--live-ink);
+  border-color: transparent;
 }
 
 .paper-head {
@@ -496,6 +594,7 @@ textarea {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  margin: 0.2rem 0 0.75rem;
 }
 
 .lamp-row p {
@@ -685,6 +784,10 @@ textarea {
   .models,
   .controls {
     grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 2.4rem;
   }
 
   .top {

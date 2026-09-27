@@ -87,11 +87,11 @@ export function derivePhase({ connected, connecting, playing, serverStatus, tool
 
 export function phaseLabel(view) {
   if (view.phase === "speaking" && view.working) return "Speaking, still working";
-  if (view.phase === "connecting") return "Opening the socket";
+  if (view.phase === "connecting") return "Starting…";
   if (view.phase === "listening") return "Listening";
   if (view.phase === "speaking") return "Speaking";
-  if (view.phase === "working") return "Working";
-  return "Session closed";
+  if (view.phase === "working") return "Still working";
+  return "Not connected";
 }
 
 export function noteWire(log, event, at = 0) {

@@ -198,7 +198,7 @@ async function loadStatus() {
   } catch {
     state.ready = false;
   }
-  $("key-status").textContent = state.ready ? "Key is on the server" : "No API key on the server";
+  $("key-status").textContent = state.ready ? "Ready to talk" : "Add an API key on the server";
   renderChrome();
 }
 
@@ -295,14 +295,15 @@ async function runScene(scene) {
   if (scene.frame) {
     capturePreview();
     if (!latestFrame) {
-      setBanner("Open the camera or choose a still, then run Look over.");
+      revealCamera();
+      setBanner("Turn the camera on or choose a photo, then tap Look over again.");
       renderChrome();
       return;
     }
   }
   const restart = state.connected && before !== sessionFingerprint(settings());
   if (!state.connected || restart) {
-    if (state.connected) await endSession(restart ? "Restarting so the new tools are in the session" : "");
+    if (state.connected) await endSession(restart ? "Restarting with the new settings" : "");
     const opened = await openSession();
     if (!opened) return;
   }
@@ -318,7 +319,8 @@ async function deliver(text, { frame = false } = {}) {
   if (!trimmed) return;
   if (frame) capturePreview();
   if (frame && !latestFrame) {
-    setBanner("Open the camera or choose a still, then send the frame.");
+    revealCamera();
+    setBanner("Turn the camera on or choose a photo, then send again.");
     renderChrome();
     return;
   }
@@ -329,7 +331,7 @@ async function deliver(text, { frame = false } = {}) {
   ensurePlayback();
   if (frame && latestFrame) {
     client.sendFrame(latestFrame);
-    log({ type: "note", detail: "Frame sent" });
+    log({ type: "note", detail: "Photo sent" });
   }
   client.sendText(trimmed);
   state.turns.push({ id: nextId(), role: "user", source: "text", text: trimmed, open: false });
@@ -471,7 +473,7 @@ function ensurePlayback() {
 
 function handleSocket(event) {
   if (event.type === "open") {
-    log({ type: "note", detail: "Socket open" });
+    log({ type: "note", detail: "Connected" });
     return;
   }
   if (event.type === "error") {
@@ -488,7 +490,7 @@ function handleSocket(event) {
   stopMic();
   stopFrames();
   playback?.stop();
-  const detail = event.reason ? `Socket closed · ${event.reason}` : "Socket closed";
+  const detail = event.reason ? `Disconnected · ${event.reason}` : "Disconnected";
   log({ type: "note", detail });
   if (event.reason) setBanner(event.reason);
   renderChrome();
@@ -649,7 +651,7 @@ function renderChrome() {
   $("session-label").textContent = state.sessionLabel;
   const session = $("session");
   session.disabled = state.connecting || (!state.connected && !state.ready);
-  session.textContent = state.connecting ? "Opening…" : state.connected ? "End session" : "Open session";
+  session.textContent = state.connecting ? "Starting…" : state.connected ? "End session" : "Open session";
   $("mic").setAttribute("aria-pressed", state.mic ? "true" : "false");
   $("mic").textContent = state.mic ? "Mic live" : "Microphone";
   $("camera-toggle").textContent = state.camera ? "Camera off" : "Camera";
@@ -658,6 +660,7 @@ function renderChrome() {
   renderResume();
   renderBanner();
   renderUsage();
+  if (!state.turns.length) renderTranscript();
 }
 
 function renderConversation() {
@@ -685,7 +688,7 @@ function renderTranscript() {
   const stick = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
   list.replaceChildren();
   if (!state.turns.length) {
-    list.append(text("li", "empty", "Open a session, then speak, type, or run a scene. What was said stays on this paper. The wire lists what the socket did."));
+    list.append(text("li", "empty", emptyTranscript()));
     return;
   }
   for (const turn of state.turns) list.append(renderTurn(turn));
@@ -744,7 +747,7 @@ function renderWire() {
   list.replaceChildren();
   if (!state.wire.length) {
     const item = document.createElement("li");
-    item.append(document.createElement("time"), text("span", "", "Waiting for a session."));
+    item.append(document.createElement("time"), text("span", "", "Nothing yet."));
     list.append(item);
     return;
   }
@@ -787,30 +790,37 @@ function clearBanner() {
   state.banner = "";
 }
 
+function revealCamera() {
+  const more = $("more");
+  more.open = true;
+  more.scrollIntoView({ block: "nearest" });
+}
+
+function emptyTranscript() {
+  if (state.connecting) return "Starting. The reply will show up here.";
+  if (state.connected) return "You're connected. Tap a button above, or type a message and press Send.";
+  return "Tap a button above. That starts the session and asks the question for you.";
+}
+
 function modelNote(thinking) {
   if (thinking) {
-    return "Extended Thinking can speak while a tool is still running. Listening returns when interaction status is idle.";
+    return "This model keeps talking while it looks things up. The light stays orange until it is finished.";
   }
-  if (state.behavior === "BLOCKING") {
-    return "A blocking tool holds speech until the result comes back, so a slow desk stays quiet.";
-  }
-  return "Live answers when the turn is ready. A non-blocking result can wait until the utterance is idle, interrupt it, or stay silent.";
+  return "This model answers as soon as it can.";
 }
 
 function behaviorNote(thinking) {
-  if (thinking) return "Thinking level changes how deeply this model works in the background. Tools on this model are non-blocking.";
-  if (state.behavior === "BLOCKING") return "Blocking is the older synchronous path, useful when you want one answer after the tool.";
-  if (state.scheduling === "INTERRUPT") return "Interrupt plays the tool result over whatever the model is saying.";
-  if (state.scheduling === "SILENT") return "Silent stores the tool result for a later turn and does not prompt a new reply.";
-  return "When idle lets the current utterance finish, then speaks the tool result.";
+  if (thinking) return "Low, medium, or high changes how long this model thinks. The buttons work without changing it.";
+  if (state.behavior === "BLOCKING") return "The model waits for a lookup to finish before it speaks.";
+  if (state.scheduling === "INTERRUPT") return "A lookup result cuts in while the model is still talking.";
+  if (state.scheduling === "SILENT") return "A lookup result is saved and does not start a new reply.";
+  return "The model finishes its sentence, then speaks the lookup result.";
 }
 
 function describeSession(body) {
   const model = modelById(body.model);
   const bits = [model?.label || body.model, body.voice];
-  if (body.thinkingLevel) bits.push(`thinking ${body.thinkingLevel.toLowerCase()}`);
-  bits.push(body.behavior === "BLOCKING" ? "blocking tools" : "non-blocking tools");
-  if (body.config?.tools?.some((tool) => tool.googleSearch)) bits.push("search");
+  if (body.thinkingLevel) bits.push(body.thinkingLevel.toLowerCase());
   return bits.join(" · ");
 }
 
