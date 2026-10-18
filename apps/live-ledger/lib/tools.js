@@ -41,7 +41,7 @@ export function functionDeclarations(behavior) {
     {
       name: "record_subscription",
       description:
-        "Add a recurring subscription. Amount is major units, such as 15.99. Currency defaults to USD. Refuses a second active or paused subscription with the same name and currency unless allowDuplicate is true.",
+        "Add a recurring subscription. Amount is major units, such as 15.99. Currency defaults to USD. If that name and currency are already active or paused, this does not write. Speak the ask and wait. Call confirm_duplicate only on a later turn.",
       behavior,
       parameters: {
         type: "OBJECT",
@@ -56,10 +56,6 @@ export function functionDeclarations(behavior) {
           category: { type: "STRING", description: "Short label such as Video, Music, or Rent." },
           renewsOn: { type: "STRING", description: "Next charge date, YYYY-MM-DD." },
           notes: { type: "STRING" },
-          allowDuplicate: {
-            type: "BOOLEAN",
-            description: "True only when the person wants a second entry with the same name.",
-          },
         },
         required: ["name", "amount", "cadence"],
       },
@@ -67,7 +63,7 @@ export function functionDeclarations(behavior) {
     {
       name: "record_payment",
       description:
-        "Record a one-time payment that does not renew. paidOn defaults to today. Amount is major units, such as 420.",
+        "Record a one-time payment that does not renew. paidOn defaults to today. Amount is major units, such as 420. If the same name, amount, and currency are already recorded, this asks before writing another.",
       behavior,
       parameters: {
         type: "OBJECT",
@@ -85,7 +81,7 @@ export function functionDeclarations(behavior) {
     {
       name: "revise_entry",
       description:
-        "Change one existing entry's name, amount, currency, category, notes, cadence, renewal date, or paid date. Identify it by id, or by its current name when only one entry matches. Does not pause, cancel, or resume.",
+        "Change one existing entry's name, amount, currency, category, notes, cadence, renewal date, or paid date. Identify it by id, or by its current name when only one entry matches. If several match, this asks which one. Does not pause, cancel, or resume.",
       behavior,
       parameters: {
         type: "OBJECT",
@@ -106,7 +102,7 @@ export function functionDeclarations(behavior) {
     {
       name: "set_subscription_status",
       description:
-        "Pause, resume, or cancel one subscription. Canceled and paused subscriptions stay in the book and drop out of the monthly total. Resume sets status to active.",
+        "Pause, resume, or cancel one subscription. Canceled and paused subscriptions stay in the book and drop out of the monthly total. If several entries match the name, this asks which one. Resuming when another with the same name is already open also asks first.",
       behavior,
       parameters: {
         type: "OBJECT",
@@ -122,7 +118,7 @@ export function functionDeclarations(behavior) {
     {
       name: "forget_entry",
       description:
-        "Remove one entry, or the entire book when all is true. Use all only after the person clearly asks to erase everything.",
+        "Remove one entry, or the entire book when all is true. If several entries match the name, this asks which one. Use all only after the person clearly asks to erase everything.",
       behavior,
       parameters: {
         type: "OBJECT",
@@ -132,6 +128,21 @@ export function functionDeclarations(behavior) {
           kind: { type: "STRING", description: "subscription or once, when the name exists as both." },
           all: { type: "BOOLEAN" },
         },
+      },
+    },
+    {
+      name: "confirm_duplicate",
+      description:
+        "Apply the person's answer to a duplicate. Call this only on a later turn, after they answer the ask. confirmationId comes from that needsConfirmation result. update changes the existing subscription. second adds another subscription, or resumes one beside an open one. another records the one-time payment again. use, with entryId, picks one match. leave changes nothing.",
+      behavior,
+      parameters: {
+        type: "OBJECT",
+        properties: {
+          confirmationId: { type: "STRING" },
+          choice: { type: "STRING", description: "update, second, another, use, or leave. Only the choices in the ask are accepted." },
+          entryId: { type: "STRING", description: "Required when choice is use. An id from matches." },
+        },
+        required: ["confirmationId", "choice"],
       },
     },
   ];

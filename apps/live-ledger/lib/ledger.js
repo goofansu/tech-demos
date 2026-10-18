@@ -101,38 +101,71 @@ export function sanitizeBook(raw) {
   return book;
 }
 
+const WRITES = new Set(["recorded", "revised", "status", "forget", "left"]);
+const MUTATES = new Set([
+  "record_subscription",
+  "record_payment",
+  "revise_entry",
+  "set_subscription_status",
+  "forget_entry",
+  "confirm_duplicate",
+]);
+
 export function dispatch(book, name, args = {}, ctx = {}) {
   const source = cloneBook(book);
   const today = validToday(ctx.today) || localDateISO(ctx.now instanceof Date ? ctx.now : new Date(), safeZone(ctx.timeZone));
   const nowIso = (ctx.now instanceof Date ? ctx.now : new Date()).toISOString();
   const ids = typeof ctx.idFactory === "function" ? ctx.idFactory : createIdFactory(Date.parse(nowIso) || Date.now());
   const clean = args && typeof args === "object" && !Array.isArray(args) ? args : {};
-  return apply(source, String(name || ""), clean, { today, nowIso, ids });
+  return apply(source, String(name || ""), clean, {
+    today,
+    nowIso,
+    ids,
+    pending: ctx.pending || null,
+    gate: ctx.gate,
+    allowClash: ctx.allowClash === true,
+  });
 }
 
 export function dispatchAll(book, calls, ctx = {}) {
   let current = cloneBook(book);
+  let pending = ctx.pending || null;
+  const gate = { locked: false };
   const results = [];
   for (const call of calls || []) {
-    const outcome = dispatch(current, call?.name, call?.args || {}, ctx);
+    const outcome = dispatch(current, call?.name, call?.args || {}, { ...ctx, pending, gate });
     current = outcome.book;
+    pending = outcome.pending ?? null;
+    if (outcome.result?.needsConfirmation) gate.locked = true;
     results.push({
       id: call?.id || "",
       name: call?.name || "",
       result: outcome.result,
     });
   }
-  return { book: current, results };
+  return { book: current, results, pending };
 }
 
 function apply(book, name, args, ctx) {
+  const outcome = ctx.gate?.locked && MUTATES.has(name)
+    ? wait(book, ctx)
+    : route(book, name, args, ctx);
+  if (outcome.pending === undefined) {
+    const wrote = Boolean(outcome.result?.ok && WRITES.has(outcome.result.action));
+    outcome.pending = wrote ? null : (ctx.pending ?? null);
+  }
+  return outcome;
+}
+
+function route(book, name, args, ctx) {
   if (name === "list_book") return listBook(book, args);
   if (name === "book_totals") return totals(book, args, ctx);
   if (name === "record_subscription") return recordSubscription(book, args, ctx);
   if (name === "record_payment") return recordPayment(book, args, ctx);
   if (name === "revise_entry") return reviseEntry(book, args, ctx);
   if (name === "set_subscription_status") return setStatus(book, args, ctx);
-  if (name === "forget_entry") return forgetEntry(book, args);
+  if (name === "forget_entry") return forgetEntry(book, args, ctx);
+  if (name === "confirm_duplicate") return confirmDuplicate(book, args, ctx);
   return fail(book, { error: `Unknown tool: ${name || "missing name"}` });
 }
 
@@ -186,15 +219,28 @@ function recordSubscription(book, args, ctx) {
   const parsed = parseSubscription(args);
   if (parsed.error) return fail(book, { error: parsed.error });
   const duplicate = openSubscription(book, parsed.value.name, parsed.value.currency);
-  if (duplicate && !truthy(args.allowDuplicate)) {
-    return fail(book, {
-      error: `${duplicate.name} in ${duplicate.currency} is already in the book. Revise it, or set allowDuplicate only if the person wants a second one.`,
-      conflict: true,
-      existing: present(duplicate),
+  if (duplicate) {
+    const ask = `${duplicate.name} is already ${money(duplicate)} a ${cadenceWord(duplicate.cadence)}${when(duplicate)}. Update it, add a second, or leave it?`;
+    return hold(book, ctx, {
+      op: "record_subscription",
+      proposal: parsed.value,
+      provided: {
+        category: has(args, "category"),
+        notes: has(args, "notes"),
+        renewsOn: has(args, "renewsOn"),
+      },
+      targetId: duplicate.id,
+      matches: [present(duplicate)],
+      choices: ["update", "second", "leave"],
+      ask,
     });
   }
+  return insertSubscription(book, parsed.value, ctx);
+}
+
+function insertSubscription(book, value, ctx) {
   const entry = {
-    ...parsed.value,
+    ...value,
     id: freshId(book, ctx.ids, "subscription"),
     kind: "subscription",
     status: "active",
@@ -202,11 +248,10 @@ function recordSubscription(book, args, ctx) {
     createdAt: ctx.nowIso,
     updatedAt: ctx.nowIso,
   };
-  const next = [...book, entry];
-  return ok(next, {
+  return ok([...book, entry], {
     action: "recorded",
     entry: present(entry),
-    line: `${entry.name} at ${money(entry)} a ${cadenceWord(entry.cadence)}${entry.renewsOn ? `, next charge ${entry.renewsOn}` : ""}.`,
+    line: `${entry.name} at ${money(entry)} a ${cadenceWord(entry.cadence)}${when(entry)}.`,
   });
 }
 
@@ -224,18 +269,44 @@ function recordPayment(book, args, ctx) {
   const paid = parseDate(args.paidOn == null || args.paidOn === "" ? ctx.today : args.paidOn, "Paid date");
   if (paid.error) return fail(book, { error: paid.error });
   if (!paid.value) return fail(book, { error: "A one-time payment needs the day it was paid." });
-  const entry = {
-    id: freshId(book, ctx.ids, "once"),
-    kind: "once",
+  const proposal = {
     name: name.value,
     amount: amount.value,
     currency: currency.value,
-    cadence: null,
     category: category.value,
+    notes: notes.value,
+    paidOn: paid.value,
+  };
+  const duplicates = similarPayments(book, proposal);
+  if (duplicates.length) {
+    const first = duplicates[0];
+    const ask = duplicates.length === 1
+      ? `${first.name} for ${money(first)} is already recorded, paid on ${first.paidOn}. Record another, or leave it?`
+      : `${first.name} for ${money(first)} is already recorded ${duplicates.length} times. Record another, or leave it?`;
+    return hold(book, ctx, {
+      op: "record_payment",
+      proposal,
+      matches: duplicates.map(present),
+      choices: ["another", "leave"],
+      ask,
+    });
+  }
+  return insertPayment(book, proposal, ctx);
+}
+
+function insertPayment(book, proposal, ctx) {
+  const entry = {
+    id: freshId(book, ctx.ids, "once"),
+    kind: "once",
+    name: proposal.name,
+    amount: proposal.amount,
+    currency: proposal.currency,
+    cadence: null,
+    category: proposal.category,
     status: "recorded",
     renewsOn: null,
-    paidOn: paid.value,
-    notes: notes.value,
+    paidOn: proposal.paidOn,
+    notes: proposal.notes,
     createdAt: ctx.nowIso,
     updatedAt: ctx.nowIso,
   };
@@ -248,7 +319,8 @@ function recordPayment(book, args, ctx) {
 
 function reviseEntry(book, args, ctx) {
   const found = findOne(book, args);
-  if (found.error) return fail(book, { error: found.error, matches: found.matches });
+  if (found.matches) return askWhich(book, ctx, "revise_entry", args, found.matches);
+  if (found.error) return fail(book, { error: found.error });
   const current = found.entry;
   const patch = {};
   if (has(args, "newName")) {
@@ -329,17 +401,20 @@ function setStatus(book, args, ctx) {
     return fail(book, { error: "Status must be active, paused, or canceled." });
   }
   const found = findOne(book, args);
-  if (found.error) return fail(book, { error: found.error, matches: found.matches });
+  if (found.matches) return askWhich(book, ctx, "set_subscription_status", args, found.matches);
+  if (found.error) return fail(book, { error: found.error });
   if (found.entry.kind !== "subscription") {
     return fail(book, { error: "One-time payments stay recorded. They are not paused or canceled." });
   }
-  if (status === "active") {
+  if (status === "active" && !ctx.allowClash) {
     const clash = openSubscription(book, found.entry.name, found.entry.currency, found.entry.id);
     if (clash) {
-      return fail(book, {
-        error: `${clash.name} in ${clash.currency} is already active or paused.`,
-        conflict: true,
-        existing: present(clash),
+      return hold(book, ctx, {
+        op: "set_subscription_status",
+        args: { ...args, id: found.entry.id },
+        matches: [present(clash), present(found.entry)],
+        choices: ["second", "leave"],
+        ask: `${clash.name} is already ${clash.status} at ${money(clash)} a ${cadenceWord(clash.cadence)}. Resume this one too, or leave it?`,
       });
     }
   }
@@ -356,7 +431,7 @@ function setStatus(book, args, ctx) {
   });
 }
 
-function forgetEntry(book, args) {
+function forgetEntry(book, args, ctx = {}) {
   if (truthy(args.all)) {
     if (has(args, "name") || has(args, "id")) {
       return fail(book, { error: "Erase one entry or the whole book, not both in the same call." });
@@ -368,7 +443,8 @@ function forgetEntry(book, args) {
     });
   }
   const found = findOne(book, args);
-  if (found.error) return fail(book, { error: found.error, matches: found.matches });
+  if (found.matches) return askWhich(book, ctx, "forget_entry", args, found.matches);
+  if (found.error) return fail(book, { error: found.error });
   const next = book.filter((entry) => entry.id !== found.entry.id);
   return ok(next, {
     action: "forget",
@@ -376,6 +452,141 @@ function forgetEntry(book, args) {
     entry: present(found.entry),
     line: `Removed ${found.entry.name} at ${money(found.entry)}.`,
   });
+}
+
+function confirmDuplicate(book, args, ctx) {
+  const confirmationId = String(args.confirmationId || "").trim();
+  const pending = ctx.pending;
+  if (!pending || pending.id !== confirmationId) {
+    return fail(book, { error: "There is nothing waiting for confirmation." });
+  }
+  const choice = String(args.choice || "").trim().toLowerCase();
+  if (!pending.choices.includes(choice)) {
+    return fail(book, { error: `Say ${pending.choices.join(", ")}.`, ask: pending.ask, choices: pending.choices });
+  }
+  if (choice === "leave") {
+    return { book, pending: null, result: { ok: true, action: "left", line: "Left it unchanged." } };
+  }
+  if (choice === "update" && pending.op === "record_subscription") return updateSubscription(book, pending, ctx);
+  if (choice === "second" && pending.op === "record_subscription") return insertSubscription(book, pending.proposal, ctx);
+  if (choice === "another" && pending.op === "record_payment") return insertPayment(book, pending.proposal, ctx);
+  if (choice === "second" && pending.op === "set_subscription_status") {
+    return setStatus(book, pending.args, { ...ctx, allowClash: true, pending: null });
+  }
+  if (choice === "use") {
+    const entryId = String(args.entryId || "").trim();
+    if (!pending.matches.some((entry) => entry.id === entryId)) {
+      return fail(book, { error: "That is not one of the matching entries.", ask: pending.ask, matches: pending.matches, choices: pending.choices });
+    }
+    const next = { ...pending.args, id: entryId };
+    const quiet = { ...ctx, pending: null };
+    if (pending.op === "revise_entry") return reviseEntry(book, next, quiet);
+    if (pending.op === "set_subscription_status") return setStatus(book, next, quiet);
+    if (pending.op === "forget_entry") return forgetEntry(book, next, quiet);
+  }
+  return fail(book, { error: "That confirmation does not match this choice.", ask: pending.ask, choices: pending.choices });
+}
+
+function updateSubscription(book, pending, ctx) {
+  const current = book.find((entry) => entry.id === pending.targetId);
+  if (!current) return { book, pending: null, result: { ok: false, error: "That subscription is no longer in the book." } };
+  const patch = {
+    amount: pending.proposal.amount,
+    cadence: pending.proposal.cadence,
+    currency: pending.proposal.currency,
+  };
+  if (pending.provided.category) patch.category = pending.proposal.category;
+  if (pending.provided.notes) patch.notes = pending.proposal.notes;
+  if (pending.provided.renewsOn) patch.renewsOn = pending.proposal.renewsOn;
+  const nextEntry = { ...current, ...patch, updatedAt: ctx.nowIso };
+  const clash = openSubscription(book, nextEntry.name, nextEntry.currency, nextEntry.id);
+  if (clash) {
+    return fail(book, { error: `${clash.name} in ${clash.currency} is already in the book.`, ask: pending.ask });
+  }
+  const next = book.map((entry) => (entry.id === current.id ? nextEntry : entry));
+  return ok(next, { action: "revised", entry: present(nextEntry), line: revisedLine(nextEntry) });
+}
+
+function hold(book, ctx, spec) {
+  const pending = {
+    id: nextConfirmationId(ctx),
+    op: spec.op,
+    proposal: spec.proposal || null,
+    provided: spec.provided || {},
+    targetId: spec.targetId || "",
+    args: spec.args || {},
+    matches: spec.matches,
+    choices: spec.choices,
+    ask: spec.ask,
+  };
+  return {
+    book,
+    pending,
+    result: {
+      ok: false,
+      needsConfirmation: true,
+      confirmationId: pending.id,
+      choices: pending.choices,
+      matches: pending.matches,
+      ask: pending.ask,
+      error: pending.ask,
+    },
+  };
+}
+
+function askWhich(book, ctx, op, args, matches) {
+  const name = matches[0]?.name || "That name";
+  const detail = matches.map(spokenMatch).join("; ");
+  return hold(book, ctx, {
+    op,
+    args,
+    matches,
+    choices: ["use", "leave"],
+    ask: `${name} matches more than one entry: ${detail}. Which one?`,
+  });
+}
+
+function wait(book, ctx) {
+  const pending = ctx.pending;
+  return {
+    book,
+    pending: pending ?? null,
+    result: {
+      ok: false,
+      needsConfirmation: true,
+      confirmationId: pending?.id || "",
+      choices: pending?.choices || [],
+      matches: pending?.matches || [],
+      ask: pending?.ask || "",
+      error: "Ask the person and wait for their answer. Do not change the book in this turn.",
+    },
+  };
+}
+
+function similarPayments(book, proposal) {
+  const key = norm(proposal.name);
+  return book.filter((entry) =>
+    entry.kind === "once"
+    && norm(entry.name) === key
+    && entry.amount === proposal.amount
+    && entry.currency === proposal.currency
+  );
+}
+
+function spokenMatch(entry) {
+  if (entry.kind === "subscription") {
+    return `${money(entry)} a ${cadenceWord(entry.cadence)}, ${entry.status}${when(entry)}`;
+  }
+  return `${money(entry)}, paid once on ${entry.paidOn}`;
+}
+
+function when(entry) {
+  return entry.renewsOn ? `, next charge ${entry.renewsOn}` : "";
+}
+
+function nextConfirmationId(ctx) {
+  ctx.confirmSeq = (ctx.confirmSeq || 0) + 1;
+  return `c${String(ctx.confirmSeq).padStart(4, "0")}`;
 }
 
 function parseSubscription(args) {

@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Tell Gemini 3.8 Live about a subscription or a one-time payment. The model writes the book."
+      content="Say a subscription or a one-time payment. Gemini Live records it and answers."
     />
-    <title>Live ledger · Gemini 3.8</title>
+    <title>Ledger</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
@@ -21,20 +21,16 @@
     <a class="skip" href="#book">Skip to the book</a>
     <header class="top">
       <div>
-        <p class="eyebrow">Gemini 3.8 Live</p>
-        <h1>Live ledger</h1>
-        <p class="lede">Subscriptions and one-time payments. You tell the desk. The model writes the book.</p>
+        <h1>Ledger</h1>
+        <p class="sub">Subscriptions and one-time payments, by voice.</p>
       </div>
-      <p id="key" class="key">Checking the key…</p>
+      <p id="key">Checking…</p>
     </header>
 
-    <main class="layout">
-      <section class="book" id="book" aria-labelledby="book-title">
+    <main>
+      <section id="book" aria-labelledby="book-title">
         <div class="book-head">
-          <div>
-            <p class="eyebrow">This browser</p>
-            <h2 id="book-title">The book</h2>
-          </div>
+          <h2 id="book-title">The book</h2>
           <div id="filters" class="filters" role="radiogroup" aria-label="Show"></div>
         </div>
         <div id="stats"></div>
@@ -47,72 +43,41 @@
           <div id="once"></div>
         </section>
         <p id="book-live" class="sr" aria-live="polite"></p>
-        <p class="fine">The desk is the only one who adds, changes, pauses, cancels, or removes a payment.</p>
-        <button type="button" id="erase" hidden>Erase this browser's copy</button>
+        <button type="button" id="erase" hidden>Clear this browser</button>
       </section>
 
-      <section class="clerk" aria-labelledby="desk-title">
-        <div class="clerk-head">
-          <div>
-            <p class="eyebrow">The desk</p>
-            <h2 id="desk-title">Talk to the book</h2>
-          </div>
-          <div class="lamp-row">
-            <span id="lamp" data-phase="idle" aria-hidden="true"></span>
-            <p id="phase" aria-live="polite">Not connected</p>
+      <section class="voice" aria-label="Voice">
+        <div class="voice-bar">
+        <p id="question" hidden></p>
+        <div class="listen-row">
+          <button type="button" id="mic" aria-pressed="false">Listen</button>
+          <div class="listen-meta">
+            <p id="phase" aria-live="polite">Not listening</p>
           </div>
         </div>
-
-        <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
-        <fieldset id="thinking-field">
-          <legend>How deeply to think</legend>
-          <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
-        </fieldset>
-
-        <label class="field">
-          Voice
-          <select id="voice"></select>
-        </label>
-
-        <div class="meters" aria-hidden="true">
-          <span>In</span>
-          <span class="meter"><i id="in-meter"></i></span>
-          <span>Out</span>
-          <span class="meter"><i id="out-meter"></i></span>
         </div>
-
-        <div id="prompts" class="prompts"></div>
         <p id="banner" class="banner" role="status" hidden></p>
-
-        <div class="paper">
-          <ol id="transcript" aria-live="polite"></ol>
-        </div>
-
-        <form id="say" class="say">
-          <label class="sr" for="draft">Tell the desk</label>
-          <input id="draft" name="draft" autocomplete="off" placeholder="Netflix, 15.99 dollars a month" />
-          <button type="submit">Send</button>
-        </form>
-        <div class="talk-actions">
-          <button type="button" id="mic" aria-pressed="false">Start talking</button>
+        <ol id="transcript" aria-live="polite" hidden></ol>
+        <details id="session">
+          <summary>Session</summary>
+          <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
+          <fieldset id="thinking-field">
+            <legend>Thinking</legend>
+            <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
+          </fieldset>
+          <label class="field">
+            Voice
+            <select id="voice"></select>
+          </label>
           <button type="button" id="fresh">New conversation</button>
-        </div>
-        <p class="hint">Headphones help. The desk hears you and answers out loud. Typing reaches the same model.</p>
-        <p id="usage" class="hint"></p>
-
-        <div class="activity-wrap">
-          <h3>What the book did</h3>
-          <ol id="activity"></ol>
-        </div>
+          <p class="hint">Headphones keep the microphone from hearing the answer.</p>
+        </details>
       </section>
     </main>
 
     <footer class="foot">
       <p>
         <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live">Gemini 3.8 Live</a>
-        and
-        <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live-extended-thinking">Extended Thinking</a>.
-        The key stays on the server.
       </p>
     </footer>
     <script type="module" src="/src/main.js"></script>

@@ -23,6 +23,8 @@ describe("buildSessionRequest", () => {
     expect(built.config.responseModalities).toEqual(["AUDIO"]);
     expect(built.config.systemInstruction).toContain("Today is 2026-10-18 in America/New_York");
     expect(built.config.systemInstruction).toContain("one-time payment");
+    expect(built.config.systemInstruction).toContain("needsConfirmation");
+    expect(built.config.systemInstruction).toContain("confirm_duplicate");
     expect(built.config.tools[0].functionDeclarations.map((fn) => fn.name)).toEqual(TOOL_NAMES);
     expect(built.config.tools[0].functionDeclarations.every((fn) => fn.behavior === "NON_BLOCKING")).toBe(true);
     expect(toolsMatchCatalog()).toBe(true);

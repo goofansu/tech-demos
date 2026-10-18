@@ -28,6 +28,6 @@ describe("interpret", () => {
       serverStatus: "IN_PROGRESS",
       toolsInFlight: 1,
     });
-    expect(phaseLabel(view)).toBe("Writing the book");
+    expect(phaseLabel(view)).toBe("Checking the book");
   });
 });

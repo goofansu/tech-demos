@@ -1,4 +1,4 @@
-import { MODELS, PROMPTS, THINKING_LEVELS, VOICES, modelById } from "../lib/catalog.js";
+import { MODELS, THINKING_LEVELS, VOICES, modelById } from "../lib/catalog.js";
 import { entryMeta, formatDate, formatMoney, statusLabel } from "../lib/format.js";
 import { localDateISO, sortBook, summarize } from "../lib/ledger.js";
 import { appendTranscript, derivePhase, phaseLabel } from "../lib/messages.js";
@@ -27,19 +27,18 @@ const state = {
   toolsInFlight: 0,
   mic: false,
   turns: [],
-  activity: [],
   book: browserBook(),
+  pending: null,
+  question: "",
   filter: "all",
   resumeHandle: "",
   banner: "",
   bannerTone: "error",
-  usage: null,
 };
 
 let playback;
 let micHandle = null;
 let opening = null;
-let sending = false;
 let turnSeq = 0;
 
 const client = createLiveClient({
@@ -51,7 +50,15 @@ const client = createLiveClient({
     persist(book);
     renderBook();
   },
-  context: () => ({ today: todayISO(), timeZone, now: new Date() }),
+  writePending(pending) {
+    state.pending = pending;
+  },
+  context: () => ({
+    today: todayISO(),
+    timeZone,
+    now: new Date(),
+    pending: state.pending,
+  }),
 });
 
 mount();
@@ -61,7 +68,6 @@ function mount() {
   const models = $("models");
   for (const model of MODELS) {
     const label = document.createElement("label");
-    label.className = "plate";
     const input = document.createElement("input");
     input.type = "radio";
     input.name = "model";
@@ -70,15 +76,9 @@ function mount() {
     input.addEventListener("change", () => {
       if (!input.checked) return;
       state.model = model.id;
-      renderClerk();
+      renderVoice();
     });
-    label.append(
-      input,
-      h("span", "plate-kicker", model.kicker),
-      h("span", "plate-name", model.label),
-      h("span", "plate-id", model.id),
-      h("span", "plate-copy", model.copy),
-    );
+    label.append(input, document.createTextNode(model.thinking ? "Extended" : "Live"));
     models.append(label);
   }
 
@@ -101,7 +101,7 @@ function mount() {
   for (const item of VOICES) {
     const option = document.createElement("option");
     option.value = item.id;
-    option.textContent = `${item.id} · ${item.hint}`;
+    option.textContent = item.id;
     voice.append(option);
   }
   voice.value = state.voice;
@@ -122,28 +122,11 @@ function mount() {
     filters.append(button);
   }
 
-  const prompts = $("prompts");
-  for (const prompt of PROMPTS) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "chip";
-    button.textContent = prompt.label;
-    button.addEventListener("click", () => {
-      $("draft").value = prompt.text;
-      void say(prompt.text);
-    });
-    prompts.append(button);
-  }
-
-  $("say").addEventListener("submit", (event) => {
-    event.preventDefault();
-    void say($("draft").value);
-  });
   $("mic").addEventListener("click", () => void toggleMic());
   $("fresh").addEventListener("click", () => void fresh());
   $("erase").addEventListener("click", () => eraseBrowserCopy());
   renderBook();
-  renderClerk();
+  renderVoice();
 }
 
 async function loadStatus() {
@@ -154,7 +137,7 @@ async function loadStatus() {
   } catch {
     state.ready = false;
   }
-  $("key").textContent = state.ready ? "Key on the server" : "Add GEMINI_API_KEY on the server";
+  $("key").textContent = state.ready ? "Ready" : "No API key";
 }
 
 function settings() {
@@ -180,16 +163,16 @@ async function openSession() {
 async function startSession() {
   state.connecting = true;
   clearBanner();
-  renderClerk();
+  renderVoice();
   try {
     const body = await client.connect(settings());
     state.connecting = false;
     if (!body) {
-      renderClerk();
+      renderVoice();
       return false;
     }
     state.connected = true;
-    renderClerk();
+    renderVoice();
     return true;
   } catch (err) {
     state.connecting = false;
@@ -199,36 +182,11 @@ async function startSession() {
   }
 }
 
-async function say(text) {
-  const trimmed = String(text || "").trim();
-  if (!trimmed || sending) return;
-  sending = true;
-  renderClerk();
-  try {
-    const opened = await openSession();
-    if (!opened) {
-      $("draft").value = trimmed;
-      return;
-    }
-    ensurePlayback();
-    client.sendText(trimmed);
-    $("draft").value = "";
-    state.turns.push({ id: nextId(), role: "user", source: "text", text: trimmed, interim: "", open: false });
-    clearBanner();
-  } catch (err) {
-    $("draft").value = trimmed;
-    setBanner(err instanceof Error ? err.message : "Could not send that.");
-  } finally {
-    sending = false;
-    renderClerk();
-  }
-}
-
 async function toggleMic() {
   if (micHandle) {
     stopMic();
     client.endAudio();
-    renderClerk();
+    renderVoice();
     return;
   }
   ensurePlayback();
@@ -241,7 +199,7 @@ async function toggleMic() {
     });
     state.mic = true;
     clearBanner();
-    renderClerk();
+    renderVoice();
   } catch (err) {
     setBanner(err instanceof Error ? err.message : "The microphone is unavailable.");
   }
@@ -264,20 +222,23 @@ async function fresh() {
   state.serverStatus = "";
   state.toolsInFlight = 0;
   state.turns = [];
-  state.activity = [];
+  state.pending = null;
+  state.question = "";
   state.resumeHandle = "";
-  state.usage = null;
   clearBanner();
-  renderClerk();
+  renderVoice();
 }
 
 function eraseBrowserCopy() {
   if (!state.book.length) return;
-  if (!window.confirm("Erase every entry stored in this browser?")) return;
+  if (!window.confirm("Clear every entry stored in this browser?")) return;
   state.book = [];
+  state.pending = null;
+  state.question = "";
   persist([]);
-  $("book-live").textContent = "Erased the book stored in this browser.";
+  $("book-live").textContent = "Cleared the book in this browser.";
   renderBook();
+  renderVoice();
 }
 
 function handleSocket(event) {
@@ -294,7 +255,7 @@ function handleSocket(event) {
   stopMic();
   playback?.stop();
   if (event.reason) setBanner(event.reason);
-  else renderClerk();
+  else renderVoice();
 }
 
 function handleEvent(event) {
@@ -304,9 +265,7 @@ function handleEvent(event) {
   } else if (event.type === "resume") {
     if (event.handle) state.resumeHandle = event.handle;
   } else if (event.type === "goaway") {
-    setBanner("The server is closing this conversation. Send again to continue.", "warn");
-  } else if (event.type === "usage") {
-    state.usage = event.total;
+    setBanner("This conversation is about to close. Listen again to continue.", "warn");
   } else if (event.type === "input-text") {
     applyInput(event.text, event.final);
   } else if (event.type === "output-text") {
@@ -316,7 +275,7 @@ function handleEvent(event) {
     const level = ensurePlayback().enqueue(event.data);
     state.playing = true;
     setMeter("out-meter", level);
-    renderClerk();
+    renderVoice();
     return;
   } else if (event.type === "interrupted") {
     const turn = lastOpenModel();
@@ -341,16 +300,29 @@ function handleEvent(event) {
     state.serverStatus = "IN_PROGRESS";
   } else if (event.type === "tool-end") {
     state.toolsInFlight = Math.max(0, state.toolsInFlight - 1);
-    rememberActivity(event);
+    noteResult(event.result);
   }
-  while (state.turns.length > 80) state.turns.shift();
-  renderClerk();
+  while (state.turns.length > 40) state.turns.shift();
+  renderVoice();
+}
+
+function noteResult(result) {
+  if (!result) return;
+  if (result.needsConfirmation && result.ask) {
+    state.question = result.ask;
+    $("book-live").textContent = result.ask;
+    return;
+  }
+  if (result.ok && result.line && result.action !== "list" && result.action !== "totals") {
+    state.question = "";
+    $("book-live").textContent = result.line;
+  }
 }
 
 function applyInput(text, final) {
-  let turn = [...state.turns].reverse().find((item) => item.role === "user" && item.source === "speech" && item.open);
+  let turn = [...state.turns].reverse().find((item) => item.role === "user" && item.open);
   if (!turn) {
-    turn = { id: nextId(), role: "user", source: "speech", text: "", interim: "", open: true };
+    turn = { id: nextId(), role: "user", text: "", interim: "", open: true };
     state.turns.push(turn);
   }
   if (final) {
@@ -364,13 +336,7 @@ function applyInput(text, final) {
 function openModelTurn() {
   const last = lastOpenModel();
   if (last) return last;
-  const turn = {
-    id: nextId(),
-    role: "model",
-    text: "",
-    open: true,
-    interrupted: false,
-  };
+  const turn = { id: nextId(), role: "model", text: "", open: true, interrupted: false };
   state.turns.push(turn);
   return turn;
 }
@@ -382,23 +348,7 @@ function lastOpenModel() {
 
 function closeSpeech() {
   for (const turn of state.turns) {
-    if (turn.role === "user" && turn.source === "speech" && turn.open) turn.open = false;
-  }
-}
-
-function rememberActivity(event) {
-  if (event.cancelled) return;
-  const result = event.result || {};
-  const line = result.line || result.error || event.name || "The book answered.";
-  state.activity.unshift({
-    id: event.id || nextId(),
-    line,
-    ok: result.ok !== false && !result.error,
-    result,
-  });
-  while (state.activity.length > 12) state.activity.pop();
-  if (result.ok && result.line && result.action !== "list" && result.action !== "totals") {
-    $("book-live").textContent = result.line;
+    if (turn.role === "user" && turn.open) turn.open = false;
   }
 }
 
@@ -416,7 +366,7 @@ function renderBook() {
   const stats = $("stats");
   stats.replaceChildren();
   if (summary.empty) {
-    stats.append(h("p", "empty", "The book is empty. Tell the desk about a subscription, or something you paid once."));
+    stats.append(h("p", "empty", "Nothing recorded yet."));
   } else {
     for (const row of summary.byCurrency) stats.append(statBlock(row, summary.byCurrency.length > 1));
   }
@@ -424,10 +374,10 @@ function renderBook() {
   const quiet = summary.empty && state.filter === "all";
   $("subs-section").hidden = !showSubs || quiet;
   $("once-section").hidden = !showOnce || quiet;
-  $("subs-title").textContent = `Subscriptions${subs.length ? ` · ${subs.length}` : ""}`;
-  $("once-title").textContent = `Paid once${once.length ? ` · ${once.length}` : ""}`;
-  renderEntries($("subs"), subs, "No subscriptions yet.");
-  renderEntries($("once"), once, "No one-time payments yet.");
+  $("subs-title").textContent = subs.length ? `Subscriptions · ${subs.length}` : "Subscriptions";
+  $("once-title").textContent = once.length ? `Paid once · ${once.length}` : "Paid once";
+  renderEntries($("subs"), subs, "No subscriptions.");
+  renderEntries($("once"), once, "No one-time payments.");
   $("erase").hidden = state.book.length === 0;
 }
 
@@ -436,10 +386,10 @@ function statBlock(row, showCode) {
   if (showCode) block.append(h("p", "stat-code", row.currency));
   const grid = h("div", "stat-grid");
   grid.append(
-    figure("A month", formatMoney(row.monthly, row.currency), "Active subscriptions"),
-    figure("A year", formatMoney(row.yearly, row.currency), "Same active rows"),
-    figure("Paid once", formatMoney(row.onceThisMonth, row.currency), "This month"),
-    figure("Active", String(row.activeCount), row.pausedCount ? `${row.pausedCount} paused` : "In the monthly total"),
+    figure("Month", formatMoney(row.monthly, row.currency)),
+    figure("Year", formatMoney(row.yearly, row.currency)),
+    figure("Once this month", formatMoney(row.onceThisMonth, row.currency)),
+    figure("Active", String(row.activeCount), row.pausedCount ? `${row.pausedCount} paused` : ""),
   );
   block.append(grid);
   if (row.upcoming.length) {
@@ -447,8 +397,8 @@ function statBlock(row, showCode) {
     for (const item of row.upcoming) {
       list.append(h("li", "", `${item.name} · ${formatMoney(item.amount, row.currency)} · ${formatDate(item.renewsOn)}`));
     }
-    const wrap = h("div", "due-wrap");
-    wrap.append(h("p", "kicker", "Due within 30 days"), list);
+    const wrap = h("div", "");
+    wrap.append(h("p", "kicker", "Due in 30 days"), list);
     block.append(wrap);
   }
   return block;
@@ -456,7 +406,8 @@ function statBlock(row, showCode) {
 
 function figure(label, value, note) {
   const node = h("div", "stat");
-  node.append(h("span", "", label), h("strong", "", value || "—"), h("small", "", note));
+  node.append(h("span", "", label), h("strong", "", value || "—"));
+  if (note) node.append(h("small", "", note));
   return node;
 }
 
@@ -468,17 +419,18 @@ function renderEntries(root, entries, empty) {
   }
   for (const entry of entries) {
     const row = h("article", `entry${entry.status === "canceled" ? " canceled" : ""}`);
-    const name = h("strong", "", entry.name);
-    const amount = h("p", "amt", formatMoney(entry.amount, entry.currency));
-    const meta = h("p", "meta", entryMeta(entry));
-    const status = h("p", `status status-${entry.status}`, statusLabel(entry.status));
-    row.append(name, amount, meta, status);
+    row.append(
+      h("strong", "", entry.name),
+      h("p", "amt", formatMoney(entry.amount, entry.currency)),
+      h("p", "meta", entryMeta(entry)),
+      h("p", `status status-${entry.status}`, statusLabel(entry.status)),
+    );
     if (entry.notes) row.append(h("p", "notes", entry.notes));
     root.append(row);
   }
 }
 
-function renderClerk() {
+function renderVoice() {
   const locked = state.connected || state.connecting;
   const thinking = Boolean(modelById(state.model)?.thinking);
   for (const input of $("models").querySelectorAll("input")) input.disabled = locked;
@@ -486,73 +438,39 @@ function renderClerk() {
   $("thinking-field").disabled = locked;
   for (const input of $("thinking").querySelectorAll("input")) input.disabled = locked;
   $("voice").disabled = locked;
-  $("mic").textContent = state.mic ? "Stop talking" : "Start talking";
+  $("mic").textContent = state.mic ? "Stop" : "Listen";
   $("mic").setAttribute("aria-pressed", String(state.mic));
-  $("mic").disabled = sending;
-  $("say").querySelector("button").disabled = sending;
-  $("draft").disabled = sending;
-  $("fresh").disabled = !state.connected && !state.turns.length && !state.activity.length;
+  $("fresh").disabled = !state.connected && !state.turns.length;
   const view = derivePhase(state);
-  $("lamp").dataset.phase = view.phase;
-  $("phase").textContent = phaseLabel(view);
-  $("usage").textContent = state.usage == null ? "" : `${Number(state.usage).toLocaleString()} tokens`;
+  let label = phaseLabel(view);
+  if (!state.mic && !state.connecting && view.phase === "listening") label = "Not listening";
+  if (!state.connected && !state.connecting && !state.playing) label = "Not listening";
+  $("phase").textContent = label;
   const banner = $("banner");
   banner.hidden = !state.banner;
   banner.textContent = state.banner;
   banner.className = state.bannerTone === "warn" ? "banner warn" : "banner";
+  const question = $("question");
+  question.hidden = !state.question;
+  question.textContent = state.question;
   renderTranscript();
-  renderActivity();
 }
 
 function renderTranscript() {
   const list = $("transcript");
-  const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+  const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 48;
   list.replaceChildren();
-  if (!state.turns.length) {
-    const item = document.createElement("li");
-    item.append(h("p", "hint", "The desk is quiet. Send a line, or start talking."));
-    list.append(item);
-    return;
-  }
+  list.hidden = state.turns.length === 0;
   for (const turn of state.turns) {
     const item = document.createElement("li");
-    item.className = `bubble ${turn.role === "user" ? "user" : "model"}`;
-    const who = turn.role === "user" ? (turn.source === "speech" ? "You" : "You typed") : "Desk";
+    item.className = "bubble";
     const body = h("p");
-    const spoken = turn.text || "";
-    body.textContent = spoken;
-    if (turn.interim) {
-      const interim = h("span", "interim", `${spoken ? " " : ""}${turn.interim}`);
-      body.append(interim);
-    }
-    if (turn.interrupted) body.append(h("span", "interim", " Interrupted."));
-    item.append(h("p", "who", who), body);
+    body.textContent = turn.text || "";
+    if (turn.interim) body.append(h("span", "interim", `${turn.text ? " " : ""}${turn.interim}`));
+    item.append(h("p", "who", turn.role === "user" ? "You" : "Answer"), body);
     list.append(item);
   }
   if (nearBottom) list.scrollTop = list.scrollHeight;
-}
-
-function renderActivity() {
-  const list = $("activity");
-  list.replaceChildren();
-  if (!state.activity.length) {
-    list.append(h("li", "", "Nothing written yet."));
-    return;
-  }
-  for (const item of state.activity) {
-    const row = h("li", item.ok ? "" : "bad");
-    row.append(h("p", "", item.line));
-    if (item.result) {
-      const details = document.createElement("details");
-      const summary = document.createElement("summary");
-      summary.textContent = "Result";
-      const pre = document.createElement("pre");
-      pre.textContent = JSON.stringify(item.result, null, 2);
-      details.append(summary, pre);
-      row.append(details);
-    }
-    list.append(row);
-  }
 }
 
 function ensurePlayback() {
@@ -561,7 +479,7 @@ function ensurePlayback() {
   playback = createPlayback((playing) => {
     state.playing = playing;
     if (!playing) setMeter("out-meter", 0);
-    renderClerk();
+    renderVoice();
   });
   return playback;
 }
@@ -575,7 +493,7 @@ function setMeter(id, level) {
 function setBanner(message, tone = "error") {
   state.banner = message;
   state.bannerTone = tone;
-  renderClerk();
+  renderVoice();
 }
 
 function clearBanner() {

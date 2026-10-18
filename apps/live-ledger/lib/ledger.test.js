@@ -63,35 +63,94 @@ describe("dispatch", () => {
     expect(eur.pausedMonthly).toBe(11);
   });
 
-  test("refuses a duplicate subscription unless asked, and allows a canceled name again", () => {
+  test("asks before a duplicate subscription, then updates, adds, or leaves it", () => {
     let book = [];
-    book = dispatch(book, "record_subscription", { name: "Netflix", amount: 15.99, cadence: "monthly" }, ctx).book;
-    const clash = dispatch(book, "record_subscription", { name: "netflix", amount: 9, cadence: "monthly" }, ctx);
-    expect(clash.result.ok).toBe(false);
-    expect(clash.result.conflict).toBe(true);
-    expect(clash.book).toHaveLength(1);
-    const second = dispatch(book, "record_subscription", {
+    book = dispatch(book, "record_subscription", {
       name: "Netflix",
-      amount: 9,
+      amount: 15.99,
       cadence: "monthly",
-      allowDuplicate: true,
-    }, ctx);
+      category: "Video",
+      renewsOn: "2026-11-04",
+    }, ctx).book;
+    const held = dispatch(book, "record_subscription", { name: "netflix", amount: 19, cadence: "monthly" }, ctx);
+    expect(held.result.needsConfirmation).toBe(true);
+    expect(held.result.choices).toEqual(["update", "second", "leave"]);
+    expect(held.result.ask).toMatch(/Update it, add a second, or leave it/);
+    expect(held.book).toHaveLength(1);
+    expect(held.book[0].amount).toBe(15.99);
+
+    const left = dispatch(held.book, "confirm_duplicate", {
+      confirmationId: held.pending.id,
+      choice: "leave",
+    }, { ...ctx, pending: held.pending });
+    expect(left.result.action).toBe("left");
+    expect(left.book[0].amount).toBe(15.99);
+    expect(left.pending).toBeNull();
+
+    const updated = dispatch(held.book, "confirm_duplicate", {
+      confirmationId: held.pending.id,
+      choice: "update",
+    }, { ...ctx, pending: held.pending });
+    expect(updated.book[0].amount).toBe(19);
+    expect(updated.book[0].category).toBe("Video");
+    expect(updated.book[0].renewsOn).toBe("2026-11-04");
+
+    const again = dispatch(updated.book, "record_subscription", { name: "Netflix", amount: 9, cadence: "yearly" }, ctx);
+    const second = dispatch(again.book, "confirm_duplicate", {
+      confirmationId: again.pending.id,
+      choice: "second",
+    }, { ...ctx, pending: again.pending });
     expect(second.book).toHaveLength(2);
+
     let canceled = dispatch(book, "set_subscription_status", { name: "Netflix", status: "canceled" }, ctx).book;
     canceled = dispatch(canceled, "record_subscription", { name: "Netflix", amount: 16, cadence: "monthly" }, ctx).book;
     expect(canceled.filter((entry) => entry.status === "active")).toHaveLength(1);
   });
 
-  test("revises by name, renames with newName, and stops when two rows match", () => {
+  test("does not confirm a duplicate in the same batch", () => {
+    const book = dispatch([], "record_subscription", { name: "Netflix", amount: 15, cadence: "monthly" }, ctx).book;
+    const batch = dispatchAll(book, [
+      { id: "1", name: "record_subscription", args: { name: "Netflix", amount: 19, cadence: "monthly" } },
+      { id: "2", name: "confirm_duplicate", args: { confirmationId: "c0001", choice: "update" } },
+    ], ctx);
+    expect(batch.book).toHaveLength(1);
+    expect(batch.book[0].amount).toBe(15);
+    expect(batch.results[0].result.needsConfirmation).toBe(true);
+    expect(batch.results[1].result.error).toMatch(/wait/);
+    expect(batch.pending?.id).toBe(batch.results[0].result.confirmationId);
+  });
+
+  test("asks before recording the same one-time payment again", () => {
+    const book = dispatch([], "record_payment", { name: "Train ticket", amount: 80, paidOn: "2026-10-18" }, ctx).book;
+    const other = dispatch(book, "record_payment", { name: "Train ticket", amount: 12 }, ctx);
+    expect(other.result.ok).toBe(true);
+    const held = dispatch(book, "record_payment", { name: "train ticket", amount: 80 }, ctx);
+    expect(held.result.choices).toEqual(["another", "leave"]);
+    expect(held.book).toHaveLength(1);
+    const extra = dispatch(held.book, "confirm_duplicate", {
+      confirmationId: held.pending.id,
+      choice: "another",
+    }, { ...ctx, pending: held.pending });
+    expect(extra.book.filter((entry) => entry.amount === 80)).toHaveLength(2);
+  });
+
+  test("revises by name, renames with newName, and asks which duplicate", () => {
     let book = [];
     book = dispatch(book, "record_subscription", { name: "Netflix", amount: 15, cadence: "monthly" }, ctx).book;
     book = dispatch(book, "record_payment", { name: "Netflix", amount: 15, paidOn: "2026-10-01" }, ctx).book;
     const ambiguous = dispatch(book, "revise_entry", { name: "Netflix", amount: 18 }, ctx);
-    expect(ambiguous.result.ok).toBe(false);
-    expect(ambiguous.result.matches).toHaveLength(2);
+    expect(ambiguous.result.needsConfirmation).toBe(true);
+    expect(ambiguous.result.choices).toEqual(["use", "leave"]);
     expect(ambiguous.book[0].amount).toBe(15);
     const id = book.find((entry) => entry.kind === "subscription").id;
-    const revised = dispatch(book, "revise_entry", { id, newName: "Netflix Premium", amount: 22.5 }, ctx);
+    const chosen = dispatch(ambiguous.book, "confirm_duplicate", {
+      confirmationId: ambiguous.pending.id,
+      choice: "use",
+      entryId: id,
+    }, { ...ctx, pending: ambiguous.pending });
+    expect(chosen.book.find((entry) => entry.id === id).amount).toBe(18);
+    expect(chosen.book.find((entry) => entry.kind === "once").amount).toBe(15);
+    const revised = dispatch(chosen.book, "revise_entry", { id, newName: "Netflix Premium", amount: 22.5 }, ctx);
     expect(revised.result.line).toBe("Updated Netflix Premium to 22.50 USD a month.");
     expect(revised.book.find((entry) => entry.id === id).name).toBe("Netflix Premium");
   });

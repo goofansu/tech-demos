@@ -85,6 +85,6 @@ export function phaseLabel(view) {
   if (view.phase === "connecting") return "Starting…";
   if (view.phase === "listening") return "Listening";
   if (view.phase === "speaking") return "Speaking";
-  if (view.phase === "working") return "Writing the book";
+  if (view.phase === "working") return "Checking the book";
   return "Not connected";
 }

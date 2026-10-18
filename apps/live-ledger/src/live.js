@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { dispatchAll } from "../lib/ledger.js";
 import { interpret } from "../lib/messages.js";
 
-export function createLiveClient({ onEvent, onSocket, readBook, writeBook, context }) {
+export function createLiveClient({ onEvent, onSocket, readBook, writeBook, writePending, context }) {
   let session = null;
   let generation = 0;
   let scheduling = null;
@@ -86,6 +86,7 @@ export function createLiveClient({ onEvent, onSocket, readBook, writeBook, conte
       return;
     }
     writeBook(outcome.book);
+    writePending?.(outcome.pending ?? null);
     const responses = [];
     pending.forEach((item, index) => {
       const result = outcome.results[index]?.result || { ok: false, error: "The book did not answer." };
@@ -114,7 +115,7 @@ export function createLiveClient({ onEvent, onSocket, readBook, writeBook, conte
   }
 
   function requireSession() {
-    if (!session) throw new Error("Start talking, or send a line, first.");
+    if (!session) throw new Error("Tap Listen first.");
     return session;
   }
 
