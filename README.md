@@ -10,3 +10,4 @@ A collection of JavaScript demos.
 - [Fruit Primer](apps/jev-fruit-primer/) — Step through a live Noul, Choice, and Score request about fruit, and read what each field in the reply means.
 - [Speech studio](apps/gemini-speech/) — Direct Gemini 3.8 text-to-speech: styles, vocal tags, two-speaker scenes, streaming, and designed voices.
 - [Live stage](apps/gemini-live/) — Compare Gemini 3.8 Live with Extended Thinking: an open conversation, plus one page each for voice, tools, search, planning, and a photo.
+- [Live ledger](apps/live-ledger/) — Speak a subscription or a one-time payment to Gemini 3.8 Live. It records the book and asks before changing a duplicate.

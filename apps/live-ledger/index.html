@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Say a subscription or a one-time payment. Gemini Live records it and answers."
+    />
+    <title>Ledger</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#book">Skip to the book</a>
+    <header class="top">
+      <div>
+        <h1>Ledger</h1>
+        <p class="sub">Subscriptions and one-time payments, by voice.</p>
+      </div>
+      <p id="key">Checking…</p>
+    </header>
+
+    <main>
+      <section id="book" aria-labelledby="book-title">
+        <div class="book-head">
+          <h2 id="book-title">The book</h2>
+          <div id="filters" class="filters" role="radiogroup" aria-label="Show"></div>
+        </div>
+        <div id="stats"></div>
+        <section id="subs-section" aria-labelledby="subs-title">
+          <h3 id="subs-title">Subscriptions</h3>
+          <div id="subs"></div>
+        </section>
+        <section id="once-section" aria-labelledby="once-title">
+          <h3 id="once-title">Paid once</h3>
+          <div id="once"></div>
+        </section>
+        <p id="book-live" class="sr" aria-live="polite"></p>
+        <button type="button" id="erase" hidden>Clear this browser</button>
+      </section>
+
+      <section class="voice" aria-label="Voice">
+        <div class="voice-bar">
+        <p id="question" hidden></p>
+        <div class="listen-row">
+          <button type="button" id="mic" aria-pressed="false">Listen</button>
+          <div class="listen-meta">
+            <p id="phase" aria-live="polite">Not listening</p>
+          </div>
+        </div>
+        </div>
+        <p id="banner" class="banner" role="status" hidden></p>
+        <ol id="transcript" aria-live="polite" hidden></ol>
+        <details id="session">
+          <summary>Session</summary>
+          <div id="models" class="models" role="radiogroup" aria-label="Model"></div>
+          <fieldset id="thinking-field">
+            <legend>Thinking</legend>
+            <div id="thinking" class="segment" role="radiogroup" aria-label="Thinking level"></div>
+          </fieldset>
+          <label class="field">
+            Voice
+            <select id="voice"></select>
+          </label>
+          <button type="button" id="fresh">New conversation</button>
+          <p class="hint">Headphones keep the microphone from hearing the answer.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>
+        <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live">Gemini 3.8 Live</a>
+      </p>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
